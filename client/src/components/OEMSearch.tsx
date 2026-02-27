@@ -3,25 +3,13 @@
   Design: Industrial Precision - Dark search bar with orange accent
 */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { useLocation } from "wouter";
 import SearchAutocomplete from "./SearchAutocomplete";
 import { AutocompleteSuggestion } from "@/lib/autocomplete";
 import { trpc } from "@/lib/trpc";
-import { toDisplayProduct } from "@/lib/contentProducts";
 import { asString, useTemplateBackedPageContent } from "@/lib/pageContent";
-import { useI18n } from "@/contexts/I18nContext";
-import {
-  getProductTranslationKey,
-  localizeDisplayProduct,
-  PRODUCT_CONTENT_TRANSLATION_SECTION,
-} from "@/lib/contentLocalization";
-import {
-  parseProductTaxonomy,
-  PRODUCT_TAXONOMY_SETTING_KEY,
-} from "@/lib/productTaxonomy";
-import { useMemo } from "react";
 
 type OEMSearchMetadata = {
   tag: string;
@@ -38,43 +26,20 @@ type OEMSearchMetadata = {
 
 export default function OEMSearch() {
   const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [, navigate] = useLocation();
-  const { language } = useI18n();
-  const { data: products = [] } = trpc.content.products.list.useQuery();
-  const { data: publicSettings = [] } = trpc.content.settings.list.useQuery(
-    undefined,
-    { enabled: language === "en" },
-  );
-  const { data: enProductTranslations = {} } =
-    trpc.i18n.getSectionTranslations.useQuery(
-      {
-        language: "en",
-        section: PRODUCT_CONTENT_TRANSLATION_SECTION,
-      },
-      {
-        enabled: language === "en",
-      },
-    );
-  const taxonomy = useMemo(() => {
-    const setting = publicSettings.find(
-      (item) => item.key === PRODUCT_TAXONOMY_SETTING_KEY,
-    );
-    return parseProductTaxonomy(setting?.parsedValue);
-  }, [publicSettings]);
-  const displayProducts = useMemo(
-    () =>
-      products.map((product) => {
-        const base = toDisplayProduct(product);
-        return localizeDisplayProduct(
-          base,
-          language,
-          enProductTranslations[getProductTranslationKey(product.id)],
-          taxonomy,
-        );
-      }),
-    [products, language, enProductTranslations, taxonomy],
+  const { data: suggestions = [] } = trpc.content.products.autocomplete.useQuery(
+    { query: debouncedQuery, limit: 8 },
+    { enabled: debouncedQuery.trim().length > 0 },
   );
   const { metadata } = useTemplateBackedPageContent<OEMSearchMetadata>("home.oemSearch");
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setDebouncedQuery(query.trim());
+    }, 180);
+    return () => window.clearTimeout(timer);
+  }, [query]);
 
   const handleSearch = (searchQuery: string) => {
     if (searchQuery.trim()) {
@@ -104,7 +69,7 @@ export default function OEMSearch() {
 
           <div className="flex-1 flex items-center gap-0 w-full md:w-auto">
             <SearchAutocomplete
-              products={displayProducts}
+              suggestions={suggestions}
               value={query}
               onChange={setQuery}
               onSelect={handleSelectSuggestion}

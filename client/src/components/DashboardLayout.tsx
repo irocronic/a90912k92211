@@ -26,6 +26,7 @@ import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
+import { isContentEditorRole, isSuperAdminRole } from "@shared/adminRoles";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Page 1", path: "/" },
@@ -37,6 +38,36 @@ const DEFAULT_WIDTH = 280;
 const MIN_WIDTH = 200;
 const MAX_WIDTH = 480;
 
+function getUserTypeLabel(role: unknown): string {
+  if (typeof role !== "string") return "-";
+
+  const normalizedRole = role.trim().toLowerCase().replace(/[\s-]+/g, "_");
+
+  if (isSuperAdminRole(normalizedRole)) return "Admin - Super Admin";
+  if (
+    isContentEditorRole(normalizedRole) ||
+    normalizedRole === "editor" ||
+    normalizedRole === "contenteditor"
+  ) {
+    return "Admin - Content Editor";
+  }
+  if (normalizedRole === "user") return "User";
+  if (normalizedRole.length > 0) return role;
+  return "-";
+}
+
+function getUserRoleValue(user: unknown): unknown {
+  if (!user || typeof user !== "object") return undefined;
+  const candidate = user as Record<string, unknown>;
+  return (
+    candidate.role ??
+    candidate.userRole ??
+    candidate.user_type ??
+    candidate.userType ??
+    candidate.type
+  );
+}
+
 export default function DashboardLayout({
   children,
 }: {
@@ -46,7 +77,7 @@ export default function DashboardLayout({
     const saved = localStorage.getItem(SIDEBAR_WIDTH_KEY);
     return saved ? parseInt(saved, 10) : DEFAULT_WIDTH;
   });
-  const { loading, user } = useAuth();
+  const { loading, user, logout } = useAuth();
 
   useEffect(() => {
     localStorage.setItem(SIDEBAR_WIDTH_KEY, sidebarWidth.toString());
@@ -98,23 +129,36 @@ export default function DashboardLayout({
         } as CSSProperties
       }
     >
-      <DashboardLayoutContent setSidebarWidth={setSidebarWidth}>
+      <DashboardLayoutContent
+        setSidebarWidth={setSidebarWidth}
+        user={user}
+        logout={logout}
+      >
         {children}
       </DashboardLayoutContent>
     </SidebarProvider>
   );
 }
 
+type DashboardUser = {
+  name?: string | null;
+  email?: string | null;
+  role?: unknown;
+};
+
 type DashboardLayoutContentProps = {
   children: React.ReactNode;
   setSidebarWidth: (width: number) => void;
+  user: DashboardUser;
+  logout: () => Promise<void>;
 };
 
 function DashboardLayoutContent({
   children,
   setSidebarWidth,
+  user,
+  logout,
 }: DashboardLayoutContentProps) {
-  const { user, logout } = useAuth();
   const [location, setLocation] = useLocation();
   const { state, toggleSidebar } = useSidebar();
   const isCollapsed = state === "collapsed";
@@ -221,6 +265,9 @@ function DashboardLayoutContent({
                   <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
                     <p className="text-sm font-medium truncate leading-none">
                       {user?.name || "-"}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate mt-1">
+                      {getUserTypeLabel(getUserRoleValue(user))}
                     </p>
                     <p className="text-xs text-muted-foreground truncate mt-1.5">
                       {user?.email || "-"}

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { trpc } from "@/lib/trpc";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,7 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Loader2, Plus } from "lucide-react";
+import { History, Loader2, Plus, RotateCcw, Upload } from "lucide-react";
 import { toast } from "sonner";
 import PageContentPreview from "./PageContentPreview";
 import {
@@ -111,11 +112,31 @@ function parseEnglishOverride(
   }
 }
 
+function formatDateTime(value: Date | string | null | undefined): string {
+  if (!value) return "-";
+  const parsed = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "-";
+  return parsed.toLocaleString("tr-TR");
+}
+
+function statusLabel(status: "draft" | "published" | "archived") {
+  if (status === "draft") return "Taslak";
+  if (status === "published") return "Yayında";
+  return "Arşiv";
+}
+
+function statusVariant(status: "draft" | "published" | "archived") {
+  if (status === "published") return "default" as const;
+  if (status === "draft") return "secondary" as const;
+  return "outline" as const;
+}
+
 export default function AdminContent() {
   const [selectedSection, setSelectedSection] = useState("");
   const [newSection, setNewSection] = useState("");
   const [formData, setFormData] = useState<FormState>(EMPTY_FORM);
   const [editingLanguage, setEditingLanguage] = useState<EditingLanguage>("tr");
+  const [rollbackRevisionId, setRollbackRevisionId] = useState<string | null>(null);
 
   const {
     data: sections = [],
@@ -123,7 +144,20 @@ export default function AdminContent() {
     refetch,
   } = trpc.admin.pageContent.list.useQuery();
   const updateMutation = trpc.admin.pageContent.update.useMutation();
+  const publishMutation = trpc.admin.pageContent.publish.useMutation();
+  const rollbackMutation = trpc.admin.pageContent.rollback.useMutation();
   const deleteMutation = trpc.admin.pageContent.delete.useMutation();
+
+  const {
+    data: revisions = [],
+    isLoading: revisionsLoading,
+    refetch: refetchRevisions,
+  } = trpc.admin.pageContent.revisions.useQuery(
+    { section: selectedSection, limit: 30 },
+    {
+      enabled: editingLanguage === "tr" && Boolean(selectedSection),
+    },
+  );
 
   const {
     data: englishPageContentTranslations = {},
@@ -152,6 +186,11 @@ export default function AdminContent() {
     }
   }, [selectedSection, sectionNames]);
 
+  const selectedSectionItem = useMemo(
+    () => sections.find((item) => item.section === selectedSection),
+    [sections, selectedSection],
+  );
+
   const selectedTranslationKey = useMemo(
     () => getPageContentTranslationKey(selectedSection),
     [selectedSection],
@@ -172,13 +211,13 @@ export default function AdminContent() {
   useEffect(() => {
     if (!selectedSection) return;
 
-    const current = sections.find((item) => item.section === selectedSection);
-    const baseForm: FormState = current
+    const trSource = selectedSectionItem?.draft ?? selectedSectionItem?.published;
+    const baseForm: FormState = trSource
       ? {
-          title: current.title || "",
-          content: current.content || "",
-          imageUrl: current.imageUrl || "",
-          metadata: normalizeMetadata(current.metadata),
+          title: trSource.title || "",
+          content: trSource.content || "",
+          imageUrl: trSource.imageUrl || "",
+          metadata: normalizeMetadata(trSource.metadata),
         }
       : formFromTemplate(selectedSection);
 
@@ -196,11 +235,21 @@ export default function AdminContent() {
       selectedEnglishOverride,
     );
     setFormData(withStoredEnglish);
-  }, [sections, selectedSection, editingLanguage, selectedEnglishOverride]);
+  }, [
+    selectedSection,
+    selectedSectionItem,
+    editingLanguage,
+    selectedEnglishOverride,
+  ]);
 
-  const currentSectionExists = sections.some(
-    (item) => item.section === selectedSection,
+  const currentSectionExists = Boolean(
+    selectedSectionItem?.published ||
+      selectedSectionItem?.draft ||
+      selectedSectionItem?.latestPublishedRevision,
   );
+
+  const currentDraft = selectedSectionItem?.draft ?? null;
+  const currentPublishedRevision = selectedSectionItem?.latestPublishedRevision ?? null;
 
   const handleCreateSection = () => {
     const section = newSection.trim();
@@ -259,10 +308,63 @@ export default function AdminContent() {
         imageUrl: formData.imageUrl || undefined,
         metadata: parsedMetadata,
       });
-      toast.success("İçerik kaydedildi");
-      await refetch();
+      toast.success("Taslak kaydedildi");
+      await Promise.all([refetch(), refetchRevisions()]);
     } catch {
-      toast.error("İçerik kaydedilemedi");
+      toast.error("Taslak kaydedilemedi");
+    }
+  };
+
+  const handlePublish = async () => {
+    const section = selectedSection.trim();
+    if (!section) {
+      toast.error("Bölüm seçin");
+      return;
+    }
+
+    if (!formData.content.trim()) {
+      toast.error("İçerik boş olamaz");
+      return;
+    }
+
+    try {
+      const parsedMetadata =
+        Object.keys(formData.metadata).length > 0 ? formData.metadata : undefined;
+
+      await updateMutation.mutateAsync({
+        section,
+        title: formData.title || undefined,
+        content: formData.content,
+        imageUrl: formData.imageUrl || undefined,
+        metadata: parsedMetadata,
+      });
+
+      await publishMutation.mutateAsync({ section });
+      toast.success("İçerik yayınlandı");
+      await Promise.all([refetch(), refetchRevisions()]);
+    } catch {
+      toast.error("Yayınlama başarısız");
+    }
+  };
+
+  const handleRollback = async (revisionId: string, revisionNumber: number) => {
+    const section = selectedSection.trim();
+    if (!section) return;
+
+    const approved = window.confirm(
+      `r${revisionNumber} revizyonuna geri dönmek istiyor musunuz? Bu işlem içeriği anında yayınlar.`,
+    );
+    if (!approved) return;
+
+    try {
+      setRollbackRevisionId(revisionId);
+      await rollbackMutation.mutateAsync({ section, revisionId });
+      toast.success(`r${revisionNumber} revizyonuna geri alındı`);
+      await Promise.all([refetch(), refetchRevisions()]);
+    } catch {
+      toast.error("Rollback başarısız");
+    } finally {
+      setRollbackRevisionId(null);
     }
   };
 
@@ -301,7 +403,7 @@ export default function AdminContent() {
     }
 
     const approved = window.confirm(
-      `"${section}" bölümünü silmek istiyor musunuz?`,
+      `"${section}" bölümünü (yayın + revizyonlar) silmek istiyor musunuz?`,
     );
     if (!approved) return;
 
@@ -409,7 +511,7 @@ export default function AdminContent() {
               <p className="text-sm font-semibold">Düzenleme Dili</p>
               <p className="text-xs text-muted-foreground">
                 {editingLanguage === "tr"
-                  ? "TR kayıtları canlı içeriğin ana kaynağını günceller."
+                  ? "TR akışında kaydetme taslak oluşturur, yayınlama ayrı aksiyondur."
                   : "EN modunda sadece English override kaydedilir ve canlı EN görünümünü etkiler."}
               </p>
             </div>
@@ -433,6 +535,66 @@ export default function AdminContent() {
             </div>
           </CardContent>
         </Card>
+
+        {editingLanguage === "tr" ? (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Yayın Yönetimi</CardTitle>
+              <CardDescription>
+                Taslağı kaydetmek için "Kaydet", canlıya almak için "Yayınla" kullanın.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+                <div className="rounded-md border p-3">
+                  <p className="text-muted-foreground mb-1">Aktif Taslak</p>
+                  {currentDraft ? (
+                    <>
+                      <p className="font-medium">r{currentDraft.revisionNumber}</p>
+                      <p className="text-muted-foreground">
+                        {formatDateTime(currentDraft.updatedAt)}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-muted-foreground">Taslak yok</p>
+                  )}
+                </div>
+                <div className="rounded-md border p-3">
+                  <p className="text-muted-foreground mb-1">Yayındaki Revizyon</p>
+                  {currentPublishedRevision ? (
+                    <>
+                      <p className="font-medium">r{currentPublishedRevision.revisionNumber}</p>
+                      <p className="text-muted-foreground">
+                        {formatDateTime(currentPublishedRevision.publishedAt)}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-muted-foreground">Yayın kaydı yok</p>
+                  )}
+                </div>
+              </div>
+
+              <Button
+                type="button"
+                onClick={handlePublish}
+                disabled={publishMutation.isPending || updateMutation.isPending}
+                className="w-full"
+              >
+                {publishMutation.isPending || updateMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Yayınlanıyor...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Yayınla
+                  </>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+        ) : null}
 
         <PageContentPreview
           section={selectedSection}
@@ -458,6 +620,81 @@ export default function AdminContent() {
           deletePending={previewDeletePending}
           canDelete={previewCanDelete}
         />
+
+        {editingLanguage === "tr" ? (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <History className="w-4 h-4" />
+                Revizyon Geçmişi
+              </CardTitle>
+              <CardDescription>
+                İstediğiniz revizyona geri alabilirsiniz. Rollback işlemi seçili revizyonu canlıya yayınlar.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {revisionsLoading ? (
+                <div className="flex justify-center py-4">
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                </div>
+              ) : revisions.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Henüz revizyon kaydı yok</p>
+              ) : (
+                <div className="space-y-2 max-h-[320px] overflow-auto">
+                  {revisions.map((revision) => (
+                    <div
+                      key={revision.id}
+                      className="rounded-md border p-3 flex flex-wrap items-center justify-between gap-3"
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-semibold">r{revision.revisionNumber}</p>
+                          <Badge variant={statusVariant(revision.status)}>
+                            {statusLabel(revision.status)}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {formatDateTime(revision.updatedAt)}
+                        </p>
+                        {revision.rolledBackFromRevisionId ? (
+                          <p className="text-xs text-muted-foreground">
+                            Rollback kaynağı: {revision.rolledBackFromRevisionId}
+                          </p>
+                        ) : null}
+                      </div>
+
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() =>
+                          handleRollback(revision.id, revision.revisionNumber)
+                        }
+                        disabled={
+                          rollbackMutation.isPending ||
+                          revision.id === currentPublishedRevision?.id
+                        }
+                      >
+                        {rollbackMutation.isPending &&
+                        rollbackRevisionId === revision.id ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Uygulanıyor...
+                          </>
+                        ) : (
+                          <>
+                            <RotateCcw className="w-4 h-4 mr-2" />
+                            Rollback
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        ) : null}
       </div>
     </div>
   );

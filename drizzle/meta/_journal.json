@@ -15,6 +15,27 @@
       "when": 1772147955289,
       "tag": "0001_clever_ironclad",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1772151275523,
+      "tag": "0002_calm_spyke",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1772152640511,
+      "tag": "0003_illegal_master_mold",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1772153417541,
+      "tag": "0004_unusual_fenris",
+      "breakpoints": true
     }
   ]
 }

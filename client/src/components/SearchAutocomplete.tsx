@@ -12,7 +12,8 @@ import {
 import type { DisplayProduct } from "@/lib/contentProducts";
 
 interface SearchAutocompleteProps {
-  products: DisplayProduct[];
+  products?: DisplayProduct[];
+  suggestions?: AutocompleteSuggestion[];
   value: string;
   onChange: (value: string) => void;
   onSelect: (suggestion: AutocompleteSuggestion) => void;
@@ -27,6 +28,7 @@ interface SearchAutocompleteProps {
 
 export default function SearchAutocomplete({
   products,
+  suggestions: externalSuggestions,
   value,
   onChange,
   onSelect,
@@ -42,16 +44,31 @@ export default function SearchAutocomplete({
 
   // Generate suggestions when input changes
   useEffect(() => {
-    if (value.trim()) {
-      const newSuggestions = getAutocompleteSuggestions(products, value, 8);
-      setSuggestions(newSuggestions);
-      setIsOpen(newSuggestions.length > 0);
-      setSelectedIndex(-1);
-    } else {
+    if (!value.trim()) {
       setSuggestions([]);
       setIsOpen(false);
+      return;
     }
-  }, [products, value]);
+
+    if (externalSuggestions) {
+      const nextSuggestions = externalSuggestions.slice(0, 8);
+      setSuggestions(nextSuggestions);
+      setIsOpen(nextSuggestions.length > 0);
+      setSelectedIndex(-1);
+      return;
+    }
+
+    if (!products || products.length === 0) {
+      setSuggestions([]);
+      setIsOpen(false);
+      return;
+    }
+
+    const nextSuggestions = getAutocompleteSuggestions(products, value, 8);
+    setSuggestions(nextSuggestions);
+    setIsOpen(nextSuggestions.length > 0);
+    setSelectedIndex(-1);
+  }, [externalSuggestions, products, value]);
 
   // Handle click outside
   useEffect(() => {

@@ -214,7 +214,6 @@ class SDKServer {
     cookieValue: string | undefined | null
   ): Promise<{ openId: string; appId: string; name: string } | null> {
     if (!cookieValue) {
-      console.warn("[Auth] Missing session cookie");
       return null;
     }
 
@@ -225,19 +224,25 @@ class SDKServer {
       });
       const { openId, appId, name } = payload as Record<string, unknown>;
 
+      if (!isNonEmptyString(openId)) {
+        console.warn("[Auth] Session payload missing openId");
+        return null;
+      }
+
+      const resolvedAppId = isNonEmptyString(appId) ? appId : ENV.appId;
       if (
-        !isNonEmptyString(openId) ||
-        !isNonEmptyString(appId) ||
-        !isNonEmptyString(name)
+        isNonEmptyString(appId) &&
+        ENV.appId &&
+        appId !== ENV.appId
       ) {
-        console.warn("[Auth] Session payload missing required fields");
+        console.warn("[Auth] Session appId mismatch");
         return null;
       }
 
       return {
         openId,
-        appId,
-        name,
+        appId: resolvedAppId || "",
+        name: typeof name === "string" ? name : "",
       };
     } catch (error) {
       console.warn("[Auth] Session verification failed", String(error));

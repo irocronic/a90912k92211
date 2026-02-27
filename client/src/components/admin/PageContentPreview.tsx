@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { trpc } from "@/lib/trpc";
+import { sanitizeHtml } from "@shared/htmlSanitizer";
 import { toast } from "sonner";
 
 type JsonRecord = Record<string, unknown>;
@@ -168,7 +169,7 @@ function renderHtml(value: string, className: string) {
   return (
     <div
       className={cn("prose prose-sm max-w-none dark:prose-invert", className)}
-      dangerouslySetInnerHTML={{ __html: value }}
+      dangerouslySetInnerHTML={{ __html: sanitizeHtml(value) }}
     />
   );
 }
@@ -297,7 +298,7 @@ export default function PageContentPreview(props: PageContentPreviewProps) {
             onInput={(e) =>
               setMetadataAtPath(path, (e.currentTarget as HTMLDivElement).innerHTML)
             }
-            dangerouslySetInnerHTML={{ __html: value }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(value) }}
           />
         );
       }
@@ -592,7 +593,7 @@ export default function PageContentPreview(props: PageContentPreviewProps) {
                 contentEditable
                 suppressContentEditableWarning
                 onInput={(e) => props.onContentChange((e.currentTarget as HTMLDivElement).innerHTML)}
-                dangerouslySetInnerHTML={{ __html: props.content }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(props.content) }}
               />
             ) : (
               <Textarea

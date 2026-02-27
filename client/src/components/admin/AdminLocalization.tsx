@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,6 +28,7 @@ const DEFAULT_SECTIONS = [
   "footer",
   "admin",
 ];
+const PAGE_SIZE = 50;
 
 export default function AdminLocalization() {
   const { language, setLanguage } = useI18n();
@@ -37,6 +38,7 @@ export default function AdminLocalization() {
   const [editingEntry, setEditingEntry] = useState<TranslationEntry | null>(null);
   const [sectionFilter, setSectionFilter] = useState("all");
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
   const [formData, setFormData] = useState({
     key: "",
     section: "common",
@@ -47,15 +49,31 @@ export default function AdminLocalization() {
   const queryInput = {
     section: sectionFilter === "all" ? undefined : sectionFilter,
     search: search.trim() || undefined,
+    page,
+    pageSize: PAGE_SIZE,
   };
 
   const {
-    data: entries = [],
+    data: entriesResponse,
     isLoading,
     refetch,
   } = trpc.i18n.listTranslationEntries.useQuery(queryInput);
   const updateMutation = trpc.i18n.updateTranslation.useMutation();
   const deleteMutation = trpc.i18n.deleteTranslation.useMutation();
+  const entries = entriesResponse?.items ?? [];
+  const totalEntries = entriesResponse?.total ?? 0;
+  const totalPages = entriesResponse?.totalPages ?? 0;
+  const currentPage = entriesResponse?.page ?? page;
+
+  useEffect(() => {
+    setPage(1);
+  }, [sectionFilter, search]);
+
+  useEffect(() => {
+    if (!entriesResponse) return;
+    if (entriesResponse.page === page) return;
+    setPage(entriesResponse.page);
+  }, [entriesResponse, page]);
 
   const sections = useMemo(() => {
     const set = new Set<string>(DEFAULT_SECTIONS);
@@ -298,7 +316,7 @@ export default function AdminLocalization() {
             </Select>
 
             <div className="text-sm text-muted-foreground flex items-center justify-start md:justify-end">
-              Toplam {entries.length} kayıt
+              Toplam {totalEntries} kayıt
             </div>
           </div>
 
@@ -311,44 +329,76 @@ export default function AdminLocalization() {
               Kayıt bulunamadı.
             </div>
           ) : (
-            <div className="space-y-2">
-              {entries.map((entry) => (
-                <div
-                  key={`${entry.section}-${entry.key}`}
-                  className="border rounded-md p-3 space-y-2"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="font-mono text-xs text-muted-foreground">{entry.section}</div>
-                      <div className="font-medium break-all">{entry.key}</div>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                {entries.map((entry) => (
+                  <div
+                    key={`${entry.section}-${entry.key}`}
+                    className="border rounded-md p-3 space-y-2"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="font-mono text-xs text-muted-foreground">{entry.section}</div>
+                        <div className="font-medium break-all">{entry.key}</div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button variant="outline" size="sm" onClick={() => handleEdit(entry)}>
+                          <Edit2 className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDelete(entry)}
+                          disabled={deleteMutation.isPending}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm" onClick={() => handleEdit(entry)}>
-                        <Edit2 className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDelete(entry)}
-                        disabled={deleteMutation.isPending}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                    <div className="bg-muted/40 rounded p-2">
-                      <div className="text-xs text-muted-foreground mb-1">TR</div>
-                      <div className="break-words">{entry.value_tr || "-"}</div>
-                    </div>
-                    <div className="bg-muted/40 rounded p-2">
-                      <div className="text-xs text-muted-foreground mb-1">EN</div>
-                      <div className="break-words">{entry.value_en || "-"}</div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                      <div className="bg-muted/40 rounded p-2">
+                        <div className="text-xs text-muted-foreground mb-1">TR</div>
+                        <div className="break-words">{entry.value_tr || "-"}</div>
+                      </div>
+                      <div className="bg-muted/40 rounded p-2">
+                        <div className="text-xs text-muted-foreground mb-1">EN</div>
+                        <div className="break-words">{entry.value_en || "-"}</div>
+                      </div>
                     </div>
                   </div>
+                ))}
+              </div>
+
+              {totalPages > 1 ? (
+                <div className="flex items-center justify-end gap-2">
+                  <span className="text-xs text-muted-foreground mr-2">
+                    Sayfa {currentPage} / {totalPages}
+                  </span>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                    disabled={currentPage <= 1}
+                  >
+                    Önceki
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      setPage((prev) =>
+                        Math.min(totalPages || prev, prev + 1),
+                      )
+                    }
+                    disabled={currentPage >= totalPages}
+                  >
+                    Sonraki
+                  </Button>
                 </div>
-              ))}
+              ) : null}
             </div>
           )}
         </CardContent>

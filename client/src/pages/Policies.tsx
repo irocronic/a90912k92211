@@ -9,6 +9,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { ChevronDown } from "lucide-react";
 import { asRecordArray, asString, useTemplateBackedPageContent } from "@/lib/pageContent";
+import { sanitizeHtml } from "@shared/htmlSanitizer";
 
 type PoliciesMetadata = {
   pageTitle: string;
@@ -102,7 +103,7 @@ export default function Policies() {
                   <div
                     className="prose prose-invert max-w-none text-[var(--vaden-text-muted)] font-['Inter'] text-sm leading-relaxed"
                     dangerouslySetInnerHTML={{
-                      __html: asString(policy.content)
+                      __html: sanitizeHtml(asString(policy.content))
                         .replace(
                           /<h3>/g,
                           '<h3 class="font-bold text-[var(--vaden-on-surface)] mt-6 mb-3 uppercase">',

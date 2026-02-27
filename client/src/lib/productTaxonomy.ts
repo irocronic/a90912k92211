@@ -1,3 +1,5 @@
+import { PRODUCT_TAXONOMY_SETTING_KEY } from "@shared/const";
+
 type LanguageCode = "tr" | "en";
 
 export type ProductTaxonomySubcategory = {
@@ -15,7 +17,7 @@ export type ProductTaxonomyCategory = {
 
 export type ProductTaxonomy = ProductTaxonomyCategory[];
 
-export const PRODUCT_TAXONOMY_SETTING_KEY = "product_taxonomy";
+export { PRODUCT_TAXONOMY_SETTING_KEY };
 
 const DEFAULT_PRODUCT_TAXONOMY: ProductTaxonomy = [
   {

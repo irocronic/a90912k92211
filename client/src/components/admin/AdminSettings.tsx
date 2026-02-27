@@ -3,6 +3,7 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { PUBLIC_SETTING_PREFIX } from "@shared/const";
 import { Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
 
@@ -76,6 +77,10 @@ export default function AdminSettings() {
       toast.error("Ayar anahtarı boş olamaz");
       return;
     }
+    if (!key.startsWith(PUBLIC_SETTING_PREFIX)) {
+      toast.error(`Yeni anahtarlar ${PUBLIC_SETTING_PREFIX} ile başlamalı`);
+      return;
+    }
     if (settingDefinitions.some((item) => item.key === key)) {
       toast.error("Bu anahtar zaten mevcut");
       return;
@@ -104,13 +109,16 @@ export default function AdminSettings() {
             <Input
               value={newSettingKey}
               onChange={(e) => setNewSettingKey(e.target.value)}
-              placeholder="Yeni ayar anahtarı (ör. homepage_tagline)"
+              placeholder={`Yeni public ayar anahtarı (ör. ${PUBLIC_SETTING_PREFIX}homepage_tagline)`}
             />
             <Button type="button" variant="outline" onClick={handleAddSetting}>
               <Plus className="w-4 h-4 mr-2" />
               Alan Ekle
             </Button>
           </div>
+          <p className="text-xs text-muted-foreground">
+            Güvenlik için yeni ayarlar yalnızca <code>{PUBLIC_SETTING_PREFIX}</code> önekiyle oluşturulur.
+          </p>
 
           {settingDefinitions.map((setting) => (
             <div key={setting.key} className="flex gap-2 items-end">

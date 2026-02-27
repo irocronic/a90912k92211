@@ -1,4 +1,4 @@
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLocation } from "wouter";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -7,6 +7,8 @@ import AdminArticles from "@/components/admin/AdminArticles";
 import AdminContent from "@/components/admin/AdminContent";
 import AdminSettings from "@/components/admin/AdminSettings";
 import AdminLocalization from "@/components/admin/AdminLocalization";
+import AdminAuditLogs from "@/components/admin/AdminAuditLogs";
+import AdminUsers from "@/components/admin/AdminUsers";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -18,6 +20,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  hasAdminPermission,
+  isAdminRole,
+  isSuperAdminRole,
+} from "@shared/adminRoles";
 
 export default function Admin() {
   const { user, loading, refresh } = useAuth();
@@ -27,6 +34,44 @@ export default function Admin() {
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const availableTabs = useMemo(() => {
+    if (!user || !isAdminRole(user.role)) return [];
+
+    const role = user.role;
+    const tabs: Array<{ key: string; label: string }> = [];
+
+    if (hasAdminPermission(role, "products:write")) {
+      tabs.push({ key: "products", label: "Ürünler" });
+    }
+    if (hasAdminPermission(role, "articles:write")) {
+      tabs.push({ key: "articles", label: "Haberler" });
+    }
+    if (hasAdminPermission(role, "content:write")) {
+      tabs.push({ key: "content", label: "İçerik" });
+    }
+    if (hasAdminPermission(role, "settings:write")) {
+      tabs.push({ key: "settings", label: "Ayarlar" });
+    }
+    if (hasAdminPermission(role, "localization:write")) {
+      tabs.push({ key: "localization", label: "Dil & Tema" });
+    }
+    if (isSuperAdminRole(role)) {
+      tabs.push({ key: "users", label: "Kullanıcılar" });
+      tabs.push({ key: "audit", label: "Audit Log" });
+    }
+
+    return tabs;
+  }, [user]);
+  const hasTab = (key: string) => availableTabs.some((tab) => tab.key === key);
+
+  useEffect(() => {
+    if (availableTabs.length === 0) return;
+    const hasActive = availableTabs.some((tab) => tab.key === activeTab);
+    if (!hasActive) {
+      setActiveTab(availableTabs[0].key);
+    }
+  }, [availableTabs, activeTab]);
 
   const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -70,7 +115,7 @@ export default function Admin() {
     return <div className="flex items-center justify-center min-h-screen">Yükleniyor...</div>;
   }
 
-  if (user?.role !== "admin") {
+  if (!user || !isAdminRole(user.role)) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-[oklch(0.10_0.01_250)]">
         <Card className="w-full max-w-md">
@@ -137,33 +182,60 @@ export default function Admin() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="products">Ürünler</TabsTrigger>
-            <TabsTrigger value="articles">Haberler</TabsTrigger>
-            <TabsTrigger value="content">İçerik</TabsTrigger>
-            <TabsTrigger value="settings">Ayarlar</TabsTrigger>
-            <TabsTrigger value="localization">Dil & Tema</TabsTrigger>
+          <TabsList
+            className="grid w-full"
+            style={{
+              gridTemplateColumns: `repeat(${Math.max(1, availableTabs.length)}, minmax(0, 1fr))`,
+            }}
+          >
+            {availableTabs.map((tab) => (
+              <TabsTrigger key={tab.key} value={tab.key}>
+                {tab.label}
+              </TabsTrigger>
+            ))}
           </TabsList>
 
-          <TabsContent value="products" className="space-y-4">
-            <AdminProducts />
-          </TabsContent>
+          {hasTab("products") ? (
+            <TabsContent value="products" className="space-y-4">
+              <AdminProducts />
+            </TabsContent>
+          ) : null}
 
-          <TabsContent value="articles" className="space-y-4">
-            <AdminArticles />
-          </TabsContent>
+          {hasTab("articles") ? (
+            <TabsContent value="articles" className="space-y-4">
+              <AdminArticles />
+            </TabsContent>
+          ) : null}
 
-          <TabsContent value="content" className="space-y-4">
-            <AdminContent />
-          </TabsContent>
+          {hasTab("content") ? (
+            <TabsContent value="content" className="space-y-4">
+              <AdminContent />
+            </TabsContent>
+          ) : null}
 
-          <TabsContent value="settings" className="space-y-4">
-            <AdminSettings />
-          </TabsContent>
+          {hasTab("settings") ? (
+            <TabsContent value="settings" className="space-y-4">
+              <AdminSettings />
+            </TabsContent>
+          ) : null}
 
-          <TabsContent value="localization" className="space-y-4">
-            <AdminLocalization />
-          </TabsContent>
+          {hasTab("localization") ? (
+            <TabsContent value="localization" className="space-y-4">
+              <AdminLocalization />
+            </TabsContent>
+          ) : null}
+
+          {hasTab("users") ? (
+            <TabsContent value="users" className="space-y-4">
+              <AdminUsers />
+            </TabsContent>
+          ) : null}
+
+          {hasTab("audit") ? (
+            <TabsContent value="audit" className="space-y-4">
+              <AdminAuditLogs />
+            </TabsContent>
+          ) : null}
         </Tabs>
       </div>
     </DashboardLayout>

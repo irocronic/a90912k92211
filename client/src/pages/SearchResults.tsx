@@ -5,8 +5,7 @@
 
 import { useLocation } from "wouter";
 import { ChevronRight, AlertCircle, Loader2 } from "lucide-react";
-import { useState, useMemo, useEffect } from "react";
-import { searchProducts } from "@/lib/search";
+import { useState, useMemo, useEffect, type RefObject } from "react";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
@@ -39,7 +38,11 @@ type SearchResultsMetadata = {
   noResultsBackHome: string;
   filtersTitle: string;
   categoryTitle: string;
+  subcategoryTitle: string;
+  manufacturerTitle: string;
   allCategoriesText: string;
+  allSubcategoriesText: string;
+  allManufacturersText: string;
   sortTitle: string;
   sortRelevance: string;
   sortName: string;
@@ -53,19 +56,9 @@ function injectQuery(template: string, query: string): string {
   return template.replace("{query}", query);
 }
 
-function matchesCategoryFilter(
-  categoryFilter: string,
-  product: { category: string; subcategory: string },
-): boolean {
-  if (!categoryFilter) return true;
-  if (product.category === categoryFilter) return true;
-  return `${product.category} / ${product.subcategory}` === categoryFilter;
-}
-
 export default function SearchResults() {
   const [location, navigate] = useLocation();
   const { language } = useI18n();
-  const { data: products = [], isLoading } = trpc.content.products.list.useQuery();
   const { data: publicSettings = [] } = trpc.content.settings.list.useQuery(
     undefined,
     { enabled: language === "en" },
@@ -87,22 +80,8 @@ export default function SearchResults() {
     return parseProductTaxonomy(setting?.parsedValue);
   }, [publicSettings]);
   const { metadata } = useTemplateBackedPageContent<SearchResultsMetadata>("pages.searchResults");
-  const displayProducts = useMemo(
-    () =>
-      products.map((product) => {
-        const base = toDisplayProduct(product);
-        return localizeDisplayProduct(
-          base,
-          language,
-          enProductTranslations[getProductTranslationKey(product.id)],
-          taxonomy,
-        );
-      }),
-    [products, language, enProductTranslations, taxonomy],
-  );
   const sortLocale = language === "en" ? "en-US" : "tr-TR";
-  
-  // Extract query from URL
+
   const query = useMemo(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
@@ -112,48 +91,109 @@ export default function SearchResults() {
   }, [location]);
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
+  const [selectedManufacturer, setSelectedManufacturer] = useState<string | null>(
+    null,
+  );
   const [sortBy, setSortBy] = useState<"relevance" | "name">("relevance");
   const [searchQuery, setSearchQuery] = useState(query);
 
-  // Update search query when location changes
   useEffect(() => {
     setSearchQuery(query);
   }, [query]);
 
-  const { ref, isVisible } = useIntersectionObserver({ threshold: 0.1 });
+  useEffect(() => {
+    setSelectedCategory(null);
+    setSelectedSubcategory(null);
+    setSelectedManufacturer(null);
+    setSortBy("relevance");
+  }, [searchQuery]);
 
-  // Search results
-  const results = useMemo(() => {
-    let filtered = searchProducts(displayProducts, searchQuery);
+  const searchInput = useMemo(
+    () => ({
+      query: searchQuery.trim(),
+      category: selectedCategory || undefined,
+      subcategory: selectedSubcategory || undefined,
+      manufacturer: selectedManufacturer || undefined,
+      sortBy,
+      page: 1,
+      pageSize: 120,
+    }),
+    [
+      searchQuery,
+      selectedCategory,
+      selectedSubcategory,
+      selectedManufacturer,
+      sortBy,
+    ],
+  );
 
-    // Filter by category if selected
-    if (selectedCategory) {
-      filtered = filtered.filter(
-        (result) => matchesCategoryFilter(selectedCategory, result.product),
-      );
-    }
+  const searchEnabled = searchInput.query.length > 0;
 
-    // Sort results
-    if (sortBy === "name") {
-      filtered.sort((a, b) =>
-        a.product.title.localeCompare(b.product.title, sortLocale)
-      );
-    }
+  const { data: searchData, isLoading } = trpc.content.products.search.useQuery(
+    searchInput,
+    {
+      enabled: searchEnabled,
+      refetchOnWindowFocus: false,
+    },
+  );
 
-    return filtered;
-  }, [displayProducts, searchQuery, selectedCategory, sortBy, sortLocale]);
+  const results = useMemo(
+    () =>
+      (searchData?.items ?? []).map((item) => {
+        const base = toDisplayProduct(item.product);
+        return {
+          ...item,
+          rawCategory: item.product.category,
+          rawSubcategory: item.product.subcategory || "",
+          product: localizeDisplayProduct(
+            base,
+            language,
+            enProductTranslations[getProductTranslationKey(item.product.id)],
+            taxonomy,
+          ),
+        };
+      }),
+    [searchData, language, enProductTranslations, taxonomy],
+  );
 
-  const categories = useMemo(() => {
-    const cats = new Set<string>();
-    results.forEach((result) => {
-      cats.add(result.product.category);
+  const categoryFacets = searchData?.facets.categories ?? [];
+  const manufacturerFacets = searchData?.facets.manufacturers ?? [];
+
+  const categoryLabelMap = useMemo(() => {
+    const map = new Map<string, string>();
+    results.forEach((item) => {
+      if (!map.has(item.rawCategory)) {
+        map.set(item.rawCategory, item.product.category);
+      }
     });
-    return Array.from(cats).sort((a, b) => a.localeCompare(b, sortLocale));
-  }, [results, sortLocale]);
+    return map;
+  }, [results]);
+
+  const subcategoryLabelMap = useMemo(() => {
+    const map = new Map<string, string>();
+    results.forEach((item) => {
+      if (!item.rawSubcategory) return;
+      const key = `${item.rawCategory}::${item.rawSubcategory}`;
+      if (!map.has(key)) {
+        map.set(key, item.product.subcategory || item.rawSubcategory);
+      }
+    });
+    return map;
+  }, [results]);
+
+  const subcategoryFacets = useMemo(() => {
+    const all = searchData?.facets.subcategories ?? [];
+    if (!selectedCategory) return all;
+    return all.filter((item) => item.category === selectedCategory);
+  }, [searchData, selectedCategory]);
+
+  const totalResults = searchData?.total ?? results.length;
+
+  const { ref, isVisible } = useIntersectionObserver({ threshold: 0.1 });
 
   return (
     <div className="min-h-screen bg-[var(--vaden-surface-10)]">
-      {/* Breadcrumb */}
       <div className="bg-[var(--vaden-surface-12)] border-b border-[var(--vaden-border-soft)]">
         <div className="container mx-auto px-6 max-w-7xl py-4">
           <div className="flex items-center gap-2 text-sm">
@@ -171,7 +211,6 @@ export default function SearchResults() {
         </div>
       </div>
 
-      {/* Search Header */}
       <div className="container mx-auto px-6 max-w-7xl py-12">
         <div className="mb-8">
           <h1 className="font-['Barlow_Condensed'] font-black text-[var(--vaden-on-surface)] text-5xl uppercase tracking-wide mb-2">
@@ -183,18 +222,27 @@ export default function SearchResults() {
               searchQuery,
             )}{" "}
             <span className="text-[oklch(0.60_0.18_42)] font-bold">
-              {results.length}
+              {totalResults}
             </span>{" "}
             {asString(metadata.queryResultSuffix, "ürün bulundu")}
           </p>
         </div>
 
-        {isLoading ? (
+        {!searchEnabled ? (
+          <div className="bg-[var(--vaden-surface-14)] border border-[var(--vaden-border)] p-12 text-center">
+            <AlertCircle size={48} className="mx-auto text-[oklch(0.60_0.18_42)] mb-4" />
+            <h2 className="font-['Barlow_Condensed'] font-bold text-[var(--vaden-on-surface)] text-2xl uppercase mb-2">
+              {asString(metadata.noResultsTitle, "Arama Terimi Gerekli")}
+            </h2>
+            <p className="text-[var(--vaden-text-muted)] mb-6 font-['Inter']">
+              OEM kodu, ürün adı veya kategori ile arama yapabilirsiniz.
+            </p>
+          </div>
+        ) : isLoading ? (
           <div className="py-12 flex justify-center">
             <Loader2 className="w-8 h-8 animate-spin text-[oklch(0.60_0.18_42)]" />
           </div>
         ) : results.length === 0 ? (
-          // No results
           <div className="bg-[var(--vaden-surface-14)] border border-[var(--vaden-border)] p-12 text-center">
             <AlertCircle size={48} className="mx-auto text-[oklch(0.60_0.18_42)] mb-4" />
             <h2 className="font-['Barlow_Condensed'] font-bold text-[var(--vaden-on-surface)] text-2xl uppercase mb-2">
@@ -225,51 +273,120 @@ export default function SearchResults() {
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* Filters Sidebar */}
             <div className="lg:col-span-1">
-              <div className="bg-[var(--vaden-surface-14)] border border-[var(--vaden-border)] p-6 sticky top-20">
-                <h3 className="font-['Barlow_Condensed'] font-bold text-[var(--vaden-on-surface)] text-lg uppercase tracking-wide mb-4">
+              <div className="bg-[var(--vaden-surface-14)] border border-[var(--vaden-border)] p-6 sticky top-20 space-y-6">
+                <h3 className="font-['Barlow_Condensed'] font-bold text-[var(--vaden-on-surface)] text-lg uppercase tracking-wide">
                   {asString(metadata.filtersTitle, "Filtreler")}
                 </h3>
 
-                {/* Category Filter */}
-                <div className="mb-6">
+                <div>
                   <p className="text-[oklch(0.60_0.18_42)] font-['Barlow_Condensed'] font-bold text-xs uppercase tracking-wide mb-3">
                     {asString(metadata.categoryTitle, "Kategori")}
                   </p>
                   <div className="space-y-2">
                     <button
-                      onClick={() => setSelectedCategory(null)}
+                      onClick={() => {
+                        setSelectedCategory(null);
+                        setSelectedSubcategory(null);
+                      }}
                       className={`block w-full text-left px-3 py-2 text-sm transition-colors ${
                         selectedCategory === null
                           ? "bg-[oklch(0.60_0.18_42)] text-[var(--vaden-on-accent)] font-bold"
                           : "text-[var(--vaden-text-muted)] hover:text-[oklch(0.60_0.18_42)]"
                       }`}
                     >
-                      {asString(metadata.allCategoriesText, "Tümü")} ({results.length})
+                      {asString(metadata.allCategoriesText, "Tümü")}
                     </button>
-                    {categories.map((cat) => {
-                      const count = results.filter(
-                        (r) => matchesCategoryFilter(cat, r.product)
-                      ).length;
-                      return (
+                    {categoryFacets.map((category) => (
+                      <button
+                        key={category.value}
+                        onClick={() => {
+                          setSelectedCategory(category.value);
+                          setSelectedSubcategory(null);
+                        }}
+                        className={`block w-full text-left px-3 py-2 text-sm transition-colors ${
+                          selectedCategory === category.value
+                            ? "bg-[oklch(0.60_0.18_42)] text-[var(--vaden-on-accent)] font-bold"
+                            : "text-[var(--vaden-text-muted)] hover:text-[oklch(0.60_0.18_42)]"
+                        }`}
+                      >
+                        {categoryLabelMap.get(category.value) || category.value} ({category.count})
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {subcategoryFacets.length > 0 ? (
+                  <div>
+                    <p className="text-[oklch(0.60_0.18_42)] font-['Barlow_Condensed'] font-bold text-xs uppercase tracking-wide mb-3">
+                      {asString(metadata.subcategoryTitle, "Alt Kategori")}
+                    </p>
+                    <div className="space-y-2">
+                      <button
+                        onClick={() => setSelectedSubcategory(null)}
+                        className={`block w-full text-left px-3 py-2 text-sm transition-colors ${
+                          selectedSubcategory === null
+                            ? "bg-[oklch(0.60_0.18_42)] text-[var(--vaden-on-accent)] font-bold"
+                            : "text-[var(--vaden-text-muted)] hover:text-[oklch(0.60_0.18_42)]"
+                        }`}
+                      >
+                        {asString(metadata.allSubcategoriesText, "Tümü")}
+                      </button>
+                      {subcategoryFacets.map((subcategory) => (
                         <button
-                          key={cat}
-                          onClick={() => setSelectedCategory(cat)}
+                          key={`${subcategory.category}-${subcategory.value}`}
+                          onClick={() => {
+                            setSelectedCategory(subcategory.category);
+                            setSelectedSubcategory(subcategory.value);
+                          }}
                           className={`block w-full text-left px-3 py-2 text-sm transition-colors ${
-                            selectedCategory === cat
+                            selectedSubcategory === subcategory.value
                               ? "bg-[oklch(0.60_0.18_42)] text-[var(--vaden-on-accent)] font-bold"
                               : "text-[var(--vaden-text-muted)] hover:text-[oklch(0.60_0.18_42)]"
                           }`}
                         >
-                          {cat} ({count})
+                          {subcategoryLabelMap.get(
+                            `${subcategory.category}::${subcategory.value}`,
+                          ) || subcategory.value} ({subcategory.count})
                         </button>
-                      );
-                    })}
+                      ))}
+                    </div>
                   </div>
-                </div>
+                ) : null}
 
-                {/* Sort */}
+                {manufacturerFacets.length > 0 ? (
+                  <div>
+                    <p className="text-[oklch(0.60_0.18_42)] font-['Barlow_Condensed'] font-bold text-xs uppercase tracking-wide mb-3">
+                      {asString(metadata.manufacturerTitle, "OEM Üretici")}
+                    </p>
+                    <div className="space-y-2">
+                      <button
+                        onClick={() => setSelectedManufacturer(null)}
+                        className={`block w-full text-left px-3 py-2 text-sm transition-colors ${
+                          selectedManufacturer === null
+                            ? "bg-[oklch(0.60_0.18_42)] text-[var(--vaden-on-accent)] font-bold"
+                            : "text-[var(--vaden-text-muted)] hover:text-[oklch(0.60_0.18_42)]"
+                        }`}
+                      >
+                        {asString(metadata.allManufacturersText, "Tümü")}
+                      </button>
+                      {manufacturerFacets.map((manufacturer) => (
+                        <button
+                          key={manufacturer.value}
+                          onClick={() => setSelectedManufacturer(manufacturer.value)}
+                          className={`block w-full text-left px-3 py-2 text-sm transition-colors ${
+                            selectedManufacturer === manufacturer.value
+                              ? "bg-[oklch(0.60_0.18_42)] text-[var(--vaden-on-accent)] font-bold"
+                              : "text-[var(--vaden-text-muted)] hover:text-[oklch(0.60_0.18_42)]"
+                          }`}
+                        >
+                          {manufacturer.value} ({manufacturer.count})
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
                 <div>
                   <p className="text-[oklch(0.60_0.18_42)] font-['Barlow_Condensed'] font-bold text-xs uppercase tracking-wide mb-3">
                     {asString(metadata.sortTitle, "Sıralama")}
@@ -286,9 +403,8 @@ export default function SearchResults() {
               </div>
             </div>
 
-            {/* Results */}
             <div
-              ref={ref as React.RefObject<HTMLDivElement>}
+              ref={ref as RefObject<HTMLDivElement>}
               className="lg:col-span-3 space-y-4"
             >
               {results.map((result, index) => (
@@ -301,7 +417,6 @@ export default function SearchResults() {
                   style={{ transitionDelay: `${index * 0.05}s` }}
                 >
                   <div className="flex gap-6">
-                    {/* Product Image */}
                     <div className="w-32 h-32 flex-shrink-0 bg-[var(--vaden-surface-10)] border border-[var(--vaden-border-soft)] overflow-hidden">
                       <img
                         src={result.product.image}
@@ -310,7 +425,6 @@ export default function SearchResults() {
                       />
                     </div>
 
-                    {/* Product Info */}
                     <div className="flex-1">
                       <div className="flex items-start justify-between mb-2">
                         <div>
@@ -342,7 +456,6 @@ export default function SearchResults() {
                         {result.product.description}
                       </p>
 
-                      {/* OEM Codes Preview */}
                       {result.product.oemCodes.length > 0 && (
                         <div className="mb-3">
                           <p className="text-xs text-[oklch(0.45_0.01_250)] mb-1">
