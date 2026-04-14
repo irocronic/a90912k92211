@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Arabic:wght@400;500;600;700;800;900&display=swap");
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -109,6 +110,29 @@
   --vaden-text-muted: oklch(0.55 0.01 250);
   --vaden-text-placeholder: oklch(0.40 0.01 250);
   --vaden-on-accent: oklch(1 0 0);
+
+  /* Video showcase tokens */
+  --hero-video-section-bg: linear-gradient(
+    135deg,
+    oklch(0.08 0.01 250) 0%,
+    oklch(0.11 0.01 250) 45%,
+    oklch(0.08 0.01 250) 100%
+  );
+  --hero-video-frame-bg: oklch(0.09 0.01 250);
+  --hero-video-overlay: linear-gradient(
+    180deg,
+    rgba(7, 10, 14, 0.06) 0%,
+    rgba(7, 10, 14, 0.05) 55%,
+    rgba(7, 10, 14, 0.28) 100%
+  );
+  --hero-video-chip-bg: rgba(8, 10, 14, 0.52);
+  --hero-video-chip-border: rgba(255, 255, 255, 0.14);
+  --hero-video-floating-bg: rgba(16, 19, 26, 0.8);
+  --hero-video-badge-bg: rgba(8, 10, 14, 0.52);
+  --hero-video-shadow: 0 32px 90px rgba(0, 0, 0, 0.45);
+  --hero-video-soft-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+  --hero-video-grid-line: rgba(255, 255, 255, 0.06);
+  --hero-video-frame-inset-border: rgba(255, 255, 255, 0.1);
 }
 
 /* Light theme */
@@ -161,6 +185,29 @@
   --vaden-text-muted: oklch(0.42 0.01 250);
   --vaden-text-placeholder: oklch(0.52 0.01 250);
   --vaden-on-accent: oklch(1 0 0);
+
+  /* Video showcase tokens */
+  --hero-video-section-bg: linear-gradient(
+    135deg,
+    oklch(0.985 0.002 250) 0%,
+    oklch(0.955 0.004 250) 45%,
+    oklch(0.975 0.002 250) 100%
+  );
+  --hero-video-frame-bg: oklch(0.96 0.003 250);
+  --hero-video-overlay: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(255, 255, 255, 0.03) 55%,
+    rgba(15, 23, 42, 0.12) 100%
+  );
+  --hero-video-chip-bg: rgba(255, 255, 255, 0.8);
+  --hero-video-chip-border: rgba(15, 23, 42, 0.1);
+  --hero-video-floating-bg: rgba(255, 255, 255, 0.84);
+  --hero-video-badge-bg: rgba(255, 255, 255, 0.82);
+  --hero-video-shadow: 0 24px 60px rgba(15, 23, 42, 0.16);
+  --hero-video-soft-shadow: 0 18px 44px rgba(15, 23, 42, 0.14);
+  --hero-video-grid-line: rgba(15, 23, 42, 0.06);
+  --hero-video-frame-inset-border: rgba(15, 23, 42, 0.08);
 }
 
 @layer base {
@@ -187,6 +234,20 @@
   input[type="radio"]:not(:disabled) {
     @apply cursor-pointer;
   }
+}
+
+html[lang="ar"] body,
+html[lang="ar"] [class*="font-['Barlow_Condensed']"],
+html[lang="ar"] [class*="font-['Inter']"] {
+  font-family: "Noto Sans Arabic", sans-serif !important;
+}
+
+html[lang="ar"] body {
+  text-align: right;
+}
+
+html[lang="ar"] [class*="tracking-"] {
+  letter-spacing: 0 !important;
 }
 
 @layer components {
@@ -302,6 +363,28 @@
     box-shadow: 0 0 20px oklch(0.60 0.18 42 / 0.2);
   }
 
+  .hero-video-grid {
+    background-image:
+      linear-gradient(to right, var(--hero-video-grid-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--hero-video-grid-line) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(circle at center, black 24%, transparent 85%);
+  }
+
+  .hero-video-shell::before {
+    content: "";
+    position: absolute;
+    inset: 1rem;
+    border: 1px solid var(--hero-video-frame-inset-border);
+    border-radius: 24px;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .hero-video-float {
+    animation: hero-video-float 5s ease-in-out infinite;
+  }
+
   /* Scroll reveal animation */
   @keyframes fadeInUp {
     from {
@@ -322,5 +405,15 @@
   @keyframes countUp {
     from { opacity: 0; }
     to { opacity: 1; }
+  }
+
+  @keyframes hero-video-float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-8px);
+    }
   }
 }

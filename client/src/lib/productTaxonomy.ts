@@ -1,17 +1,19 @@
 import { PRODUCT_TAXONOMY_SETTING_KEY } from "@shared/const";
 
-type LanguageCode = "tr" | "en";
+type LanguageCode = "tr" | "en" | "ar";
 
 export type ProductTaxonomySubcategory = {
   id: string;
   nameTr: string;
   nameEn: string;
+  nameAr: string;
 };
 
 export type ProductTaxonomyCategory = {
   id: string;
   nameTr: string;
   nameEn: string;
+  nameAr: string;
   subcategories: ProductTaxonomySubcategory[];
 };
 
@@ -24,21 +26,25 @@ const DEFAULT_PRODUCT_TAXONOMY: ProductTaxonomy = [
     id: "air-brake",
     nameTr: "Hava Fren Sistemleri",
     nameEn: "Air Brake Systems",
+    nameAr: "أنظمة فرامل الهواء",
     subcategories: [
       {
         id: "air-processing-unit",
         nameTr: "Hava Isleme Unitesi (E-APU)",
         nameEn: "Air Processing Unit (E-APU)",
+        nameAr: "وحدة معالجة الهواء (E-APU)",
       },
       {
         id: "air-brake-compressors",
         nameTr: "Hava Fren Kompresorleri",
         nameEn: "Air Brake Compressors",
+        nameAr: "ضواغط فرامل الهواء",
       },
       {
         id: "air-brake-valves",
         nameTr: "Hava Fren Sistemleri ve Valfler",
         nameEn: "Air Brake System Valves",
+        nameAr: "صمامات نظام فرامل الهواء",
       },
     ],
   },
@@ -46,11 +52,13 @@ const DEFAULT_PRODUCT_TAXONOMY: ProductTaxonomy = [
     id: "transmission",
     nameTr: "Sanziman Bilesenleri",
     nameEn: "Transmission Components",
+    nameAr: "مكونات ناقل الحركة",
     subcategories: [
       {
         id: "solenoid-valves",
         nameTr: "Solenoid Valfler",
         nameEn: "Transmission Solenoid Valves",
+        nameAr: "صمامات سولينويد ناقل الحركة",
       },
     ],
   },
@@ -58,16 +66,19 @@ const DEFAULT_PRODUCT_TAXONOMY: ProductTaxonomy = [
     id: "engine",
     nameTr: "Motor Bilesenleri",
     nameEn: "Engine Components",
+    nameAr: "مكونات المحرك",
     subcategories: [
       {
         id: "exhaust-brake-valves",
         nameTr: "Egzoz Fren Valfleri",
         nameEn: "Engine Exhaust Brake Valves",
+        nameAr: "صمامات فرامل عادم المحرك",
       },
       {
         id: "flywheel-housing",
         nameTr: "Volan Muhafazasi",
         nameEn: "Engine Flywheel Housing",
+        nameAr: "غلاف دولاب الموازنة",
       },
     ],
   },
@@ -107,18 +118,20 @@ function sanitizeSubcategory(
 
   const nameTr = typeof raw.nameTr === "string" ? normalizeText(raw.nameTr) : "";
   const nameEn = typeof raw.nameEn === "string" ? normalizeText(raw.nameEn) : "";
-  if (!nameTr && !nameEn) return null;
+  const nameAr = typeof raw.nameAr === "string" ? normalizeText(raw.nameAr) : "";
+  if (!nameTr && !nameEn && !nameAr) return null;
 
   const idSource =
     typeof raw.id === "string" && raw.id.trim()
       ? raw.id
-      : nameTr || nameEn || fallbackId;
+      : nameTr || nameEn || nameAr || fallbackId;
   const id = normalizeId(idSource) || fallbackId;
 
   return {
     id,
-    nameTr: nameTr || nameEn,
-    nameEn: nameEn || nameTr,
+    nameTr: nameTr || nameEn || nameAr,
+    nameEn: nameEn || nameTr || nameAr,
+    nameAr: nameAr || nameEn || nameTr,
   };
 }
 
@@ -130,12 +143,13 @@ function sanitizeCategory(
 
   const nameTr = typeof raw.nameTr === "string" ? normalizeText(raw.nameTr) : "";
   const nameEn = typeof raw.nameEn === "string" ? normalizeText(raw.nameEn) : "";
-  if (!nameTr && !nameEn) return null;
+  const nameAr = typeof raw.nameAr === "string" ? normalizeText(raw.nameAr) : "";
+  if (!nameTr && !nameEn && !nameAr) return null;
 
   const idSource =
     typeof raw.id === "string" && raw.id.trim()
       ? raw.id
-      : nameTr || nameEn || fallbackId;
+      : nameTr || nameEn || nameAr || fallbackId;
   const id = normalizeId(idSource) || fallbackId;
 
   const rawSubcategories = Array.isArray(raw.subcategories) ? raw.subcategories : [];
@@ -149,8 +163,9 @@ function sanitizeCategory(
 
   return {
     id,
-    nameTr: nameTr || nameEn,
-    nameEn: nameEn || nameTr,
+    nameTr: nameTr || nameEn || nameAr,
+    nameEn: nameEn || nameTr || nameAr,
+    nameAr: nameAr || nameEn || nameTr,
     subcategories,
   };
 }
@@ -176,14 +191,18 @@ export function getCategoryName(
   category: ProductTaxonomyCategory,
   language: LanguageCode,
 ): string {
-  return language === "en" ? category.nameEn : category.nameTr;
+  if (language === "ar") return category.nameAr || category.nameEn || category.nameTr;
+  return language === "tr" ? category.nameTr : category.nameEn;
 }
 
 export function getSubcategoryName(
   subcategory: ProductTaxonomySubcategory,
   language: LanguageCode,
 ): string {
-  return language === "en" ? subcategory.nameEn : subcategory.nameTr;
+  if (language === "ar") {
+    return subcategory.nameAr || subcategory.nameEn || subcategory.nameTr;
+  }
+  return language === "tr" ? subcategory.nameTr : subcategory.nameEn;
 }
 
 export function findCategoryByLabel(
@@ -195,8 +214,10 @@ export function findCategoryByLabel(
 
   return (
     taxonomy.find(
-      (category) =>
-        category.nameTr === normalized || category.nameEn === normalized,
+        (category) =>
+        category.nameTr === normalized ||
+        category.nameEn === normalized ||
+        category.nameAr === normalized,
     ) ?? null
   );
 }
@@ -210,9 +231,10 @@ export function findSubcategoryByLabel(
 
   return (
     category.subcategories.find(
-      (subcategory) =>
-        subcategory.nameTr === normalized ||
-        subcategory.nameEn === normalized,
+        (subcategory) =>
+          subcategory.nameTr === normalized ||
+        subcategory.nameEn === normalized ||
+        subcategory.nameAr === normalized,
     ) ?? null
   );
 }
@@ -236,6 +258,7 @@ export function mergeTaxonomyWithProducts(
         id: createIdFromLabel(categoryLabel),
         nameTr: categoryLabel,
         nameEn: categoryLabel,
+        nameAr: categoryLabel,
         subcategories: [],
       };
       next.push(category);
@@ -251,6 +274,7 @@ export function mergeTaxonomyWithProducts(
       id: createIdFromLabel(`${category.id}-${subcategoryLabel}`),
       nameTr: subcategoryLabel,
       nameEn: subcategoryLabel,
+      nameAr: subcategoryLabel,
     });
   });
 
@@ -264,12 +288,17 @@ export function mergeTaxonomyWithProducts(
     .sort((a, b) => a.nameTr.localeCompare(b.nameTr, "tr"));
 }
 
-export function createEmptyCategory(nameTr: string, nameEn: string): ProductTaxonomyCategory {
-  const baseLabel = normalizeText(nameTr || nameEn);
+export function createEmptyCategory(
+  nameTr: string,
+  nameEn: string,
+  nameAr: string,
+): ProductTaxonomyCategory {
+  const baseLabel = normalizeText(nameTr || nameEn || nameAr);
   return {
     id: createIdFromLabel(baseLabel),
-    nameTr: normalizeText(nameTr || nameEn),
-    nameEn: normalizeText(nameEn || nameTr),
+    nameTr: normalizeText(nameTr || nameEn || nameAr),
+    nameEn: normalizeText(nameEn || nameTr || nameAr),
+    nameAr: normalizeText(nameAr || nameEn || nameTr),
     subcategories: [],
   };
 }
@@ -278,11 +307,13 @@ export function createEmptySubcategory(
   categoryId: string,
   nameTr: string,
   nameEn: string,
+  nameAr: string,
 ): ProductTaxonomySubcategory {
-  const baseLabel = normalizeText(nameTr || nameEn);
+  const baseLabel = normalizeText(nameTr || nameEn || nameAr);
   return {
     id: createIdFromLabel(`${categoryId}-${baseLabel}`),
-    nameTr: normalizeText(nameTr || nameEn),
-    nameEn: normalizeText(nameEn || nameTr),
+    nameTr: normalizeText(nameTr || nameEn || nameAr),
+    nameEn: normalizeText(nameEn || nameTr || nameAr),
+    nameAr: normalizeText(nameAr || nameEn || nameTr),
   };
 }

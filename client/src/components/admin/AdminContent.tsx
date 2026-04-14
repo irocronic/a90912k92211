@@ -21,6 +21,7 @@ import {
   EN_PAGE_CONTENT_OVERRIDES,
   type PageContentOverride,
 } from "@/lib/pageContentEnOverrides";
+import { AR_PAGE_CONTENT_OVERRIDES } from "@/lib/pageContentArOverrides";
 import {
   getPageContentTranslationKey,
   PAGE_CONTENT_TRANSLATION_SECTION,
@@ -33,7 +34,7 @@ type FormState = {
   metadata: Record<string, unknown>;
 };
 
-type EditingLanguage = "tr" | "en";
+type EditingLanguage = "tr" | "en" | "ar";
 
 const EMPTY_FORM: FormState = {
   title: "",
@@ -94,7 +95,7 @@ function applyFormOverride(
   };
 }
 
-function parseEnglishOverride(
+function parseTranslationOverride(
   rawValue?: string,
 ): Partial<FormState> | undefined {
   if (!rawValue) return undefined;
@@ -166,6 +167,13 @@ export default function AdminContent() {
     language: "en",
     section: PAGE_CONTENT_TRANSLATION_SECTION,
   });
+  const {
+    data: arabicPageContentTranslations = {},
+    refetch: refetchArabicPageContentTranslations,
+  } = trpc.i18n.getSectionTranslations.useQuery({
+    language: "ar",
+    section: PAGE_CONTENT_TRANSLATION_SECTION,
+  });
   const updateTranslationMutation = trpc.i18n.updateTranslation.useMutation();
   const deleteTranslationMutation = trpc.i18n.deleteTranslation.useMutation();
 
@@ -198,15 +206,40 @@ export default function AdminContent() {
 
   const selectedEnglishOverride = useMemo(
     () =>
-      parseEnglishOverride(
+      parseTranslationOverride(
         englishPageContentTranslations[selectedTranslationKey],
       ),
     [englishPageContentTranslations, selectedTranslationKey],
   );
 
-  const hasSelectedEnglishOverride = Boolean(
-    englishPageContentTranslations[selectedTranslationKey],
+  const selectedArabicOverride = useMemo(
+    () =>
+      parseTranslationOverride(
+        arabicPageContentTranslations[selectedTranslationKey],
+      ),
+    [arabicPageContentTranslations, selectedTranslationKey],
   );
+
+  const selectedTranslationOverride = useMemo(() => {
+    if (editingLanguage === "en") return selectedEnglishOverride;
+    if (editingLanguage === "ar") return selectedArabicOverride;
+    return undefined;
+  }, [editingLanguage, selectedArabicOverride, selectedEnglishOverride]);
+
+  const hasSelectedLanguageOverride = useMemo(() => {
+    if (editingLanguage === "en") {
+      return Boolean(englishPageContentTranslations[selectedTranslationKey]);
+    }
+    if (editingLanguage === "ar") {
+      return Boolean(arabicPageContentTranslations[selectedTranslationKey]);
+    }
+    return false;
+  }, [
+    arabicPageContentTranslations,
+    editingLanguage,
+    englishPageContentTranslations,
+    selectedTranslationKey,
+  ]);
 
   useEffect(() => {
     if (!selectedSection) return;
@@ -226,20 +259,25 @@ export default function AdminContent() {
       return;
     }
 
-    const withStaticEnglish = applyFormOverride(
+    const staticOverrides =
+      editingLanguage === "ar"
+        ? AR_PAGE_CONTENT_OVERRIDES
+        : EN_PAGE_CONTENT_OVERRIDES;
+
+    const withStaticTranslation = applyFormOverride(
       baseForm,
-      EN_PAGE_CONTENT_OVERRIDES[selectedSection],
+      staticOverrides[selectedSection],
     );
-    const withStoredEnglish = applyFormOverride(
-      withStaticEnglish,
-      selectedEnglishOverride,
+    const withStoredTranslation = applyFormOverride(
+      withStaticTranslation,
+      selectedTranslationOverride,
     );
-    setFormData(withStoredEnglish);
+    setFormData(withStoredTranslation);
   }, [
     selectedSection,
     selectedSectionItem,
     editingLanguage,
-    selectedEnglishOverride,
+    selectedTranslationOverride,
   ]);
 
   const currentSectionExists = Boolean(
@@ -273,8 +311,10 @@ export default function AdminContent() {
       return;
     }
 
-    if (editingLanguage === "en") {
+    if (editingLanguage !== "tr") {
       try {
+        const targetLanguage = editingLanguage;
+        const successLabel = editingLanguage === "ar" ? "Arapça" : "English";
         const payload = {
           title: formData.title || "",
           content: formData.content,
@@ -285,14 +325,20 @@ export default function AdminContent() {
         await updateTranslationMutation.mutateAsync({
           key: getPageContentTranslationKey(section),
           section: PAGE_CONTENT_TRANSLATION_SECTION,
-          language: "en",
+          language: targetLanguage,
           value: JSON.stringify(payload),
         });
 
-        toast.success("English içerik kaydedildi");
-        await refetchEnglishPageContentTranslations();
+        toast.success(`${successLabel} içerik kaydedildi`);
+        await (editingLanguage === "ar"
+          ? refetchArabicPageContentTranslations()
+          : refetchEnglishPageContentTranslations());
       } catch {
-        toast.error("English içerik kaydedilemedi");
+        toast.error(
+          editingLanguage === "ar"
+            ? "Arapça içerik kaydedilemedi"
+            : "English içerik kaydedilemedi",
+        );
       }
       return;
     }
@@ -372,14 +418,15 @@ export default function AdminContent() {
     const section = selectedSection.trim();
     if (!section) return;
 
-    if (editingLanguage === "en") {
-      if (!hasSelectedEnglishOverride) {
-        toast.error("Bu bölüm için English override bulunamadı");
+    if (editingLanguage !== "tr") {
+      const languageLabel = editingLanguage === "ar" ? "Arapça" : "English";
+      if (!hasSelectedLanguageOverride) {
+        toast.error(`Bu bölüm için ${languageLabel} override bulunamadı`);
         return;
       }
 
       const approved = window.confirm(
-        `"${section}" bölümü için English override silinsin mi?`,
+        `"${section}" bölümü için ${languageLabel} override silinsin mi?`,
       );
       if (!approved) return;
 
@@ -387,12 +434,14 @@ export default function AdminContent() {
         await deleteTranslationMutation.mutateAsync({
           key: getPageContentTranslationKey(section),
           section: PAGE_CONTENT_TRANSLATION_SECTION,
-          language: "en",
+          language: editingLanguage,
         });
-        toast.success("English override silindi");
-        await refetchEnglishPageContentTranslations();
+        toast.success(`${languageLabel} override silindi`);
+        await (editingLanguage === "ar"
+          ? refetchArabicPageContentTranslations()
+          : refetchEnglishPageContentTranslations());
       } catch {
-        toast.error("English override silinemedi");
+        toast.error(`${languageLabel} override silinemedi`);
       }
       return;
     }
@@ -421,16 +470,16 @@ export default function AdminContent() {
   };
 
   const previewSavePending =
-    editingLanguage === "en"
+    editingLanguage !== "tr"
       ? updateTranslationMutation.isPending
       : updateMutation.isPending;
   const previewDeletePending =
-    editingLanguage === "en"
+    editingLanguage !== "tr"
       ? deleteTranslationMutation.isPending
       : deleteMutation.isPending;
   const previewCanDelete =
-    editingLanguage === "en"
-      ? Boolean(selectedSection) && hasSelectedEnglishOverride
+    editingLanguage !== "tr"
+      ? Boolean(selectedSection) && hasSelectedLanguageOverride
       : currentSectionExists && Boolean(selectedSection);
 
   if (isLoading) {
@@ -512,7 +561,9 @@ export default function AdminContent() {
               <p className="text-xs text-muted-foreground">
                 {editingLanguage === "tr"
                   ? "TR akışında kaydetme taslak oluşturur, yayınlama ayrı aksiyondur."
-                  : "EN modunda sadece English override kaydedilir ve canlı EN görünümünü etkiler."}
+                  : editingLanguage === "en"
+                    ? "EN modunda sadece English override kaydedilir ve canlı EN görünümünü etkiler."
+                    : "AR modunda sadece Arapça override kaydedilir ve canlı AR görünümünü etkiler."}
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -531,6 +582,14 @@ export default function AdminContent() {
                 onClick={() => setEditingLanguage("en")}
               >
                 English
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={editingLanguage === "ar" ? "default" : "outline"}
+                onClick={() => setEditingLanguage("ar")}
+              >
+                العربية
               </Button>
             </div>
           </CardContent>

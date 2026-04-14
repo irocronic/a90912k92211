@@ -234,6 +234,7 @@ export const i18nRouter = router({
             section: string;
             value_tr: string;
             value_en: string;
+            value_ar: string;
             createdAt: Date;
             updatedAt: Date;
           }>,
@@ -266,10 +267,10 @@ export const i18nRouter = router({
           ? await translationRowsQuery.where(pairFilters[0])
           : await translationRowsQuery.where(or(...pairFilters)!);
 
-      const valueMap = new Map<string, { tr: string; en: string }>();
+      const valueMap = new Map<string, { tr: string; en: string; ar: string }>();
       translationRows.forEach((row) => {
         const mapKey = `${row.section}::${row.key}`;
-        const existing = valueMap.get(mapKey) ?? { tr: "", en: "" };
+        const existing = valueMap.get(mapKey) ?? { tr: "", en: "", ar: "" };
 
         if (row.language === "tr" && !existing.tr) {
           existing.tr = row.value;
@@ -277,18 +278,22 @@ export const i18nRouter = router({
         if (row.language === "en" && !existing.en) {
           existing.en = row.value;
         }
+        if (row.language === "ar" && !existing.ar) {
+          existing.ar = row.value;
+        }
 
         valueMap.set(mapKey, existing);
       });
 
       const items = groupedEntries.map((entry) => {
         const mapKey = `${entry.section}::${entry.key}`;
-        const values = valueMap.get(mapKey) ?? { tr: "", en: "" };
+        const values = valueMap.get(mapKey) ?? { tr: "", en: "", ar: "" };
         return {
           key: entry.key,
           section: entry.section,
           value_tr: values.tr,
           value_en: values.en,
+          value_ar: values.ar,
           createdAt: entry.createdAt,
           updatedAt: entry.updatedAt,
         };

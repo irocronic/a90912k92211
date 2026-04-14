@@ -9,7 +9,7 @@ import {
 
 type RouterOutputs = inferRouterOutputs<AppRouter>;
 export type DbArticle = RouterOutputs["content"]["articles"]["list"][number];
-export type LanguageCode = "tr" | "en";
+export type LanguageCode = "tr" | "en" | "ar";
 
 export const PRODUCT_CONTENT_TRANSLATION_SECTION = "productContent";
 export const ARTICLE_CONTENT_TRANSLATION_SECTION = "articleContent";
@@ -411,7 +411,54 @@ export function localizeDisplayProduct(
   rawStoredOverride?: string,
   taxonomy?: ProductTaxonomy,
 ): DisplayProduct {
-  if (language !== "en") return product;
+  if (language === "tr") return product;
+
+  const taxonomyCategory = taxonomy
+    ? findCategoryByLabel(taxonomy, product.category)
+    : null;
+  const taxonomySubcategory =
+    taxonomyCategory && product.subcategory
+      ? findSubcategoryByLabel(taxonomyCategory, product.subcategory)
+      : null;
+
+  if (language === "ar") {
+    const withTaxonomy: DisplayProduct = {
+      ...product,
+      category:
+        taxonomyCategory?.nameAr ||
+        taxonomyCategory?.nameEn ||
+        product.category,
+      subcategory:
+        taxonomySubcategory?.nameAr ||
+        taxonomySubcategory?.nameEn ||
+        product.subcategory,
+    };
+
+    const storedArabic = parseStoredProductTranslation(rawStoredOverride);
+    if (!storedArabic) return withTaxonomy;
+
+    return {
+      ...withTaxonomy,
+      title: storedArabic.title ?? withTaxonomy.title,
+      subtitle: storedArabic.subtitle ?? withTaxonomy.subtitle,
+      category: storedArabic.category ?? withTaxonomy.category,
+      subcategory: storedArabic.subcategory ?? withTaxonomy.subcategory,
+      description: storedArabic.description ?? withTaxonomy.description,
+      fullDescription: storedArabic.description ?? withTaxonomy.fullDescription,
+      image: storedArabic.imageUrl ?? withTaxonomy.image,
+      catalogUrl:
+        storedArabic.catalogUrl !== undefined
+          ? storedArabic.catalogUrl
+          : withTaxonomy.catalogUrl,
+      oemCodes: storedArabic.oemCodes ?? withTaxonomy.oemCodes,
+      features: storedArabic.features ?? withTaxonomy.features,
+      specifications: storedArabic.specifications
+        ? specsFromRecord(storedArabic.specifications)
+        : withTaxonomy.specifications,
+      applications: storedArabic.applications ?? withTaxonomy.applications,
+      certifications: storedArabic.certifications ?? withTaxonomy.certifications,
+    };
+  }
 
   const staticOverride = PRODUCT_EN_OVERRIDES_BY_KEY[productLookupKey(product)];
   const withStatic = staticOverride
@@ -426,14 +473,6 @@ export function localizeDisplayProduct(
         ...product,
         category: translateCategory(product.category, PRODUCT_CATEGORY_EN_BY_TR),
       };
-
-  const taxonomyCategory = taxonomy
-    ? findCategoryByLabel(taxonomy, product.category)
-    : null;
-  const taxonomySubcategory =
-    taxonomyCategory && product.subcategory
-      ? findSubcategoryByLabel(taxonomyCategory, product.subcategory)
-      : null;
 
   const withTaxonomy: DisplayProduct = {
     ...withStatic,
@@ -470,7 +509,21 @@ export function localizeArticle(
   language: LanguageCode,
   rawStoredOverride?: string,
 ): DbArticle {
-  if (language !== "en") return article;
+  if (language === "tr") return article;
+
+  if (language === "ar") {
+    const storedArabic = parseStoredArticleTranslation(rawStoredOverride);
+    if (!storedArabic) return article;
+
+    return {
+      ...article,
+      title: storedArabic.title ?? article.title,
+      excerpt: storedArabic.excerpt ?? article.excerpt,
+      content: storedArabic.content ?? article.content,
+      imageUrl: storedArabic.imageUrl ?? article.imageUrl,
+      category: storedArabic.category ?? article.category,
+    };
+  }
 
   const staticOverride =
     ARTICLE_EN_OVERRIDES_BY_TITLE[normalizeTurkishText(article.title)];

@@ -10,6 +10,7 @@ import { I18nProvider } from "./contexts/I18nContext";
 import Home from "./pages/Home";
 import Admin from "./pages/Admin";
 import ProductDetail from "@/pages/ProductDetail";
+import ProductsCatalog from "@/pages/ProductsCatalog";
 import SearchResults from "@/pages/SearchResults";
 import Corporate from "./pages/Corporate";
 import Career from "./pages/Career";
@@ -20,6 +21,7 @@ function Router() {
   return (
     <Switch>
       <Route path={"/"} component={Home} />
+      <Route path={"/products"} component={ProductsCatalog} />
       <Route path={"/kurumsal"} component={Corporate} />
       <Route path={"/kariyer"} component={Career} />
       <Route path={"/politikalar"} component={Policies} />

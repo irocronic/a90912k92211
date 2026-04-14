@@ -1,0 +1,16 @@
+node_modules
+dist
+.git
+.gitignore
+.DS_Store
+.env
+.env.*
+!.env.production.example
+coverage
+*.log
+.manus-logs
+tmp
+temp
+*.db
+*.sqlite
+*.sqlite3

@@ -16,6 +16,7 @@ type TranslationEntry = {
   section: string;
   value_tr: string;
   value_en: string;
+  value_ar: string;
 };
 
 const DEFAULT_SECTIONS = [
@@ -44,6 +45,7 @@ export default function AdminLocalization() {
     section: "common",
     value_tr: "",
     value_en: "",
+    value_ar: "",
   });
 
   const queryInput = {
@@ -88,6 +90,7 @@ export default function AdminLocalization() {
       section: "common",
       value_tr: "",
       value_en: "",
+      value_ar: "",
     });
   };
 
@@ -98,6 +101,7 @@ export default function AdminLocalization() {
       section: entry.section,
       value_tr: entry.value_tr,
       value_en: entry.value_en,
+      value_ar: entry.value_ar,
     });
     setIsOpen(true);
   };
@@ -114,7 +118,7 @@ export default function AdminLocalization() {
         return;
       }
 
-      if (!formData.value_tr.trim() && !formData.value_en.trim()) {
+      if (!formData.value_tr.trim() && !formData.value_en.trim() && !formData.value_ar.trim()) {
         toast.error("En az bir dilde metin girmelisiniz");
         return;
       }
@@ -131,6 +135,12 @@ export default function AdminLocalization() {
           language: "en",
           section: formData.section.trim(),
           value: formData.value_en,
+        }),
+        updateMutation.mutateAsync({
+          key: formData.key.trim(),
+          language: "ar",
+          section: formData.section.trim(),
+          value: formData.value_ar,
         }),
       ]);
 
@@ -205,6 +215,12 @@ export default function AdminLocalization() {
               >
                 English
               </Button>
+              <Button
+                variant={language === "ar" ? "default" : "outline"}
+                onClick={() => setLanguage("ar")}
+              >
+                العربية
+              </Button>
             </div>
           </div>
         </CardContent>
@@ -270,6 +286,13 @@ export default function AdminLocalization() {
                     placeholder="İngilizce metin"
                     value={formData.value_en}
                     onChange={(e) => setFormData({ ...formData, value_en: e.target.value })}
+                    rows={3}
+                  />
+
+                  <Textarea
+                    placeholder="Arapça metin"
+                    value={formData.value_ar}
+                    onChange={(e) => setFormData({ ...formData, value_ar: e.target.value })}
                     rows={3}
                   />
 
@@ -356,7 +379,7 @@ export default function AdminLocalization() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
                       <div className="bg-muted/40 rounded p-2">
                         <div className="text-xs text-muted-foreground mb-1">TR</div>
                         <div className="break-words">{entry.value_tr || "-"}</div>
@@ -364,6 +387,10 @@ export default function AdminLocalization() {
                       <div className="bg-muted/40 rounded p-2">
                         <div className="text-xs text-muted-foreground mb-1">EN</div>
                         <div className="break-words">{entry.value_en || "-"}</div>
+                      </div>
+                      <div className="bg-muted/40 rounded p-2">
+                        <div className="text-xs text-muted-foreground mb-1">AR</div>
+                        <div className="break-words">{entry.value_ar || "-"}</div>
                       </div>
                     </div>
                   </div>

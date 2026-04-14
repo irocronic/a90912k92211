@@ -25,14 +25,14 @@ export default function NewsTicker() {
     publishedOnly: true,
     limit: 12,
   });
-  const { data: enArticleTranslations = {} } =
+  const { data: articleTranslations = {} } =
     trpc.i18n.getSectionTranslations.useQuery(
       {
-        language: "en",
+        language,
         section: ARTICLE_CONTENT_TRANSLATION_SECTION,
       },
       {
-        enabled: language === "en",
+        enabled: language !== "tr",
       },
     );
   const { metadata } = useTemplateBackedPageContent<NewsTickerMetadata>("home.newsTicker");
@@ -42,7 +42,7 @@ export default function NewsTicker() {
         const article = localizeArticle(
           entry,
           language,
-          enArticleTranslations[getArticleTranslationKey(entry.id)],
+          articleTranslations[getArticleTranslationKey(entry.id)],
         );
         return {
         id: article.id,
@@ -51,7 +51,7 @@ export default function NewsTicker() {
         link: "#",
         };
       }),
-    [articles, language, enArticleTranslations],
+    [articles, language, articleTranslations],
   );
   const [current, setCurrent] = useState(0);
 

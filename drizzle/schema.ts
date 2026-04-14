@@ -79,9 +79,30 @@ export const products = mysqlTable("products", {
   applications: json("applications").$type<string[]>().notNull(),
   certifications: json("certifications").$type<string[]>().notNull(),
   catalogUrl: text("catalogUrl"),
+  sourceType: varchar("sourceType", { length: 64 }),
+  sourceImportKey: varchar("sourceImportKey", { length: 191 }),
+  sourceLogicalRef: int("sourceLogicalRef"),
+  sourceCode: varchar("sourceCode", { length: 255 }),
+  sourceSpecCode: varchar("sourceSpecCode", { length: 191 }),
+  sourceBrand: varchar("sourceBrand", { length: 191 }),
+  sourceBrandId: int("sourceBrandId"),
+  sourceOtoUrunLogref: varchar("sourceOtoUrunLogref", { length: 191 }),
+  sourceKayitUrunLogref: int("sourceKayitUrunLogref"),
+  sourceRegion: varchar("sourceRegion", { length: 191 }),
+  sourceChannel: varchar("sourceChannel", { length: 191 }),
+  sourceVisibility: int("sourceVisibility"),
+  sourceIsVirtual: int("sourceIsVirtual"),
+  sourceData: json("sourceData").$type<Record<string, unknown>>(),
+  sourceLastImportedAt: timestamp("sourceLastImportedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
+}, (table) => ({
+  sourceImportKeyUnique: uniqueIndex("products_sourceImportKey_unique").on(
+    table.sourceImportKey
+  ),
+  sourceCodeIdx: index("products_sourceCode_idx").on(table.sourceCode),
+  sourceBrandIdx: index("products_sourceBrand_idx").on(table.sourceBrand),
+}));
 
 export type Product = typeof products.$inferSelect;
 export type InsertProduct = typeof products.$inferInsert;

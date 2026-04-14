@@ -1,0 +1,130 @@
+https://204.168.196.102.sslip.io/admin/system-status/
+
+Bu ekran şu an:
+
+sadece admin/staff login sonrası açılıyor
+veritabanı, Redis ve Celery worker durumunu gösteriyor
+sunucu meta bilgilerini gösteriyor
+daha şık, dashboard tarzı bir görünümde çalışıyor
+Ayrıca dış monitor için health endpoint de hazır:
+https://204.168.196.102.sslip.io/healthz/
+
+İstersen sıradaki adımda bu paneli biraz daha güçlendireyim:
+
+son deploy commit bilgisi
+son kontrol süresi
+Redis latency
+Celery queue sayısı
+“yenile” butonu
+
+
+
+
+
+ssh root@204.168.196.102
+cd /opt/orderai
+En çok kullanacağın komutlar:
+
+docker compose -f docker-compose.prod.yml ps
+docker compose -f docker-compose.prod.yml logs -f
+docker compose -f docker-compose.prod.yml logs -f web
+docker compose -f docker-compose.prod.yml logs -f worker
+docker compose -f docker-compose.prod.yml logs -f redis
+docker compose -f docker-compose.prod.yml logs -f caddy
+Son 200 satırı görmek için:
+
+docker compose -f docker-compose.prod.yml logs --tail 200 web
+docker compose -f docker-compose.prod.yml logs --tail 200 worker
+Container içine girip shell açmak için:
+
+docker exec -it orderai-web sh
+docker exec -it orderai-worker sh
+docker exec -it orderai-redis sh
+Django tarafı hızlı kontrol:
+
+docker exec -it orderai-web python manage.py showmigrations
+docker exec -it orderai-web python manage.py shell
+Celery kontrol:
+
+docker exec -it orderai-worker celery -A makarna_project inspect ping
+docker exec -it orderai-worker celery -A makarna_project inspect active
+Redis kontrol:
+
+docker exec -it orderai-redis redis-cli -a '0952koray1985Ka' ping
+docker exec -it orderai-redis redis-cli -a '0952koray1985Ka' INFO memory
+Canlı kaynak kullanımı:
+
+docker stats
+htop
+df -h
+free -h
+Web erişim testi:
+
+curl -I https://204.168.196.102.sslip.io
+curl -k https://204.168.196.102.sslip.io/api/
+
+
+
+
+
+flutter run -d web-server --web-port=60387
+flutter run -d chrome --web-port=60387
+
+flutter gen-l10n
+
+Reis Bakım
+cd /Users/koray/Desktop/menu
+./scripts/redis_weekly_check.sh
+
+Github
+git add .
+git commit -m "Ekleme"
+git push origin main
+
+python -m uvicorn makarna_project.asgi:application --reload --host 0.0.0.0 --port 8000
+
+venv\Scripts\activate
+python manage.py createsuperuser
+
+Windows
+// Migrations Oluşturma
+
+python manage.py makemigrations core
+python manage.py makemigrations templates
+python manage.py makemigrations subscriptions
+python manage.py makemigrations
+python manage.py migrate
+
+python -m venv venv_win ( Yeni Oluşturma Windows )
+venv_win\Scripts\activate ( Activate Windows_Win )
+pip install -r requirements.txt
+
+python -m pip install -r requirements.txt
+
+python manage.py populate_notification_settings
+python manage.py populate_units
+
+Mac
+python3 manage.py makemigrations core
+python3 manage.py makemigrations
+python3 manage.py migrate
+
+source myenv/bin/activate
+
+flutter run -d chrome --web-port=60387
+flutter clean
+flutter build apk --release
+adb install -r build/app/outputs/flutter-apk/app-release.apk
+
+
+heroku restart -a order-ai
+heroku logs --tail -a order-ai
+
+heroku config:set -a order-ai < C:\Users\Koray\Desktop\menu\heroku-import.txt
+heroku config:set $(jq -r 'to_entries[] | "\(.key)=\(.value)"' heroku-import.txt)
+
+
+flutter pub run flutter_launcher_icons
+dart run flutter_native_splash:create
+Stok Yükleme
+python manage.py create_missing_stocks

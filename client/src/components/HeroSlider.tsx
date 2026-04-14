@@ -90,43 +90,45 @@ export default function HeroSlider() {
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
             style={{ backgroundImage: `url(${slide.image})` }}
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[oklch(0.08_0.01_250)/90] via-[oklch(0.08_0.01_250)/60] to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[oklch(0.08_0.01_250)/80] via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[oklch(0.08_0.01_250)/96] via-[oklch(0.08_0.01_250)/70] to-[oklch(0.08_0.01_250)/16]" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[oklch(0.08_0.01_250)/90] via-[oklch(0.08_0.01_250)/24] to-[oklch(0.08_0.01_250)/12]" />
+          <div className="absolute inset-0 md:hidden bg-[linear-gradient(180deg,rgba(6,10,16,0.24)_0%,rgba(6,10,16,0.34)_28%,rgba(6,10,16,0.72)_62%,rgba(6,10,16,0.9)_100%)]" />
+          <div className="absolute inset-y-0 left-0 w-[78%] md:w-[56%] bg-[linear-gradient(90deg,rgba(6,10,16,0.72)_0%,rgba(6,10,16,0.4)_62%,rgba(6,10,16,0)_100%)]" />
         </div>
       ))}
 
       <div className="relative z-10 h-full flex items-center">
         <div className="container mx-auto px-6 max-w-7xl">
-          <div className="max-w-2xl">
+          <div className="max-w-2xl rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(8,12,18,0.78)_0%,rgba(8,12,18,0.5)_55%,rgba(8,12,18,0.28)_100%)] p-5 shadow-[0_18px_50px_rgba(0,0,0,0.28)] backdrop-blur-[6px] md:border-transparent md:bg-transparent md:p-0 md:shadow-none md:backdrop-blur-0">
             <div
               key={`tag-${current}`}
               className="inline-flex items-center gap-2 mb-4 fade-in-up"
               style={{ animationDelay: "0.1s" }}
             >
               <span className="w-8 h-0.5 bg-[oklch(0.60_0.18_42)]"></span>
-              <span className="text-[oklch(0.60_0.18_42)] font-['Barlow_Condensed'] font-bold text-sm tracking-[0.2em] uppercase">
+              <span className="text-[oklch(0.60_0.18_42)] font-['Barlow_Condensed'] font-bold text-xs md:text-sm tracking-[0.2em] uppercase">
                 {slides[current].tag}
               </span>
             </div>
 
             <h1
               key={`title-${current}`}
-              className="font-['Barlow_Condensed'] font-black text-white leading-none mb-2 fade-in-up"
-              style={{ fontSize: "clamp(3rem, 8vw, 6rem)", animationDelay: "0.2s" }}
+              className="font-['Barlow_Condensed'] font-black text-white leading-none mb-2 fade-in-up [text-shadow:0_6px_18px_rgba(0,0,0,0.45)]"
+              style={{ fontSize: "clamp(2.6rem, 8vw, 6rem)", animationDelay: "0.2s" }}
             >
               {slides[current].title}
             </h1>
             <h2
               key={`subtitle-${current}`}
-              className="font-['Barlow_Condensed'] font-black text-[oklch(0.60_0.18_42)] leading-none mb-6 fade-in-up"
-              style={{ fontSize: "clamp(2.5rem, 7vw, 5rem)", animationDelay: "0.3s" }}
+              className="font-['Barlow_Condensed'] font-black text-[oklch(0.60_0.18_42)] leading-none mb-5 md:mb-6 fade-in-up [text-shadow:0_6px_18px_rgba(0,0,0,0.35)]"
+              style={{ fontSize: "clamp(2.2rem, 7vw, 5rem)", animationDelay: "0.3s" }}
             >
               {slides[current].subtitle}
             </h2>
 
             <p
               key={`desc-${current}`}
-              className="text-[oklch(0.75_0.005_250)] text-lg leading-relaxed mb-8 max-w-lg font-['Inter'] fade-in-up"
+              className="text-[oklch(0.82_0.005_250)] text-base md:text-lg leading-relaxed mb-7 md:mb-8 max-w-lg font-['Inter'] fade-in-up [text-shadow:0_4px_14px_rgba(0,0,0,0.5)]"
               style={{ animationDelay: "0.4s" }}
             >
               {slides[current].description}
@@ -134,19 +136,19 @@ export default function HeroSlider() {
 
             <div
               key={`cta-${current}`}
-              className="flex items-center gap-4 fade-in-up"
+              className="flex flex-wrap items-center gap-3 md:gap-4 fade-in-up"
               style={{ animationDelay: "0.5s" }}
             >
               <a
                 href={slides[current].ctaHref || "#urunler"}
-                className="inline-flex items-center gap-2 bg-[oklch(0.60_0.18_42)] hover:bg-[oklch(0.50_0.18_42)] text-white px-8 py-3.5 font-['Barlow_Condensed'] font-bold text-lg tracking-wide uppercase transition-all hover:shadow-[0_0_30px_oklch(0.60_0.18_42/0.4)]"
+                className="inline-flex items-center gap-2 bg-[oklch(0.60_0.18_42)] hover:bg-[oklch(0.50_0.18_42)] text-white px-6 md:px-8 py-3.5 font-['Barlow_Condensed'] font-bold text-base md:text-lg tracking-wide uppercase transition-all hover:shadow-[0_0_30px_oklch(0.60_0.18_42/0.4)]"
               >
                 {slides[current].cta}
                 <ArrowRight size={18} />
               </a>
               <a
                 href={asString(metadata.secondaryCtaHref, "#hakkimizda")}
-                className="inline-flex items-center gap-2 border border-white/30 hover:border-[oklch(0.60_0.18_42)] text-white hover:text-[oklch(0.60_0.18_42)] px-8 py-3.5 font-['Barlow_Condensed'] font-bold text-lg tracking-wide uppercase transition-all"
+                className="inline-flex items-center gap-2 border border-white/35 bg-white/6 hover:border-[oklch(0.60_0.18_42)] text-white hover:text-[oklch(0.60_0.18_42)] px-6 md:px-8 py-3.5 font-['Barlow_Condensed'] font-bold text-base md:text-lg tracking-wide uppercase transition-all"
               >
                 {asString(metadata.secondaryCtaText, "Hakkımızda")}
               </a>

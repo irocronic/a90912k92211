@@ -1,7 +1,8 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { trpc } from "@/lib/trpc";
 
-type Language = "tr" | "en";
+export type Language = "tr" | "en" | "ar";
+const SUPPORTED_LANGUAGES: Language[] = ["tr", "en", "ar"];
 
 interface I18nContextType {
   language: Language;
@@ -29,7 +30,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     } else {
       // Use browser language preference
       const browserLang = navigator.language.split("-")[0];
-      const lang = (["tr", "en"].includes(browserLang) ? browserLang : "tr") as Language;
+      const lang = (SUPPORTED_LANGUAGES.includes(browserLang as Language) ? browserLang : "tr") as Language;
       setLanguageState(lang);
       localStorage.setItem("language", lang);
     }
@@ -42,6 +43,12 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       setTranslations(allTranslations);
     }
   }, [allTranslations, language]);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    document.documentElement.lang = language;
+    document.documentElement.dir = language === "ar" ? "rtl" : "ltr";
+  }, [language]);
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);

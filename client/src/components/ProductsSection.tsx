@@ -9,7 +9,7 @@ import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { getProductCategoryLabel, toDisplayProduct } from "@/lib/contentProducts";
 import { Loader2 } from "lucide-react";
-import { asString, useTemplateBackedPageContent } from "@/lib/pageContent";
+import { asNumber, asString, useTemplateBackedPageContent } from "@/lib/pageContent";
 import { useI18n } from "@/contexts/I18nContext";
 import {
   getProductTranslationKey,
@@ -26,6 +26,7 @@ type ProductHeaderMetadata = {
   label: string;
   heading: string;
   viewAllText: string;
+  maxItems?: number;
 };
 
 export default function ProductsSection() {
@@ -34,16 +35,16 @@ export default function ProductsSection() {
   const { data: products = [], isLoading } = trpc.content.products.list.useQuery();
   const { data: publicSettings = [] } = trpc.content.settings.list.useQuery(
     undefined,
-    { enabled: language === "en" },
+    { enabled: language !== "tr" },
   );
-  const { data: enProductTranslations = {} } =
+  const { data: productTranslations = {} } =
     trpc.i18n.getSectionTranslations.useQuery(
       {
-        language: "en",
+        language,
         section: PRODUCT_CONTENT_TRANSLATION_SECTION,
       },
       {
-        enabled: language === "en",
+        enabled: language !== "tr",
       },
     );
   const taxonomy = useMemo(() => {
@@ -59,14 +60,20 @@ export default function ProductsSection() {
         return localizeDisplayProduct(
           base,
           language,
-          enProductTranslations[getProductTranslationKey(product.id)],
+          productTranslations[getProductTranslationKey(product.id)],
           taxonomy,
         );
       }),
-    [products, language, enProductTranslations, taxonomy],
+    [products, language, productTranslations, taxonomy],
   );
   const { metadata } = useTemplateBackedPageContent<ProductHeaderMetadata>("home.products");
-  const cardActionText = language === "en" ? "View" : "Incele";
+  const cardActionText =
+    language === "ar" ? "عرض المنتج" : language === "en" ? "View" : "İncele";
+  const homepageProductLimit = Math.max(1, asNumber(metadata.maxItems, 6));
+  const featuredProducts = useMemo(
+    () => displayProducts.slice(0, homepageProductLimit),
+    [displayProducts, homepageProductLimit],
+  );
 
   return (
     <section id="urunler" className="py-20 bg-[var(--vaden-surface-10)]" ref={ref as React.RefObject<HTMLElement>}>
@@ -83,12 +90,12 @@ export default function ProductsSection() {
             <h2 className="font-['Barlow_Condensed'] font-black text-[var(--vaden-on-surface)] text-5xl md:text-6xl leading-none uppercase">
               {asString(metadata.heading)}
             </h2>
-            <a
-              href="#urunler"
+            <Link
+              href="/products"
               className="inline-flex items-center gap-2 text-[oklch(0.60_0.18_42)] font-['Barlow_Condensed'] font-bold text-sm tracking-wide uppercase hover:gap-4 transition-all"
             >
               {asString(metadata.viewAllText, "Tüm Ürünleri Gör")} <ArrowRight size={16} />
-            </a>
+            </Link>
           </div>
         </div>
 
@@ -100,7 +107,7 @@ export default function ProductsSection() {
 
         {/* Products grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {displayProducts.map((product, index) => (
+          {featuredProducts.map((product, index) => (
             <Link
               key={product.id}
               href={`/product/${product.slug}`}
@@ -147,6 +154,16 @@ export default function ProductsSection() {
             </Link>
           ))}
         </div>
+
+        {displayProducts.length > featuredProducts.length ? (
+          <div className="mt-6 rounded-md border border-[var(--vaden-border)] bg-[var(--vaden-surface-12)] px-4 py-3 text-sm text-[var(--vaden-text-muted)]">
+            {language === "en"
+              ? `Only ${featuredProducts.length} products are highlighted on the home page. Use OEM search to explore the full catalog of ${displayProducts.length} products.`
+              : language === "ar"
+                ? `يتم إبراز ${featuredProducts.length} منتجات فقط في الصفحة الرئيسية. يمكنك تصفح كامل الكتالوج الذي يضم ${displayProducts.length} منتجاً.`
+                : `Ana sayfada yalnizca ${featuredProducts.length} urun vitrine cikariliyor. ${displayProducts.length} urunluk tam katalog icin OEM aramayi kullanabilirsiniz.`}
+          </div>
+        ) : null}
       </div>
     </section>
   );

@@ -1,0 +1,63 @@
+name: vaden
+
+services:
+  db:
+    image: mysql:8.4
+    container_name: vaden-db
+    restart: unless-stopped
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    env_file:
+      - .env.production
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-vaden}
+      MYSQL_USER: ${MYSQL_USER:-vaden_app}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?MYSQL_PASSWORD is required}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?MYSQL_ROOT_PASSWORD is required}
+      TZ: ${TZ:-Europe/Istanbul}
+    volumes:
+      - vaden_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: vaden-web
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      TZ: ${TZ:-Europe/Istanbul}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${VADEN_BIND_ADDRESS:-127.0.0.1}:${VADEN_BIND_PORT:-3001}:3000"
+    command:
+      - sh
+      - -c
+      - |
+        npm run db:migrate
+        exec npm run start
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"fetch('http://127.0.0.1:3000/healthz').then((res)=>process.exit(res.ok?0:1)).catch(()=>process.exit(1))\"",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+volumes:
+  vaden_mysql_data:

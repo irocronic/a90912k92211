@@ -30,7 +30,7 @@ import {
 
 type RouterOutputs = inferRouterOutputs<AppRouter>;
 type AdminArticle = RouterOutputs["admin"]["articles"]["list"][number];
-type EditingLanguage = "tr" | "en";
+type EditingLanguage = "tr" | "en" | "ar";
 
 type ArticleFormData = {
   title: string;
@@ -69,11 +69,12 @@ function formFromArticle(article: AdminArticle): ArticleFormData {
   };
 }
 
-function formFromEnglishArticle(
+function formFromTranslatedArticle(
   article: AdminArticle,
+  language: EditingLanguage,
   rawStoredOverride?: string,
 ): ArticleFormData {
-  const localized = localizeArticle(article, "en", rawStoredOverride);
+  const localized = localizeArticle(article, language, rawStoredOverride);
   return {
     title: localized.title,
     excerpt: localized.excerpt,
@@ -113,6 +114,13 @@ export default function AdminArticles() {
     language: "en",
     section: ARTICLE_CONTENT_TRANSLATION_SECTION,
   });
+  const {
+    data: arabicArticleTranslations = {},
+    refetch: refetchArabicArticleTranslations,
+  } = trpc.i18n.getSectionTranslations.useQuery({
+    language: "ar",
+    section: ARTICLE_CONTENT_TRANSLATION_SECTION,
+  });
   const updateTranslationMutation = trpc.i18n.updateTranslation.useMutation();
   const deleteTranslationMutation = trpc.i18n.deleteTranslation.useMutation();
 
@@ -120,11 +128,16 @@ export default function AdminArticles() {
     () => articles.find((article) => article.id === editingId),
     [articles, editingId],
   );
-  const englishTranslationKey = editingId
+  const translationKey = editingId
     ? getArticleTranslationKey(editingId)
     : null;
-  const hasEnglishOverride = Boolean(
-    englishTranslationKey && englishArticleTranslations[englishTranslationKey],
+  const hasSelectedOverride = Boolean(
+    translationKey &&
+      (editingLanguage === "en"
+        ? englishArticleTranslations[translationKey]
+        : editingLanguage === "ar"
+          ? arabicArticleTranslations[translationKey]
+          : false),
   );
 
   const resetForm = () => {
@@ -136,18 +149,27 @@ export default function AdminArticles() {
   useEffect(() => {
     if (!isOpen || !editingArticle) return;
 
-    if (editingLanguage === "en") {
+    if (editingLanguage !== "tr") {
       setFormData(
-        formFromEnglishArticle(
+        formFromTranslatedArticle(
           editingArticle,
-          englishArticleTranslations[getArticleTranslationKey(editingArticle.id)],
+          editingLanguage,
+          editingLanguage === "en"
+            ? englishArticleTranslations[getArticleTranslationKey(editingArticle.id)]
+            : arabicArticleTranslations[getArticleTranslationKey(editingArticle.id)],
         ),
       );
       return;
     }
 
     setFormData(formFromArticle(editingArticle));
-  }, [isOpen, editingArticle, editingLanguage, englishArticleTranslations]);
+  }, [
+    isOpen,
+    editingArticle,
+    editingLanguage,
+    englishArticleTranslations,
+    arabicArticleTranslations,
+  ]);
 
   const openCreateDialog = () => {
     setEditingLanguage("tr");
@@ -157,11 +179,14 @@ export default function AdminArticles() {
 
   const openEditDialog = (article: AdminArticle) => {
     setEditingId(article.id);
-    if (editingLanguage === "en") {
+    if (editingLanguage !== "tr") {
       setFormData(
-        formFromEnglishArticle(
+        formFromTranslatedArticle(
           article,
-          englishArticleTranslations[getArticleTranslationKey(article.id)],
+          editingLanguage,
+          editingLanguage === "en"
+            ? englishArticleTranslations[getArticleTranslationKey(article.id)]
+            : arabicArticleTranslations[getArticleTranslationKey(article.id)],
         ),
       );
     } else {
@@ -178,25 +203,39 @@ export default function AdminArticles() {
       return;
     }
 
-    if (editingLanguage === "en") {
+    if (editingLanguage !== "tr") {
       if (!editingId) {
-        toast.error("English çeviri için önce haberi Türkçe oluşturun");
+        toast.error(
+          editingLanguage === "ar"
+            ? "Arapça çeviri için önce haberi Türkçe oluşturun"
+            : "English çeviri için önce haberi Türkçe oluşturun",
+        );
         return;
       }
 
       try {
         await updateTranslationMutation.mutateAsync({
           key: getArticleTranslationKey(editingId),
-          language: "en",
+          language: editingLanguage,
           section: ARTICLE_CONTENT_TRANSLATION_SECTION,
           value: JSON.stringify(payload),
         });
-        toast.success("Haberin English çevirisi kaydedildi");
-        await refetchEnglishArticleTranslations();
+        toast.success(
+          editingLanguage === "ar"
+            ? "Haberin Arapça çevirisi kaydedildi"
+            : "Haberin English çevirisi kaydedildi",
+        );
+        await (editingLanguage === "ar"
+          ? refetchArabicArticleTranslations()
+          : refetchEnglishArticleTranslations());
         setIsOpen(false);
         resetForm();
       } catch {
-        toast.error("English çeviri kaydedilemedi");
+        toast.error(
+          editingLanguage === "ar"
+            ? "Arapça çeviri kaydedilemedi"
+            : "English çeviri kaydedilemedi",
+        );
       }
       return;
     }
@@ -245,24 +284,29 @@ export default function AdminArticles() {
     }
   };
 
-  const handleDeleteEnglishOverride = async () => {
-    if (!editingId || !hasEnglishOverride) return;
-    const approved = window.confirm("Bu haberin English çevirisini silmek istiyor musunuz?");
+  const handleDeleteTranslationOverride = async () => {
+    if (!editingId || editingLanguage === "tr" || !hasSelectedOverride) return;
+    const languageLabel = editingLanguage === "ar" ? "Arapça" : "English";
+    const approved = window.confirm(
+      `Bu haberin ${languageLabel} çevirisini silmek istiyor musunuz?`,
+    );
     if (!approved) return;
 
     try {
       await deleteTranslationMutation.mutateAsync({
         key: getArticleTranslationKey(editingId),
         section: ARTICLE_CONTENT_TRANSLATION_SECTION,
-        language: "en",
+        language: editingLanguage,
       });
-      toast.success("English çeviri silindi");
-      await refetchEnglishArticleTranslations();
+      toast.success(`${languageLabel} çeviri silindi`);
+      await (editingLanguage === "ar"
+        ? refetchArabicArticleTranslations()
+        : refetchEnglishArticleTranslations());
       if (editingArticle) {
-        setFormData(formFromEnglishArticle(editingArticle));
+        setFormData(formFromTranslatedArticle(editingArticle, editingLanguage));
       }
     } catch {
-      toast.error("English çeviri silinemedi");
+      toast.error(`${languageLabel} çeviri silinemedi`);
     }
   };
 
@@ -310,7 +354,9 @@ export default function AdminArticles() {
                   <p className="text-xs text-muted-foreground">
                     {editingLanguage === "tr"
                       ? "Türkçe kayıt haberin ana verisini günceller."
-                      : "English kayıt sadece çeviri katmanını günceller."}
+                      : editingLanguage === "en"
+                        ? "English kayıt sadece çeviri katmanını günceller."
+                        : "Arapça kayıt sadece çeviri katmanını günceller."}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -330,12 +376,22 @@ export default function AdminArticles() {
                   >
                     English
                   </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={editingLanguage === "ar" ? "default" : "outline"}
+                    onClick={() => setEditingLanguage("ar")}
+                  >
+                    العربية
+                  </Button>
                 </div>
               </div>
 
-              {editingLanguage === "en" && !editingId ? (
+              {editingLanguage !== "tr" && !editingId ? (
                 <p className="text-xs text-muted-foreground">
-                  English çeviri için önce haberi Türkçe olarak oluşturun, sonra düzenle ekranından English sekmesine geçin.
+                  {editingLanguage === "ar"
+                    ? "Arapça çeviri için önce haberi Türkçe olarak oluşturun, sonra düzenle ekranından العربية sekmesine geçin."
+                    : "English çeviri için önce haberi Türkçe olarak oluşturun, sonra düzenle ekranından English sekmesine geçin."}
                 </p>
               ) : null}
 
@@ -381,12 +437,12 @@ export default function AdminArticles() {
                 </label>
               ) : null}
 
-              {editingLanguage === "en" && editingId && hasEnglishOverride ? (
+              {editingLanguage !== "tr" && editingId && hasSelectedOverride ? (
                 <Button
                   type="button"
                   variant="outline"
                   className="w-full"
-                  onClick={handleDeleteEnglishOverride}
+                  onClick={handleDeleteTranslationOverride}
                   disabled={deleteTranslationMutation.isPending}
                 >
                   {deleteTranslationMutation.isPending ? (
@@ -395,14 +451,14 @@ export default function AdminArticles() {
                       Çeviri Siliniyor...
                     </>
                   ) : (
-                    "English Çeviriyi Sil"
+                    editingLanguage === "ar" ? "Arapça Çeviriyi Sil" : "English Çeviriyi Sil"
                   )}
                 </Button>
               ) : null}
 
               <Button
                 onClick={handleSubmit}
-                disabled={isSaving || (editingLanguage === "en" && !editingId)}
+                disabled={isSaving || (editingLanguage !== "tr" && !editingId)}
                 className="w-full"
               >
                 {isSaving ? (

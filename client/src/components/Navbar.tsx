@@ -10,16 +10,19 @@ import { useI18n } from "@/contexts/I18nContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useLocation } from "wouter";
 import { asRecordArray, asString, useTemplateBackedPageContent } from "@/lib/pageContent";
+import BrandLogo from "@/components/BrandLogo";
 
 type NavChild = {
   labelTr: string;
   labelEn: string;
+  labelAr?: string;
   href: string;
 };
 
 type NavItem = {
   labelTr: string;
   labelEn: string;
+  labelAr?: string;
   href: string;
   children?: NavChild[];
 };
@@ -33,6 +36,7 @@ type NavbarMetadata = {
   darkModeTitle: string;
   searchPlaceholderTr: string;
   searchPlaceholderEn: string;
+  searchPlaceholderAr?: string;
   navItems: NavItem[];
 };
 
@@ -52,11 +56,30 @@ const Navbar = () => {
     () => asRecordArray<NavItem>(metadata.navItems, []),
     [metadata.navItems],
   );
+  const contactItems = [
+    {
+      type: "phone" as const,
+      value: asString(metadata.topBarPhone),
+      href: `tel:${asString(metadata.topBarPhone).replace(/\s+/g, "")}`,
+      icon: Phone,
+    },
+    {
+      type: "email" as const,
+      value: asString(metadata.topBarEmail),
+      href: `mailto:${asString(metadata.topBarEmail)}`,
+      icon: Mail,
+    },
+  ].filter((item) => item.value);
 
-  const getLabel = (item: { labelTr: string; labelEn: string }) =>
-    language === "en"
-      ? asString(item.labelEn, asString(item.labelTr))
-      : asString(item.labelTr, asString(item.labelEn));
+  const getLabel = (item: { labelTr: string; labelEn: string; labelAr?: string }) => {
+    if (language === "ar") {
+      return asString(item.labelAr, asString(item.labelEn, asString(item.labelTr)));
+    }
+    if (language === "en") {
+      return asString(item.labelEn, asString(item.labelTr));
+    }
+    return asString(item.labelTr, asString(item.labelEn));
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -85,20 +108,19 @@ const Navbar = () => {
     >
       <div className="hidden lg:flex items-center justify-between px-6 py-2 bg-[var(--vaden-surface-08)] text-[var(--vaden-text-muted)] text-sm border-b border-[var(--vaden-border-soft)]">
         <div className="flex items-center gap-6">
-          <a
-            href={`tel:${asString(metadata.topBarPhone).replace(/\s+/g, "")}`}
-            className="flex items-center gap-2 hover:text-[oklch(0.60_0.18_42)] transition"
-          >
-            <Phone size={14} />
-            <span>{asString(metadata.topBarPhone)}</span>
-          </a>
-          <a
-            href={`mailto:${asString(metadata.topBarEmail)}`}
-            className="flex items-center gap-2 hover:text-orange-500 transition"
-          >
-            <Mail size={14} />
-            <span>{asString(metadata.topBarEmail)}</span>
-          </a>
+          {contactItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <a
+                key={item.type}
+                href={item.href}
+                className="flex items-center gap-2 hover:text-[oklch(0.60_0.18_42)] transition"
+              >
+                <Icon size={14} />
+                <span>{item.value}</span>
+              </a>
+            );
+          })}
         </div>
         <div className="flex items-center gap-4">
           <div className="flex gap-2">
@@ -121,6 +143,16 @@ const Navbar = () => {
               }`}
             >
               EN
+            </button>
+            <button
+              onClick={() => setLanguage("ar")}
+              className={`px-2 py-1 rounded transition ${
+                language === "ar"
+                  ? "bg-orange-600 text-white"
+                  : "text-[var(--vaden-text-muted)] hover:text-orange-500"
+              }`}
+            >
+              AR
             </button>
           </div>
 
@@ -154,25 +186,7 @@ const Navbar = () => {
       <div className="px-4 lg:px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate("/")}>
-            <div className="w-10 h-10 relative flex-shrink-0">
-              <svg
-                viewBox="0 0 40 40"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-full h-full"
-              >
-                <circle cx="20" cy="20" r="20" fill="oklch(0.60 0.18 42)" />
-                <path d="M8 12L20 30L32 12H26L20 22L14 12H8Z" fill="white" />
-              </svg>
-            </div>
-            <div>
-              <div className="text-[var(--vaden-on-surface)] font-['Barlow_Condensed'] font-black text-xl tracking-widest leading-none">
-                {asString(metadata.logoTitle, "VADEN")}
-              </div>
-              <div className="text-[oklch(0.60_0.18_42)] font-['Barlow_Condensed'] font-semibold text-xs tracking-[0.25em] leading-none">
-                {asString(metadata.logoSubtitle, "ORIGINAL")}
-              </div>
-            </div>
+            <BrandLogo className="h-12 w-auto md:h-14" />
           </div>
 
           <div className="hidden lg:flex items-center gap-1">
@@ -227,9 +241,11 @@ const Navbar = () => {
                 <input
                   type="text"
                   placeholder={
-                    language === "en"
-                      ? asString(metadata.searchPlaceholderEn, "Search OEM Code...")
-                      : asString(metadata.searchPlaceholderTr, "OEM Kodu Ara...")
+                    language === "ar"
+                      ? asString(metadata.searchPlaceholderAr, "ابحث برقم OEM أو باسم المنتج...")
+                      : language === "en"
+                        ? asString(metadata.searchPlaceholderEn, "Search OEM Code...")
+                        : asString(metadata.searchPlaceholderTr, "OEM Kodu Ara...")
                   }
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -258,6 +274,21 @@ const Navbar = () => {
 
         {isOpen && (
           <div className="lg:hidden mt-4 p-2 space-y-2 rounded-xl border border-[var(--vaden-border-soft)] bg-[var(--vaden-surface-10)] shadow-[0_12px_36px_rgba(0,0,0,0.28)] backdrop-blur-xl">
+            <div className="flex items-center gap-2 px-2 pb-2">
+              {(["tr", "en", "ar"] as const).map((lang) => (
+                <button
+                  key={lang}
+                  onClick={() => setLanguage(lang)}
+                  className={`rounded-md px-3 py-1.5 text-xs font-bold uppercase transition ${
+                    language === lang
+                      ? "bg-orange-600 text-white"
+                      : "bg-[var(--vaden-surface-14)] text-[var(--vaden-text-muted)]"
+                  }`}
+                >
+                  {lang}
+                </button>
+              ))}
+            </div>
             {navItems.map((item, index) => {
               const label = getLabel(item);
               const children = Array.isArray(item.children) ? item.children : [];

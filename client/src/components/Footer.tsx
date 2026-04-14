@@ -14,6 +14,7 @@ import {
   Youtube,
 } from "lucide-react";
 import { asRecordArray, asString, useTemplateBackedPageContent } from "@/lib/pageContent";
+import BrandLogo from "@/components/BrandLogo";
 
 type FooterMetadata = {
   logoTitle: string;
@@ -57,25 +58,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           <div className="lg:col-span-1">
             <div className="flex items-center mb-6">
-              <div className="w-10 h-10 relative mr-3">
-                <svg
-                  viewBox="0 0 40 40"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-full h-full"
-                >
-                  <circle cx="20" cy="20" r="20" fill="oklch(0.60 0.18 42)" />
-                  <path d="M8 12L20 30L32 12H26L20 22L14 12H8Z" fill="white" />
-                </svg>
-              </div>
-              <div>
-                <div className="text-[var(--vaden-on-surface)] font-['Barlow_Condensed'] font-black text-2xl tracking-widest leading-none">
-                  {asString(metadata.logoTitle, "VADEN")}
-                </div>
-                <div className="text-[oklch(0.60_0.18_42)] font-['Barlow_Condensed'] font-semibold text-xs tracking-[0.25em] leading-none">
-                  {asString(metadata.logoSubtitle, "ORIGINAL")}
-                </div>
-              </div>
+              <BrandLogo className="h-16 w-auto" />
             </div>
             <p className="text-[var(--vaden-text-muted)] text-sm leading-relaxed font-['Inter'] mb-6">
               {asString(metadata.brandDescription)}
@@ -156,41 +139,47 @@ export default function Footer() {
                   ))}
                 </p>
               </div>
-              <div className="flex items-center gap-3">
-                <Phone size={16} className="text-[oklch(0.60_0.18_42)] flex-shrink-0" />
-                <a
-                  href={`tel:${asString(metadata.phone).replace(/\s+/g, "")}`}
-                  className="text-[var(--vaden-text-muted)] hover:text-[oklch(0.60_0.18_42)] text-sm font-['Inter'] transition-colors"
-                >
-                  {asString(metadata.phone)}
-                </a>
-              </div>
-              <div className="flex items-center gap-3">
-                <Mail size={16} className="text-[oklch(0.60_0.18_42)] flex-shrink-0" />
-                <a
-                  href={`mailto:${asString(metadata.email)}`}
-                  className="text-[var(--vaden-text-muted)] hover:text-[oklch(0.60_0.18_42)] text-sm font-['Inter'] transition-colors"
-                >
-                  {asString(metadata.email)}
-                </a>
-              </div>
+              {asString(metadata.phone) ? (
+                <div className="flex items-center gap-3">
+                  <Phone size={16} className="text-[oklch(0.60_0.18_42)] flex-shrink-0" />
+                  <a
+                    href={`tel:${asString(metadata.phone).replace(/\s+/g, "")}`}
+                    className="text-[var(--vaden-text-muted)] hover:text-[oklch(0.60_0.18_42)] text-sm font-['Inter'] transition-colors"
+                  >
+                    {asString(metadata.phone)}
+                  </a>
+                </div>
+              ) : null}
+              {asString(metadata.email) ? (
+                <div className="flex items-center gap-3">
+                  <Mail size={16} className="text-[oklch(0.60_0.18_42)] flex-shrink-0" />
+                  <a
+                    href={`mailto:${asString(metadata.email)}`}
+                    className="text-[var(--vaden-text-muted)] hover:text-[oklch(0.60_0.18_42)] text-sm font-['Inter'] transition-colors"
+                  >
+                    {asString(metadata.email)}
+                  </a>
+                </div>
+              ) : null}
             </div>
 
-            <div className="mt-6">
-              <p className="text-[var(--vaden-text-muted)] text-xs font-['Inter'] mb-3">
-                {asString(metadata.newsletterTitle)}
-              </p>
-              <div className="flex">
-                <input
-                  type="email"
-                  placeholder={asString(metadata.newsletterPlaceholder)}
-                  className="flex-1 bg-[var(--vaden-surface-14)] border border-[var(--vaden-border-strong)] px-3 py-2 text-sm text-[var(--vaden-text-dim)] placeholder-[var(--vaden-text-placeholder)] outline-none focus:border-[oklch(0.60_0.18_42)] transition-colors font-['Inter']"
-                />
-                <button className="bg-[oklch(0.60_0.18_42)] hover:bg-[oklch(0.50_0.18_42)] text-[var(--vaden-on-accent)] px-4 py-2 text-sm font-['Barlow_Condensed'] font-bold tracking-wide transition-colors">
-                  {asString(metadata.newsletterButton, "ABONE OL")}
-                </button>
+            {asString(metadata.newsletterTitle) ? (
+              <div className="mt-6">
+                <p className="text-[var(--vaden-text-muted)] text-xs font-['Inter'] mb-3">
+                  {asString(metadata.newsletterTitle)}
+                </p>
+                <div className="flex">
+                  <input
+                    type="email"
+                    placeholder={asString(metadata.newsletterPlaceholder)}
+                    className="flex-1 bg-[var(--vaden-surface-14)] border border-[var(--vaden-border-strong)] px-3 py-2 text-sm text-[var(--vaden-text-dim)] placeholder-[var(--vaden-text-placeholder)] outline-none focus:border-[oklch(0.60_0.18_42)] transition-colors font-['Inter']"
+                  />
+                  <button className="bg-[oklch(0.60_0.18_42)] hover:bg-[oklch(0.50_0.18_42)] text-[var(--vaden-on-accent)] px-4 py-2 text-sm font-['Barlow_Condensed'] font-bold tracking-wide transition-colors">
+                    {asString(metadata.newsletterButton, "ABONE OL")}
+                  </button>
+                </div>
               </div>
-            </div>
+            ) : null}
           </div>
         </div>
       </div>

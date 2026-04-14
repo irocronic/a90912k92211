@@ -3,10 +3,12 @@ import { trpc } from "@/lib/trpc";
 import { PAGE_CONTENT_TEMPLATE_MAP } from "@/lib/pageContentTemplates";
 import { useI18n } from "@/contexts/I18nContext";
 import { EN_PAGE_CONTENT_OVERRIDES } from "@/lib/pageContentEnOverrides";
+import { AR_PAGE_CONTENT_OVERRIDES } from "@/lib/pageContentArOverrides";
 import {
   getPageContentTranslationKey,
   PAGE_CONTENT_TRANSLATION_SECTION,
 } from "@/lib/pageContentTranslationKeys";
+import type { Language } from "@/contexts/I18nContext";
 
 export type JsonRecord = Record<string, unknown>;
 
@@ -49,13 +51,16 @@ function mergeMetadata<TMetadata extends JsonRecord>(fallback: TMetadata, incomi
 
 function localizeSectionValue<TMetadata extends JsonRecord>(
   section: string,
-  language: "tr" | "en",
+  language: Language,
   value: PageContentSectionValue<TMetadata>,
   storedOverride?: JsonRecord,
 ): PageContentSectionValue<TMetadata> {
-  if (language !== "en") return value;
+  if (language === "tr") return value;
 
-  const staticOverride = EN_PAGE_CONTENT_OVERRIDES[section] ?? {};
+  const staticOverrideMap =
+    language === "ar" ? AR_PAGE_CONTENT_OVERRIDES : EN_PAGE_CONTENT_OVERRIDES;
+
+  const staticOverride = staticOverrideMap[section] ?? {};
   const mergedOverride = deepMerge(
     staticOverride,
     storedOverride ?? {},
@@ -101,13 +106,13 @@ export function usePageContentSection<TMetadata extends JsonRecord>(
 ): PageContentSectionValue<TMetadata> {
   const { language } = useI18n();
   const { data = [], isLoading } = trpc.content.pageContent.list.useQuery();
-  const { data: enPageContentTranslations = {} } = trpc.i18n.getSectionTranslations.useQuery(
+  const { data: localizedPageContentTranslations = {} } = trpc.i18n.getSectionTranslations.useQuery(
     {
-      language: "en",
+      language,
       section: PAGE_CONTENT_TRANSLATION_SECTION,
     },
     {
-      enabled: language === "en",
+      enabled: language !== "tr",
     },
   );
 
@@ -119,9 +124,9 @@ export function usePageContentSection<TMetadata extends JsonRecord>(
   const storedEnOverride = useMemo(
     () =>
       parseStoredOverride(
-        enPageContentTranslations[getPageContentTranslationKey(section)],
+        localizedPageContentTranslations[getPageContentTranslationKey(section)],
       ),
-    [enPageContentTranslations, section],
+    [localizedPageContentTranslations, section],
   );
 
   const mergedValue: PageContentSectionValue<TMetadata> = {

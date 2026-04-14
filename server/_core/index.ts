@@ -31,6 +31,15 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 async function startServer() {
   const app = express();
   const server = createServer(app);
+
+  app.get(["/healthz", "/healthz/"], (_req, res) => {
+    res.status(200).json({
+      ok: true,
+      service: "vaden-web",
+      timestamp: Date.now(),
+    });
+  });
+
   const apiRateLimitMiddleware = createIpRateLimitMiddleware({
     windowMs: 60_000,
     maxRequests: 600,

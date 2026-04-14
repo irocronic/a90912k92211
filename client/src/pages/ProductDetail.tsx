@@ -3,7 +3,7 @@
   Design: Industrial Precision - Full product information with specs and OEM codes
 */
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useParams, useLocation } from "wouter";
 import { ChevronRight, Download, Share2, Phone, Mail, Loader2 } from "lucide-react";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
@@ -55,18 +55,25 @@ export default function ProductDetail() {
   const { data: products = [], isLoading } = trpc.content.products.list.useQuery();
   const { data: publicSettings = [] } = trpc.content.settings.list.useQuery(
     undefined,
-    { enabled: language === "en" },
+    { enabled: language !== "tr" },
   );
-  const { data: enProductTranslations = {} } =
+  const { data: productTranslations = {} } =
     trpc.i18n.getSectionTranslations.useQuery(
       {
-        language: "en",
+        language,
         section: PRODUCT_CONTENT_TRANSLATION_SECTION,
       },
       {
-        enabled: language === "en",
+        enabled: language !== "tr",
       },
     );
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    }
+  }, [params?.slug]);
+
   const taxonomy = useMemo(() => {
     const setting = publicSettings.find(
       (item) => item.key === PRODUCT_TAXONOMY_SETTING_KEY,
@@ -81,11 +88,11 @@ export default function ProductDetail() {
         return localizeDisplayProduct(
           base,
           language,
-          enProductTranslations[getProductTranslationKey(product.id)],
+          productTranslations[getProductTranslationKey(product.id)],
           taxonomy,
         );
       }),
-    [products, language, enProductTranslations, taxonomy],
+    [products, language, productTranslations, taxonomy],
   );
 
   const slug = params?.slug;
@@ -161,7 +168,7 @@ export default function ProductDetail() {
             </button>
             <ChevronRight size={16} className="text-[oklch(0.40_0.01_250)]" />
             <button
-              onClick={() => navigate("/#urunler")}
+              onClick={() => navigate("/products")}
               className="text-[oklch(0.60_0.18_42)] hover:text-[oklch(0.70_0.18_42)] transition-colors"
             >
               {asString(metadata.breadcrumbProducts, "Ürünler")}
@@ -245,18 +252,22 @@ export default function ProductDetail() {
                 {asString(metadata.contactTitle, "Sorularınız mı var?")}
               </p>
               <div className="flex flex-col sm:flex-row gap-3">
-                <a
-                  href={`tel:${asString(metadata.contactPhone, "444 9 184").replace(/\s+/g, "")}`}
-                  className="flex items-center gap-2 text-[oklch(0.60_0.18_42)] hover:text-[oklch(0.70_0.18_42)] transition-colors font-['Inter'] font-semibold"
-                >
-                  <Phone size={16} /> {asString(metadata.contactPhone, "444 9 184")}
-                </a>
-                <a
-                  href={`mailto:${asString(metadata.contactEmail, "info@vaden.com.tr")}`}
-                  className="flex items-center gap-2 text-[oklch(0.60_0.18_42)] hover:text-[oklch(0.70_0.18_42)] transition-colors font-['Inter'] font-semibold"
-                >
-                  <Mail size={16} /> {asString(metadata.contactEmail, "info@vaden.com.tr")}
-                </a>
+                {asString(metadata.contactPhone) ? (
+                  <a
+                    href={`tel:${asString(metadata.contactPhone).replace(/\s+/g, "")}`}
+                    className="flex items-center gap-2 text-[oklch(0.60_0.18_42)] hover:text-[oklch(0.70_0.18_42)] transition-colors font-['Inter'] font-semibold"
+                  >
+                    <Phone size={16} /> {asString(metadata.contactPhone)}
+                  </a>
+                ) : null}
+                {asString(metadata.contactEmail) ? (
+                  <a
+                    href={`mailto:${asString(metadata.contactEmail)}`}
+                    className="flex items-center gap-2 text-[oklch(0.60_0.18_42)] hover:text-[oklch(0.70_0.18_42)] transition-colors font-['Inter'] font-semibold"
+                  >
+                    <Mail size={16} /> {asString(metadata.contactEmail)}
+                  </a>
+                ) : null}
               </div>
             </div>
           </div>

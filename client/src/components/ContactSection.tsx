@@ -13,6 +13,8 @@ type ContactMetadata = {
   label: string;
   heading: string;
   successMessage: string;
+  whatsappText?: string;
+  whatsappUrl?: string;
   contactInfo: Array<{ icon: string; title: string; lines: string[] }>;
   labels: {
     name: string;
@@ -37,6 +39,19 @@ const INFO_ICONS = {
   mail: Mail,
   clock: Clock,
 } as const;
+
+function WhatsAppIcon({ className = "h-4 w-4" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className={className}
+      fill="currentColor"
+    >
+      <path d="M19.05 4.94A9.82 9.82 0 0 0 12.03 2C6.6 2 2.2 6.4 2.2 11.82c0 1.74.45 3.44 1.31 4.95L2 22l5.39-1.41a9.8 9.8 0 0 0 4.64 1.18h.01c5.43 0 9.83-4.4 9.83-9.82a9.75 9.75 0 0 0-2.82-7.01Zm-7.02 15.17h-.01a8.16 8.16 0 0 1-4.15-1.14l-.3-.18-3.2.84.85-3.12-.2-.32a8.11 8.11 0 0 1-1.25-4.36c0-4.5 3.67-8.17 8.19-8.17 2.18 0 4.22.85 5.76 2.39a8.1 8.1 0 0 1 2.39 5.77c0 4.51-3.68 8.18-8.18 8.18Zm4.49-6.13c-.25-.12-1.47-.72-1.69-.8-.23-.08-.39-.12-.56.12-.17.25-.64.8-.79.96-.15.17-.29.19-.54.06-.25-.12-1.04-.38-1.98-1.22-.73-.65-1.22-1.45-1.36-1.7-.14-.25-.01-.39.11-.51.11-.11.25-.29.37-.43.12-.15.17-.25.25-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.34-.77-1.84-.2-.48-.4-.41-.56-.42h-.48c-.17 0-.43.06-.66.31-.23.25-.87.85-.87 2.06s.9 2.39 1.02 2.56c.12.17 1.76 2.69 4.26 3.77.6.26 1.07.41 1.44.52.61.19 1.16.16 1.59.1.49-.07 1.47-.6 1.68-1.18.21-.58.21-1.08.15-1.18-.06-.1-.22-.16-.46-.27Z" />
+    </svg>
+  );
+}
 
 export default function ContactSection() {
   const { ref, isVisible } = useIntersectionObserver({ threshold: 0.1 });
@@ -203,6 +218,18 @@ export default function ContactSection() {
               >
                 {asString(metadata.labels?.submit, "Mesaj Gönder")} <Send size={16} />
               </button>
+
+              {asString(metadata.whatsappUrl) ? (
+                <a
+                  href={asString(metadata.whatsappUrl)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 border border-[var(--vaden-border-strong)] bg-[var(--vaden-surface-14)] px-8 py-3.5 font-['Barlow_Condensed'] text-sm font-bold uppercase tracking-wide text-[var(--vaden-on-surface)] transition-all hover:border-[oklch(0.60_0.18_42)] hover:text-[oklch(0.60_0.18_42)]"
+                >
+                  {asString(metadata.whatsappText, "WhatsApp")}
+                  <WhatsAppIcon />
+                </a>
+              ) : null}
             </form>
           </div>
         </div>

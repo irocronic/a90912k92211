@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { inferRouterOutputs } from "@trpc/server";
 import type { AppRouter } from "../../../../server/routers";
 import { trpc } from "@/lib/trpc";
@@ -26,7 +26,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Edit2, Trash2, Loader2 } from "lucide-react";
+import { Plus, Edit2, Trash2, Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import ImageUpload from "@/components/ImageUpload";
 import { toDisplayProduct } from "@/lib/contentProducts";
@@ -51,7 +51,8 @@ import {
 
 type RouterOutputs = inferRouterOutputs<AppRouter>;
 type AdminProduct = RouterOutputs["admin"]["products"]["list"][number];
-type EditingLanguage = "tr" | "en";
+type ProductImportResult = RouterOutputs["admin"]["products"]["importSqlite"];
+type EditingLanguage = "tr" | "en" | "ar";
 
 type ProductFormData = {
   title: string;
@@ -83,7 +84,10 @@ type ProductPayload = {
   certifications: string[];
 };
 
-type SubcategoryDraftState = Record<string, { nameTr: string; nameEn: string }>;
+type SubcategoryDraftState = Record<
+  string,
+  { nameTr: string; nameEn: string; nameAr: string }
+>;
 
 const EMPTY_FORM: ProductFormData = {
   title: "",
@@ -175,14 +179,15 @@ function formFromProduct(product: AdminProduct): ProductFormData {
   };
 }
 
-function formFromEnglishProduct(
+function formFromTranslatedProduct(
   product: AdminProduct,
+  language: EditingLanguage,
   taxonomy: ProductTaxonomy,
   rawStoredOverride?: string,
 ): ProductFormData {
   const localized = localizeDisplayProduct(
     toDisplayProduct(product),
-    "en",
+    language,
     rawStoredOverride,
   );
   const categoryNode = findCategoryByLabel(taxonomy, product.category);
@@ -195,10 +200,10 @@ function formFromEnglishProduct(
     title: localized.title,
     subtitle: localized.subtitle,
     category:
-      categoryNode?.nameEn ||
+      getCategoryName(categoryNode ?? { nameTr: "", nameEn: "", nameAr: "", id: "", subcategories: [] }, language) ||
       localized.category,
     subcategory:
-      subcategoryNode?.nameEn ||
+      (subcategoryNode ? getSubcategoryName(subcategoryNode, language) : "") ||
       localized.subcategory ||
       "",
     description: localized.description,
@@ -238,9 +243,15 @@ export default function AdminProducts() {
   const [taxonomyDirty, setTaxonomyDirty] = useState(false);
   const [newCategoryTr, setNewCategoryTr] = useState("");
   const [newCategoryEn, setNewCategoryEn] = useState("");
+  const [newCategoryAr, setNewCategoryAr] = useState("");
   const [subcategoryDrafts, setSubcategoryDrafts] = useState<SubcategoryDraftState>(
     {},
   );
+  const [selectedImportFile, setSelectedImportFile] = useState<File | null>(null);
+  const [lastImportResult, setLastImportResult] = useState<ProductImportResult | null>(
+    null,
+  );
+  const importFileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: products = [], isLoading, refetch } =
     trpc.admin.products.list.useQuery();
@@ -248,6 +259,7 @@ export default function AdminProducts() {
     trpc.admin.settings.list.useQuery();
   const createMutation = trpc.admin.products.create.useMutation();
   const updateMutation = trpc.admin.products.update.useMutation();
+  const importMutation = trpc.admin.products.importSqlite.useMutation();
   const deleteMutation = trpc.admin.products.delete.useMutation();
   const setSettingMutation = trpc.admin.settings.set.useMutation();
 
@@ -256,6 +268,13 @@ export default function AdminProducts() {
     refetch: refetchEnglishProductTranslations,
   } = trpc.i18n.getSectionTranslations.useQuery({
     language: "en",
+    section: PRODUCT_CONTENT_TRANSLATION_SECTION,
+  });
+  const {
+    data: arabicProductTranslations = {},
+    refetch: refetchArabicProductTranslations,
+  } = trpc.i18n.getSectionTranslations.useQuery({
+    language: "ar",
     section: PRODUCT_CONTENT_TRANSLATION_SECTION,
   });
   const updateTranslationMutation = trpc.i18n.updateTranslation.useMutation();
@@ -298,11 +317,16 @@ export default function AdminProducts() {
     () => products.find((product) => product.id === editingId),
     [products, editingId],
   );
-  const englishTranslationKey = editingId
+  const translationKey = editingId
     ? getProductTranslationKey(editingId)
     : null;
-  const hasEnglishOverride = Boolean(
-    englishTranslationKey && englishProductTranslations[englishTranslationKey],
+  const hasSelectedOverride = Boolean(
+    translationKey &&
+      (editingLanguage === "en"
+        ? englishProductTranslations[translationKey]
+        : editingLanguage === "ar"
+          ? arabicProductTranslations[translationKey]
+          : false),
   );
 
   const resetForm = () => {
@@ -314,12 +338,15 @@ export default function AdminProducts() {
   useEffect(() => {
     if (!isOpen || !editingProduct) return;
 
-    if (editingLanguage === "en") {
+    if (editingLanguage !== "tr") {
       setFormData(
-        formFromEnglishProduct(
+        formFromTranslatedProduct(
           editingProduct,
+          editingLanguage,
           taxonomyDraft,
-          englishProductTranslations[getProductTranslationKey(editingProduct.id)],
+          editingLanguage === "en"
+            ? englishProductTranslations[getProductTranslationKey(editingProduct.id)]
+            : arabicProductTranslations[getProductTranslationKey(editingProduct.id)],
         ),
       );
       return;
@@ -331,6 +358,7 @@ export default function AdminProducts() {
     editingProduct,
     editingLanguage,
     englishProductTranslations,
+    arabicProductTranslations,
     taxonomyDraft,
   ]);
 
@@ -342,12 +370,15 @@ export default function AdminProducts() {
 
   const openEditDialog = (product: AdminProduct) => {
     setEditingId(product.id);
-    if (editingLanguage === "en") {
+    if (editingLanguage !== "tr") {
       setFormData(
-        formFromEnglishProduct(
+        formFromTranslatedProduct(
           product,
+          editingLanguage,
           taxonomyDraft,
-          englishProductTranslations[getProductTranslationKey(product.id)],
+          editingLanguage === "en"
+            ? englishProductTranslations[getProductTranslationKey(product.id)]
+            : arabicProductTranslations[getProductTranslationKey(product.id)],
         ),
       );
     } else {
@@ -392,7 +423,7 @@ export default function AdminProducts() {
 
   const handleCategoryNameChange = (
     categoryId: string,
-    field: "nameTr" | "nameEn",
+    field: "nameTr" | "nameEn" | "nameAr",
     value: string,
   ) => {
     setTaxonomyDirty(true);
@@ -411,12 +442,13 @@ export default function AdminProducts() {
   const handleAddCategory = () => {
     const categoryTr = newCategoryTr.trim();
     const categoryEn = newCategoryEn.trim();
-    if (!categoryTr && !categoryEn) {
-      toast.error("Kategori için TR veya EN isim girin");
+    const categoryAr = newCategoryAr.trim();
+    if (!categoryTr && !categoryEn && !categoryAr) {
+      toast.error("Kategori için TR, EN veya AR isim girin");
       return;
     }
 
-    const category = createEmptyCategory(categoryTr, categoryEn);
+    const category = createEmptyCategory(categoryTr, categoryEn, categoryAr);
     setTaxonomyDirty(true);
     setTaxonomyDraft((prev) => {
       const exists = prev.some(
@@ -436,11 +468,12 @@ export default function AdminProducts() {
     });
     setNewCategoryTr("");
     setNewCategoryEn("");
+    setNewCategoryAr("");
   };
 
   const handleSubcategoryDraftChange = (
     categoryId: string,
-    field: "nameTr" | "nameEn",
+    field: "nameTr" | "nameEn" | "nameAr",
     value: string,
   ) => {
     setSubcategoryDrafts((prev) => ({
@@ -448,17 +481,19 @@ export default function AdminProducts() {
       [categoryId]: {
         nameTr: prev[categoryId]?.nameTr || "",
         nameEn: prev[categoryId]?.nameEn || "",
+        nameAr: prev[categoryId]?.nameAr || "",
         [field]: value,
       },
     }));
   };
 
   const handleAddSubcategory = (categoryId: string) => {
-    const draft = subcategoryDrafts[categoryId] || { nameTr: "", nameEn: "" };
+    const draft = subcategoryDrafts[categoryId] || { nameTr: "", nameEn: "", nameAr: "" };
     const nameTr = draft.nameTr.trim();
     const nameEn = draft.nameEn.trim();
-    if (!nameTr && !nameEn) {
-      toast.error("Alt kategori için TR veya EN isim girin");
+    const nameAr = draft.nameAr.trim();
+    if (!nameTr && !nameEn && !nameAr) {
+      toast.error("Alt kategori için TR, EN veya AR isim girin");
       return;
     }
 
@@ -467,11 +502,12 @@ export default function AdminProducts() {
       prev.map((category) => {
         if (category.id !== categoryId) return category;
 
-        const subcategory = createEmptySubcategory(categoryId, nameTr, nameEn);
+        const subcategory = createEmptySubcategory(categoryId, nameTr, nameEn, nameAr);
         const exists = category.subcategories.some(
           (item) =>
             item.nameTr === subcategory.nameTr ||
             item.nameEn === subcategory.nameEn ||
+            item.nameAr === subcategory.nameAr ||
             item.id === subcategory.id,
         );
         if (exists) {
@@ -490,14 +526,14 @@ export default function AdminProducts() {
 
     setSubcategoryDrafts((prev) => ({
       ...prev,
-      [categoryId]: { nameTr: "", nameEn: "" },
+      [categoryId]: { nameTr: "", nameEn: "", nameAr: "" },
     }));
   };
 
   const handleSubcategoryNameChange = (
     categoryId: string,
     subcategoryId: string,
-    field: "nameTr" | "nameEn",
+    field: "nameTr" | "nameEn" | "nameAr",
     value: string,
   ) => {
     setTaxonomyDirty(true);
@@ -560,25 +596,39 @@ export default function AdminProducts() {
       return;
     }
 
-    if (editingLanguage === "en") {
+    if (editingLanguage !== "tr") {
       if (!editingId) {
-        toast.error("English çeviri için önce ürünü Türkçe oluşturun");
+        toast.error(
+          editingLanguage === "ar"
+            ? "Arapça çeviri için önce ürünü Türkçe oluşturun"
+            : "English çeviri için önce ürünü Türkçe oluşturun",
+        );
         return;
       }
 
       try {
         await updateTranslationMutation.mutateAsync({
           key: getProductTranslationKey(editingId),
-          language: "en",
+          language: editingLanguage,
           section: PRODUCT_CONTENT_TRANSLATION_SECTION,
           value: JSON.stringify(payload),
         });
-        toast.success("Ürünün English çevirisi kaydedildi");
-        await refetchEnglishProductTranslations();
+        toast.success(
+          editingLanguage === "ar"
+            ? "Ürünün Arapça çevirisi kaydedildi"
+            : "Ürünün English çevirisi kaydedildi",
+        );
+        await (editingLanguage === "ar"
+          ? refetchArabicProductTranslations()
+          : refetchEnglishProductTranslations());
         setIsOpen(false);
         resetForm();
       } catch {
-        toast.error("English çeviri kaydedilemedi");
+        toast.error(
+          editingLanguage === "ar"
+            ? "Arapça çeviri kaydedilemedi"
+            : "English çeviri kaydedilemedi",
+        );
       }
       return;
     }
@@ -610,24 +660,81 @@ export default function AdminProducts() {
     }
   };
 
-  const handleDeleteEnglishOverride = async () => {
-    if (!editingId || !hasEnglishOverride) return;
-    const approved = window.confirm("Bu ürünün English çevirisini silmek istiyor musunuz?");
+  const handleDeleteTranslationOverride = async () => {
+    if (!editingId || editingLanguage === "tr" || !hasSelectedOverride) return;
+    const languageLabel = editingLanguage === "ar" ? "Arapça" : "English";
+    const approved = window.confirm(
+      `Bu ürünün ${languageLabel} çevirisini silmek istiyor musunuz?`,
+    );
     if (!approved) return;
 
     try {
       await deleteTranslationMutation.mutateAsync({
         key: getProductTranslationKey(editingId),
         section: PRODUCT_CONTENT_TRANSLATION_SECTION,
-        language: "en",
+        language: editingLanguage,
       });
-      toast.success("English çeviri silindi");
-      await refetchEnglishProductTranslations();
+      toast.success(`${languageLabel} çeviri silindi`);
+      await (editingLanguage === "ar"
+        ? refetchArabicProductTranslations()
+        : refetchEnglishProductTranslations());
       if (editingProduct) {
-        setFormData(formFromEnglishProduct(editingProduct, taxonomyDraft));
+        setFormData(formFromTranslatedProduct(editingProduct, editingLanguage, taxonomyDraft));
       }
     } catch {
-      toast.error("English çeviri silinemedi");
+      toast.error(`${languageLabel} çeviri silinemedi`);
+    }
+  };
+
+  const handleSelectImportFile = (file: File | null) => {
+    if (!file) {
+      setSelectedImportFile(null);
+      return;
+    }
+
+    const fileName = file.name.toLowerCase();
+    const isSupported =
+      fileName.endsWith(".db") ||
+      fileName.endsWith(".sqlite") ||
+      fileName.endsWith(".sqlite3");
+    if (!isSupported) {
+      toast.error("Lutfen .db, .sqlite veya .sqlite3 uzantili bir dosya secin");
+      return;
+    }
+
+    if (file.size > 25 * 1024 * 1024) {
+      toast.error("Dosya boyutu 25MB'dan kucuk olmalidir");
+      return;
+    }
+
+    setSelectedImportFile(file);
+  };
+
+  const handleImportProducts = async () => {
+    if (!selectedImportFile) {
+      toast.error("Once import edilecek DB dosyasini secin");
+      return;
+    }
+
+    try {
+      const buffer = await selectedImportFile.arrayBuffer();
+      const result = await importMutation.mutateAsync({
+        file: new Uint8Array(buffer) as any,
+        fileName: selectedImportFile.name,
+      });
+
+      setLastImportResult(result);
+      setTaxonomyDirty(false);
+      await Promise.all([refetch(), refetchSettings()]);
+      toast.success(
+        `${result.createdCount + result.updatedCount} urun basariyla ice aktarildi`,
+      );
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "SQLite urun dosyasi import edilemedi",
+      );
     }
   };
 
@@ -675,7 +782,9 @@ export default function AdminProducts() {
                   <p className="text-xs text-muted-foreground">
                     {editingLanguage === "tr"
                       ? "Türkçe kayıt ürünün ana verisini günceller."
-                      : "English kayıt sadece çeviri katmanını günceller."}
+                      : editingLanguage === "en"
+                        ? "English kayıt sadece çeviri katmanını günceller."
+                        : "Arapça kayıt sadece çeviri katmanını günceller."}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -695,12 +804,22 @@ export default function AdminProducts() {
                   >
                     English
                   </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={editingLanguage === "ar" ? "default" : "outline"}
+                    onClick={() => setEditingLanguage("ar")}
+                  >
+                    العربية
+                  </Button>
                 </div>
               </div>
 
-              {editingLanguage === "en" && !editingId ? (
+              {editingLanguage !== "tr" && !editingId ? (
                 <p className="text-xs text-muted-foreground">
-                  English çeviri için önce ürünü Türkçe olarak oluşturun, sonra düzenle ekranından English sekmesine geçin.
+                  {editingLanguage === "ar"
+                    ? "Arapça çeviri için önce ürünü Türkçe olarak oluşturun, sonra düzenle ekranından العربية sekmesine geçin."
+                    : "English çeviri için önce ürünü Türkçe olarak oluşturun, sonra düzenle ekranından English sekmesine geçin."}
                 </p>
               ) : null}
 
@@ -716,7 +835,11 @@ export default function AdminProducts() {
               />
               <div className="space-y-1.5">
                 <p className="text-sm font-medium">
-                  {editingLanguage === "en" ? "Category" : "Kategori"}
+                  {editingLanguage === "en"
+                    ? "Category"
+                    : editingLanguage === "ar"
+                      ? "الفئة"
+                      : "Kategori"}
                 </p>
                 {categoryOptions.length > 0 ? (
                   <Select
@@ -728,6 +851,8 @@ export default function AdminProducts() {
                         placeholder={
                           editingLanguage === "en"
                             ? "Select category"
+                            : editingLanguage === "ar"
+                              ? "الفئة"
                             : "Kategori seçin"
                         }
                       />
@@ -742,7 +867,13 @@ export default function AdminProducts() {
                   </Select>
                 ) : (
                   <Input
-                    placeholder={editingLanguage === "en" ? "Category" : "Kategori"}
+                    placeholder={
+                      editingLanguage === "en"
+                        ? "Category"
+                        : editingLanguage === "ar"
+                          ? "الفئة"
+                          : "Kategori"
+                    }
                     value={formData.category}
                     onChange={(e) =>
                       setFormData((prev) => ({ ...prev, category: e.target.value }))
@@ -753,7 +884,11 @@ export default function AdminProducts() {
 
               <div className="space-y-1.5">
                 <p className="text-sm font-medium">
-                  {editingLanguage === "en" ? "Subcategory" : "Alt Kategori"}
+                  {editingLanguage === "en"
+                    ? "Subcategory"
+                    : editingLanguage === "ar"
+                      ? "الفئة الفرعية"
+                      : "Alt Kategori"}
                 </p>
                 {availableSubcategories.length > 0 ? (
                   <Select
@@ -766,6 +901,8 @@ export default function AdminProducts() {
                         placeholder={
                           editingLanguage === "en"
                             ? "Select subcategory"
+                            : editingLanguage === "ar"
+                              ? "الفئة الفرعية"
                             : "Alt kategori seçin"
                         }
                       />
@@ -781,7 +918,11 @@ export default function AdminProducts() {
                 ) : (
                   <Input
                     placeholder={
-                      editingLanguage === "en" ? "Subcategory" : "Alt kategori"
+                      editingLanguage === "en"
+                        ? "Subcategory"
+                        : editingLanguage === "ar"
+                          ? "الفئة الفرعية"
+                          : "Alt kategori"
                     }
                     value={formData.subcategory}
                     onChange={(e) =>
@@ -849,12 +990,12 @@ export default function AdminProducts() {
                 rows={4}
               />
 
-              {editingLanguage === "en" && editingId && hasEnglishOverride ? (
+              {editingLanguage !== "tr" && editingId && hasSelectedOverride ? (
                 <Button
                   type="button"
                   variant="outline"
                   className="w-full"
-                  onClick={handleDeleteEnglishOverride}
+                  onClick={handleDeleteTranslationOverride}
                   disabled={deleteTranslationMutation.isPending}
                 >
                   {deleteTranslationMutation.isPending ? (
@@ -863,14 +1004,14 @@ export default function AdminProducts() {
                       Çeviri Siliniyor...
                     </>
                   ) : (
-                    "English Çeviriyi Sil"
+                    editingLanguage === "ar" ? "Arapça Çeviriyi Sil" : "English Çeviriyi Sil"
                   )}
                 </Button>
               ) : null}
 
               <Button
                 onClick={handleSubmit}
-                disabled={isSaving || (editingLanguage === "en" && !editingId)}
+                disabled={isSaving || (editingLanguage !== "tr" && !editingId)}
                 className="w-full"
               >
                 {isSaving ? (
@@ -889,13 +1030,116 @@ export default function AdminProducts() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Kategori & Alt Kategori Yönetimi</CardTitle>
+          <CardTitle>Tedarikci DB Import</CardTitle>
           <CardDescription>
-            Ürün kategorilerini ve alt kategorileri Türkçe/English olarak yönetin.
+            Firmadan gelen `urunler.db` dosyasini yukleyin. Sistem ayni kayitlari tekrar
+            import ettiginizde duplike olusturmak yerine gunceller.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-2">
+          <input
+            ref={importFileInputRef}
+            type="file"
+            accept=".db,.sqlite,.sqlite3,application/octet-stream"
+            className="hidden"
+            onChange={(event) =>
+              handleSelectImportFile(event.target.files?.[0] ?? null)
+            }
+          />
+
+          <div className="flex flex-col gap-3 rounded-md border p-4 md:flex-row md:items-center md:justify-between">
+            <div className="space-y-1">
+              <p className="text-sm font-medium">SQLite urun veri tabani secin</p>
+              <p className="text-xs text-muted-foreground">
+                Desteklenen uzantilar: `.db`, `.sqlite`, `.sqlite3`
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {selectedImportFile
+                  ? `${selectedImportFile.name} (${Math.ceil(
+                      selectedImportFile.size / 1024,
+                    )} KB)`
+                  : "Henuz dosya secilmedi"}
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => importFileInputRef.current?.click()}
+                disabled={importMutation.isPending}
+              >
+                <Upload className="mr-2 h-4 w-4" />
+                Dosya Sec
+              </Button>
+              <Button
+                type="button"
+                onClick={handleImportProducts}
+                disabled={!selectedImportFile || importMutation.isPending}
+              >
+                {importMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Import Ediliyor...
+                  </>
+                ) : (
+                  "DB'yi Ice Aktar"
+                )}
+              </Button>
+            </div>
+          </div>
+
+          {lastImportResult ? (
+            <div className="grid gap-3 rounded-md border bg-muted/20 p-4 md:grid-cols-2 xl:grid-cols-4">
+              <div>
+                <p className="text-xs text-muted-foreground">Kaynak Dosya</p>
+                <p className="text-sm font-medium">{lastImportResult.fileName}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Toplam / Import</p>
+                <p className="text-sm font-medium">
+                  {lastImportResult.totalRows} / {lastImportResult.importedRows}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Olusan / Guncellenen</p>
+                <p className="text-sm font-medium">
+                  {lastImportResult.createdCount} / {lastImportResult.updatedCount}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Taxonomy Ekleme</p>
+                <p className="text-sm font-medium">
+                  {lastImportResult.taxonomyCategoriesAdded} kategori,{" "}
+                  {lastImportResult.taxonomySubcategoriesAdded} alt kategori
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Taxonomy Guncelleme</p>
+                <p className="text-sm font-medium">
+                  {lastImportResult.taxonomyCategoriesUpdated} kategori
+                </p>
+              </div>
+              <div className="md:col-span-2 xl:col-span-4">
+                <p className="text-xs text-muted-foreground">Tespit Edilen Kolonlar</p>
+                <p className="text-sm">
+                  {lastImportResult.detectedProductColumns.join(", ") || "-"}
+                </p>
+              </div>
+            </div>
+          ) : null}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Kategori & Alt Kategori Yönetimi</CardTitle>
+          <CardDescription>
+            Ürün kategorilerini ve alt kategorileri Türkçe, English ve Arapça olarak yönetin.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_auto] gap-2">
             <Input
               placeholder="Kategori TR"
               value={newCategoryTr}
@@ -905,6 +1149,11 @@ export default function AdminProducts() {
               placeholder="Category EN"
               value={newCategoryEn}
               onChange={(e) => setNewCategoryEn(e.target.value)}
+            />
+            <Input
+              placeholder="الفئة AR"
+              value={newCategoryAr}
+              onChange={(e) => setNewCategoryAr(e.target.value)}
             />
             <Button type="button" variant="outline" onClick={handleAddCategory}>
               <Plus className="w-4 h-4 mr-2" />
@@ -920,7 +1169,7 @@ export default function AdminProducts() {
             <div className="space-y-3">
               {taxonomyDraft.map((category) => (
                 <div key={category.id} className="rounded-md border p-3 space-y-3">
-                  <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-2">
+                  <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_auto] gap-2">
                     <Input
                       value={category.nameTr}
                       onChange={(e) =>
@@ -943,6 +1192,17 @@ export default function AdminProducts() {
                       }
                       placeholder="Category EN"
                     />
+                    <Input
+                      value={category.nameAr}
+                      onChange={(e) =>
+                        handleCategoryNameChange(
+                          category.id,
+                          "nameAr",
+                          e.target.value,
+                        )
+                      }
+                      placeholder="الفئة AR"
+                    />
                     <Button
                       type="button"
                       variant="destructive"
@@ -957,7 +1217,7 @@ export default function AdminProducts() {
                     {category.subcategories.map((subcategory) => (
                       <div
                         key={subcategory.id}
-                        className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-2"
+                        className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_auto] gap-2"
                       >
                         <Input
                           value={subcategory.nameTr}
@@ -983,6 +1243,18 @@ export default function AdminProducts() {
                           }
                           placeholder="Subcategory EN"
                         />
+                        <Input
+                          value={subcategory.nameAr}
+                          onChange={(e) =>
+                            handleSubcategoryNameChange(
+                              category.id,
+                              subcategory.id,
+                              "nameAr",
+                              e.target.value,
+                            )
+                          }
+                          placeholder="الفئة الفرعية AR"
+                        />
                         <Button
                           type="button"
                           variant="outline"
@@ -996,7 +1268,7 @@ export default function AdminProducts() {
                       </div>
                     ))}
 
-                    <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_auto] gap-2">
+                    <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_auto] gap-2">
                       <Input
                         placeholder="Yeni Alt Kategori TR"
                         value={subcategoryDrafts[category.id]?.nameTr || ""}
@@ -1015,6 +1287,17 @@ export default function AdminProducts() {
                           handleSubcategoryDraftChange(
                             category.id,
                             "nameEn",
+                            e.target.value,
+                          )
+                        }
+                      />
+                      <Input
+                        placeholder="الفئة الفرعية الجديدة AR"
+                        value={subcategoryDrafts[category.id]?.nameAr || ""}
+                        onChange={(e) =>
+                          handleSubcategoryDraftChange(
+                            category.id,
+                            "nameAr",
                             e.target.value,
                           )
                         }
@@ -1087,6 +1370,13 @@ export default function AdminProducts() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">{product.description}</p>
+              {product.sourceCode || product.sourceBrand ? (
+                <p className="mt-3 text-xs text-muted-foreground">
+                  {product.sourceCode ? `Kod: ${product.sourceCode}` : ""}
+                  {product.sourceCode && product.sourceBrand ? " | " : ""}
+                  {product.sourceBrand ? `Marka: ${product.sourceBrand}` : ""}
+                </p>
+              ) : null}
             </CardContent>
           </Card>
         ))}

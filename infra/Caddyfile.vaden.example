@@ -1,0 +1,8 @@
+vaden.204.168.196.102.sslip.io {
+  encode gzip zstd
+
+  reverse_proxy 172.17.0.1:3001 {
+    header_up Host {host}
+    header_up X-Forwarded-Proto {scheme}
+  }
+}

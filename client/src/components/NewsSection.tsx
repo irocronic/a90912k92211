@@ -22,11 +22,13 @@ type NewsHeaderMetadata = {
   viewAllText: string;
 };
 
-function formatDate(value: Date | string | null | undefined, language: "tr" | "en"): string {
+function formatDate(value: Date | string | null | undefined, language: "tr" | "en" | "ar"): string {
   if (!value) return "";
   const date = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(date.getTime())) return "";
-  return new Intl.DateTimeFormat(language === "en" ? "en-US" : "tr-TR", {
+  const locale =
+    language === "ar" ? "ar" : language === "en" ? "en-US" : "tr-TR";
+  return new Intl.DateTimeFormat(locale, {
     day: "numeric",
     month: "long",
     year: "numeric",
@@ -41,14 +43,14 @@ export default function NewsSection() {
     publishedOnly: true,
     limit: 8,
   });
-  const { data: enArticleTranslations = {} } =
+  const { data: articleTranslations = {} } =
     trpc.i18n.getSectionTranslations.useQuery(
       {
-        language: "en",
+        language,
         section: ARTICLE_CONTENT_TRANSLATION_SECTION,
       },
       {
-        enabled: language === "en",
+        enabled: language !== "tr",
       },
     );
 
@@ -58,7 +60,7 @@ export default function NewsSection() {
         const article = localizeArticle(
           entry,
           language,
-          enArticleTranslations[getArticleTranslationKey(entry.id)],
+          articleTranslations[getArticleTranslationKey(entry.id)],
         );
         return {
         id: article.id,
@@ -70,7 +72,7 @@ export default function NewsSection() {
         href: "#",
         };
       }),
-    [articles, language, enArticleTranslations],
+    [articles, language, articleTranslations],
   );
 
   return (

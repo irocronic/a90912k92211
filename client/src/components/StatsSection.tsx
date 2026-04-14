@@ -75,6 +75,7 @@ export default function StatsSection() {
 
   return (
     <section
+      id="neden-brac"
       className="py-20 bg-[var(--vaden-surface-09)] relative overflow-hidden"
       ref={ref as React.RefObject<HTMLElement>}
     >

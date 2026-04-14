@@ -27,6 +27,7 @@ import { getDb } from "../db";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { storagePut } from "../storage";
+import { importProductsFromSqliteBuffer } from "../_core/sqliteProductImport";
 
 type ProductOemInput = Array<{ manufacturer: string; codes: string[] }>;
 
@@ -539,6 +540,38 @@ export const adminRouter = router({
 
         const updated = await db.select().from(products).where(eq(products.id, id));
         return updated[0] || null;
+      }),
+
+    importSqlite: productsProcedure
+      .input(
+        z.object({
+          file: z.union([z.instanceof(Uint8Array), z.instanceof(Buffer)]),
+          fileName: z.string().min(1),
+        })
+      )
+      .mutation(async (opts: any) => {
+        const { input } = opts;
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        try {
+          const fileBuffer = Buffer.isBuffer(input.file)
+            ? input.file
+            : Buffer.from(input.file);
+
+          return await importProductsFromSqliteBuffer(db, {
+            file: fileBuffer,
+            fileName: input.fileName,
+          });
+        } catch (error) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message:
+              error instanceof Error
+                ? error.message
+                : "SQLite urun importu sirasinda hata olustu.",
+          });
+        }
       }),
 
     delete: productsProcedure.input(z.object({ id: z.string() })).mutation(async (opts: any) => {

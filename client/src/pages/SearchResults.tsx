@@ -61,16 +61,16 @@ export default function SearchResults() {
   const { language } = useI18n();
   const { data: publicSettings = [] } = trpc.content.settings.list.useQuery(
     undefined,
-    { enabled: language === "en" },
+    { enabled: language !== "tr" },
   );
-  const { data: enProductTranslations = {} } =
+  const { data: productTranslations = {} } =
     trpc.i18n.getSectionTranslations.useQuery(
       {
-        language: "en",
+        language,
         section: PRODUCT_CONTENT_TRANSLATION_SECTION,
       },
       {
-        enabled: language === "en",
+        enabled: language !== "tr",
       },
     );
   const taxonomy = useMemo(() => {
@@ -80,7 +80,13 @@ export default function SearchResults() {
     return parseProductTaxonomy(setting?.parsedValue);
   }, [publicSettings]);
   const { metadata } = useTemplateBackedPageContent<SearchResultsMetadata>("pages.searchResults");
-  const sortLocale = language === "en" ? "en-US" : "tr-TR";
+  const sortLocale = language === "ar" ? "ar" : language === "en" ? "en-US" : "tr-TR";
+  const emptyQueryDescription =
+    language === "ar"
+      ? "يمكنك البحث برقم OEM أو اسم المنتج أو الفئة."
+      : language === "en"
+        ? "You can search by OEM code, product name or category."
+        : "OEM kodu, ürün adı veya kategori ile arama yapabilirsiniz.";
 
   const query = useMemo(() => {
     if (typeof window !== "undefined") {
@@ -149,12 +155,12 @@ export default function SearchResults() {
           product: localizeDisplayProduct(
             base,
             language,
-            enProductTranslations[getProductTranslationKey(item.product.id)],
+            productTranslations[getProductTranslationKey(item.product.id)],
             taxonomy,
           ),
         };
       }),
-    [searchData, language, enProductTranslations, taxonomy],
+    [searchData, language, productTranslations, taxonomy],
   );
 
   const categoryFacets = searchData?.facets.categories ?? [];
@@ -235,7 +241,7 @@ export default function SearchResults() {
               {asString(metadata.noResultsTitle, "Arama Terimi Gerekli")}
             </h2>
             <p className="text-[var(--vaden-text-muted)] mb-6 font-['Inter']">
-              OEM kodu, ürün adı veya kategori ile arama yapabilirsiniz.
+              {emptyQueryDescription}
             </p>
           </div>
         ) : isLoading ? (
