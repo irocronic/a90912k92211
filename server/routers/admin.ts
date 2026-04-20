@@ -7,6 +7,7 @@ import {
   pageContent,
   pageContentRevisions,
   productOemIndex,
+  quoteSubmissions,
   settings,
   users,
   type Product,
@@ -14,6 +15,7 @@ import {
   type PageContent,
   type PageContentRevision,
   type InsertProductOemIndex,
+  type QuoteSubmission,
   type Setting,
   type User,
 } from "../../drizzle/schema";
@@ -1046,6 +1048,105 @@ export const adminRouter = router({
           await db.insert(settings).values(newSetting);
           return newSetting;
         }
+      }),
+  }),
+
+  quoteSubmissions: router({
+    unreadCount: settingsProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+      const rows = await db
+        .select({ count: sql<number>`COUNT(*)` })
+        .from(quoteSubmissions)
+        .where(sql`${quoteSubmissions.readAt} IS NULL`);
+
+      return Number(rows[0]?.count ?? 0);
+    }),
+
+    list: settingsProcedure
+      .input(
+        z
+          .object({
+            limit: z.number().int().min(1).max(100).optional(),
+          })
+          .optional(),
+      )
+      .query(async (opts: any) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        const limit = opts.input?.limit ?? 20;
+        return db
+          .select()
+          .from(quoteSubmissions)
+          .orderBy(desc(quoteSubmissions.createdAt))
+          .limit(limit);
+      }),
+
+    get: settingsProcedure
+      .input(z.object({ id: z.string() }))
+      .query(async (opts: any) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        const rows = await db
+          .select()
+          .from(quoteSubmissions)
+          .where(eq(quoteSubmissions.id, opts.input.id))
+          .limit(1);
+
+        return (rows[0] as QuoteSubmission | undefined) ?? null;
+      }),
+
+    markRead: settingsProcedure
+      .input(z.object({ id: z.string() }))
+      .mutation(async (opts: any) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        await db
+          .update(quoteSubmissions)
+          .set({
+            readAt: new Date(),
+            updatedAt: new Date(),
+          })
+          .where(eq(quoteSubmissions.id, opts.input.id));
+
+        const rows = await db
+          .select()
+          .from(quoteSubmissions)
+          .where(eq(quoteSubmissions.id, opts.input.id))
+          .limit(1);
+
+        return (rows[0] as QuoteSubmission | undefined) ?? null;
+      }),
+
+    updateStatus: settingsProcedure
+      .input(
+        z.object({
+          id: z.string(),
+          status: z.enum(["new", "emailed", "email_failed"]),
+        }),
+      )
+      .mutation(async (opts: any) => {
+        const { input } = opts;
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        await db
+          .update(quoteSubmissions)
+          .set({
+            status: input.status,
+            updatedAt: new Date(),
+          })
+          .where(eq(quoteSubmissions.id, input.id));
+
+        const rows = await db
+          .select()
+          .from(quoteSubmissions)
+          .where(eq(quoteSubmissions.id, input.id))
+          .limit(1);
+        return (rows[0] as QuoteSubmission | undefined) ?? null;
       }),
   }),
 

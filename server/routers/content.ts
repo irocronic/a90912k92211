@@ -6,7 +6,9 @@ import {
   pageContent,
   products,
   productOemIndex,
+  quoteSubmissions,
   settings,
+  type InsertQuoteSubmission,
   type Product,
 } from "../../drizzle/schema";
 import {
@@ -15,6 +17,11 @@ import {
 } from "../../shared/const";
 import { publicProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
+import {
+  sendQuoteNotificationEmail,
+  validateQuoteMailConfiguration,
+} from "../services/quoteMail";
+import { nanoid } from "nanoid";
 
 type SettingValueType = "string" | "number" | "boolean" | "json";
 const PUBLIC_SETTING_KEYS = [...PUBLIC_CONTENT_SETTING_KEYS];
@@ -846,6 +853,149 @@ export const contentRouter = router({
           .where(eq(pageContent.section, input.section))
           .limit(1);
         return rows[0] ?? null;
+      }),
+  }),
+
+  quote: router({
+    submit: publicProcedure
+      .input(
+        z.object({
+          name: z
+            .string()
+            .trim()
+            .min(2, "Ad soyad en az 2 karakter olmalıdır.")
+            .max(120, "Ad soyad en fazla 120 karakter olabilir."),
+          email: z
+            .string()
+            .trim()
+            .email("Geçerli bir e-posta adresi girin.")
+            .max(320, "E-posta adresi çok uzun."),
+          phone: z
+            .string()
+            .trim()
+            .max(64, "Telefon numarası en fazla 64 karakter olabilir.")
+            .optional(),
+          subject: z
+            .string()
+            .trim()
+            .min(2, "Konu en az 2 karakter olmalıdır.")
+            .max(160, "Konu en fazla 160 karakter olabilir."),
+          message: z
+            .string()
+            .trim()
+            .min(10, "Mesaj en az 10 karakter olmalıdır.")
+            .max(5000, "Mesaj en fazla 5000 karakter olabilir."),
+          pageUrl: z
+            .string()
+            .trim()
+            .url("Geçersiz sayfa adresi.")
+            .max(2000, "Sayfa adresi çok uzun.")
+            .optional(),
+          website: z.string().max(0).optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        if (input.website && input.website.trim().length > 0) {
+          return { success: true, mailSent: false } as const;
+        }
+
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        const settingRows = await db.select().from(settings);
+        const settingsMap = Object.fromEntries(
+          settingRows.map((item) => [item.key, item.value]),
+        );
+
+        const submission: InsertQuoteSubmission = {
+          id: nanoid(),
+          name: input.name,
+          email: input.email.toLowerCase(),
+          phone: input.phone?.trim() || "",
+          subject: input.subject,
+          message: input.message,
+          pageUrl: input.pageUrl?.trim() || null,
+          status: "new",
+          mailProvider: null,
+          mailMessageId: null,
+          mailError: null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        await db.insert(quoteSubmissions).values(submission);
+
+        const configStatus = validateQuoteMailConfiguration(settingsMap);
+        if (!configStatus.enabled || configStatus.issues.length > 0) {
+          const mailError = configStatus.issues.join(" ");
+          await db
+            .update(quoteSubmissions)
+            .set({
+              status: "email_failed",
+              mailProvider: "resend",
+              mailError,
+              updatedAt: new Date(),
+            })
+            .where(eq(quoteSubmissions.id, submission.id));
+
+          return {
+            success: true,
+            mailSent: false,
+            submissionId: submission.id,
+            message:
+              "Talebiniz kaydedildi. Mail servisi henüz yapılandırılmadığı için bildirimi şu an gönderemedik.",
+          } as const;
+        }
+
+        try {
+          const mailResult = await sendQuoteNotificationEmail(settingsMap, {
+            name: input.name,
+            email: input.email,
+            phone: input.phone,
+            subject: input.subject,
+            message: input.message,
+            pageUrl: input.pageUrl,
+          });
+
+          await db
+            .update(quoteSubmissions)
+            .set({
+              status: "emailed",
+              mailProvider: mailResult.provider,
+              mailMessageId: mailResult.messageId,
+              mailError: null,
+              updatedAt: new Date(),
+            })
+            .where(eq(quoteSubmissions.id, submission.id));
+
+          return {
+            success: true,
+            mailSent: true,
+            submissionId: submission.id,
+            message: "Talebiniz alındı ve ilgili ekibe iletildi.",
+          } as const;
+        } catch (error) {
+          const message =
+            error instanceof Error ? error.message : "Mail gönderimi başarısız oldu.";
+
+          await db
+            .update(quoteSubmissions)
+            .set({
+              status: "email_failed",
+              mailProvider: "resend",
+              mailError: message,
+              updatedAt: new Date(),
+            })
+            .where(eq(quoteSubmissions.id, submission.id));
+
+          return {
+            success: true,
+            mailSent: false,
+            submissionId: submission.id,
+            message:
+              "Talebiniz kaydedildi ancak mail bildirimi şu an gönderilemedi. Yönetici panelinden kayıt görüntülenebilir.",
+          } as const;
+        }
       }),
   }),
 

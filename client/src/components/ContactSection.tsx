@@ -8,6 +8,7 @@ import { Clock, Mail, MapPin, Phone, Send } from "lucide-react";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 import { toast } from "sonner";
 import { asRecordArray, asString, useTemplateBackedPageContent } from "@/lib/pageContent";
+import { trpc } from "@/lib/trpc";
 
 type ContactMetadata = {
   label: string;
@@ -53,6 +54,27 @@ function WhatsAppIcon({ className = "h-4 w-4" }: { className?: string }) {
   );
 }
 
+function getReadableErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    try {
+      const parsed = JSON.parse(error.message) as Array<{ message?: string }>;
+      if (Array.isArray(parsed)) {
+        const messages = parsed
+          .map((item) => item?.message?.trim())
+          .filter((item): item is string => Boolean(item));
+        if (messages.length > 0) {
+          return messages.join(" ");
+        }
+      }
+    } catch {
+      return error.message;
+    }
+    return error.message;
+  }
+
+  return "Mesajınız gönderilemedi. Lütfen daha sonra tekrar deneyin.";
+}
+
 export default function ContactSection() {
   const { ref, isVisible } = useIntersectionObserver({ threshold: 0.1 });
   const { metadata } = useTemplateBackedPageContent<ContactMetadata>("home.contact");
@@ -67,12 +89,38 @@ export default function ContactSection() {
     phone: "",
     subject: "",
     message: "",
+    website: "",
   });
+  const submitQuoteMutation = trpc.content.quote.submit.useMutation();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success(asString(metadata.successMessage, "Mesajınız alındı!"));
-    setFormData({ name: "", email: "", phone: "", subject: "", message: "" });
+
+    try {
+      const result = await submitQuoteMutation.mutateAsync({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        subject: formData.subject,
+        message: formData.message,
+        pageUrl: typeof window !== "undefined" ? window.location.href : undefined,
+        website: formData.website,
+      });
+      toast.success(
+        result.message || asString(metadata.successMessage, "Mesajınız alındı!"),
+      );
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        subject: "",
+        message: "",
+        website: "",
+      });
+    } catch (error) {
+      const message = getReadableErrorMessage(error);
+      toast.error(message);
+    }
   };
 
   return (
@@ -141,6 +189,16 @@ export default function ContactSection() {
             }`}
           >
             <form onSubmit={handleSubmit} className="space-y-4">
+              <input
+                type="text"
+                tabIndex={-1}
+                autoComplete="off"
+                value={formData.website}
+                onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                className="hidden"
+                aria-hidden="true"
+              />
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[oklch(0.60_0.18_42)] font-['Barlow_Condensed'] font-bold text-xs tracking-wide uppercase mb-1.5">
@@ -151,6 +209,7 @@ export default function ContactSection() {
                     required
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    disabled={submitQuoteMutation.isPending}
                     className="w-full bg-[var(--vaden-surface-14)] border border-[var(--vaden-border-strong)] focus:border-[oklch(0.60_0.18_42)] px-4 py-3 text-[var(--vaden-on-surface)] placeholder-[var(--vaden-text-placeholder)] text-sm outline-none transition-colors font-['Inter']"
                     placeholder={asString(metadata.placeholders?.name)}
                   />
@@ -164,6 +223,7 @@ export default function ContactSection() {
                     required
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    disabled={submitQuoteMutation.isPending}
                     className="w-full bg-[var(--vaden-surface-14)] border border-[var(--vaden-border-strong)] focus:border-[oklch(0.60_0.18_42)] px-4 py-3 text-[var(--vaden-on-surface)] placeholder-[var(--vaden-text-placeholder)] text-sm outline-none transition-colors font-['Inter']"
                     placeholder={asString(metadata.placeholders?.email)}
                   />
@@ -179,6 +239,7 @@ export default function ContactSection() {
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    disabled={submitQuoteMutation.isPending}
                     className="w-full bg-[var(--vaden-surface-14)] border border-[var(--vaden-border-strong)] focus:border-[oklch(0.60_0.18_42)] px-4 py-3 text-[var(--vaden-on-surface)] placeholder-[var(--vaden-text-placeholder)] text-sm outline-none transition-colors font-['Inter']"
                     placeholder={asString(metadata.placeholders?.phone)}
                   />
@@ -192,6 +253,7 @@ export default function ContactSection() {
                     required
                     value={formData.subject}
                     onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                    disabled={submitQuoteMutation.isPending}
                     className="w-full bg-[var(--vaden-surface-14)] border border-[var(--vaden-border-strong)] focus:border-[oklch(0.60_0.18_42)] px-4 py-3 text-[var(--vaden-on-surface)] placeholder-[var(--vaden-text-placeholder)] text-sm outline-none transition-colors font-['Inter']"
                     placeholder={asString(metadata.placeholders?.subject)}
                   />
@@ -207,6 +269,7 @@ export default function ContactSection() {
                   rows={5}
                   value={formData.message}
                   onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                  disabled={submitQuoteMutation.isPending}
                   className="w-full bg-[var(--vaden-surface-14)] border border-[var(--vaden-border-strong)] focus:border-[oklch(0.60_0.18_42)] px-4 py-3 text-[var(--vaden-on-surface)] placeholder-[var(--vaden-text-placeholder)] text-sm outline-none transition-colors font-['Inter'] resize-none"
                   placeholder={asString(metadata.placeholders?.message)}
                 />
@@ -214,9 +277,13 @@ export default function ContactSection() {
 
               <button
                 type="submit"
+                disabled={submitQuoteMutation.isPending}
                 className="inline-flex items-center gap-2 bg-[oklch(0.60_0.18_42)] hover:bg-[oklch(0.50_0.18_42)] text-[var(--vaden-on-accent)] font-['Barlow_Condensed'] font-bold text-sm px-8 py-3.5 tracking-wide uppercase transition-all hover:shadow-[0_0_20px_oklch(0.60_0.18_42/0.3)]"
               >
-                {asString(metadata.labels?.submit, "Mesaj Gönder")} <Send size={16} />
+                {submitQuoteMutation.isPending
+                  ? "Gönderiliyor..."
+                  : asString(metadata.labels?.submit, "Mesaj Gönder")}{" "}
+                <Send size={16} />
               </button>
 
               {asString(metadata.whatsappUrl) ? (

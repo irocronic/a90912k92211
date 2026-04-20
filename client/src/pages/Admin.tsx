@@ -1,14 +1,17 @@
-import { type FormEvent, useEffect, useMemo, useState } from "react";
+import { type FormEvent, type ReactNode, useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLocation } from "wouter";
 import DashboardLayout from "@/components/DashboardLayout";
 import AdminProducts from "@/components/admin/AdminProducts";
 import AdminArticles from "@/components/admin/AdminArticles";
 import AdminContent from "@/components/admin/AdminContent";
+import AdminQuotes from "@/components/admin/AdminQuotes";
 import AdminSettings from "@/components/admin/AdminSettings";
 import AdminLocalization from "@/components/admin/AdminLocalization";
 import AdminAuditLogs from "@/components/admin/AdminAuditLogs";
 import AdminUsers from "@/components/admin/AdminUsers";
+import { trpc } from "@/lib/trpc";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -34,12 +37,19 @@ export default function Admin() {
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const canManageQuotes = Boolean(
+    user && hasAdminPermission(user.role, "settings:write"),
+  );
+  const { data: unreadQuoteCount = 0 } = trpc.admin.quoteSubmissions.unreadCount.useQuery(
+    undefined,
+    { enabled: canManageQuotes },
+  );
 
   const availableTabs = useMemo(() => {
     if (!user || !isAdminRole(user.role)) return [];
 
     const role = user.role;
-    const tabs: Array<{ key: string; label: string }> = [];
+    const tabs: Array<{ key: string; label: ReactNode }> = [];
 
     if (hasAdminPermission(role, "products:write")) {
       tabs.push({ key: "products", label: "Ürünler" });
@@ -49,6 +59,21 @@ export default function Admin() {
     }
     if (hasAdminPermission(role, "content:write")) {
       tabs.push({ key: "content", label: "İçerik" });
+    }
+    if (hasAdminPermission(role, "settings:write")) {
+      tabs.push({
+        key: "quotes",
+        label: (
+          <span className="inline-flex items-center gap-2">
+            <span>Teklifler</span>
+            {unreadQuoteCount > 0 ? (
+              <Badge className="bg-red-600 px-1.5 py-0 text-[10px] leading-4 hover:bg-red-600">
+                {unreadQuoteCount}
+              </Badge>
+            ) : null}
+          </span>
+        ),
+      });
     }
     if (hasAdminPermission(role, "settings:write")) {
       tabs.push({ key: "settings", label: "Ayarlar" });
@@ -62,7 +87,7 @@ export default function Admin() {
     }
 
     return tabs;
-  }, [user]);
+  }, [unreadQuoteCount, user]);
   const hasTab = (key: string) => availableTabs.some((tab) => tab.key === key);
 
   useEffect(() => {
@@ -210,6 +235,12 @@ export default function Admin() {
           {hasTab("content") ? (
             <TabsContent value="content" className="space-y-4">
               <AdminContent />
+            </TabsContent>
+          ) : null}
+
+          {hasTab("quotes") ? (
+            <TabsContent value="quotes" className="space-y-4">
+              <AdminQuotes />
             </TabsContent>
           ) : null}
 

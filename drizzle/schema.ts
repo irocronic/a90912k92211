@@ -223,6 +223,36 @@ export const settings = mysqlTable("settings", {
 export type Setting = typeof settings.$inferSelect;
 export type InsertSetting = typeof settings.$inferInsert;
 
+export const quoteSubmissions = mysqlTable(
+  "quoteSubmissions",
+  {
+    id: varchar("id", { length: 64 }).primaryKey(),
+    name: varchar("name", { length: 191 }).notNull(),
+    email: varchar("email", { length: 320 }).notNull(),
+    phone: varchar("phone", { length: 64 }).default("").notNull(),
+    subject: varchar("subject", { length: 255 }).notNull(),
+    message: text("message").notNull(),
+    pageUrl: text("pageUrl"),
+    status: mysqlEnum("status", ["new", "emailed", "email_failed"])
+      .default("new")
+      .notNull(),
+    mailProvider: varchar("mailProvider", { length: 64 }),
+    mailMessageId: varchar("mailMessageId", { length: 191 }),
+    mailError: text("mailError"),
+    readAt: timestamp("readAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    createdAtIdx: index("quoteSubmissions_createdAt_idx").on(table.createdAt),
+    statusIdx: index("quoteSubmissions_status_idx").on(table.status),
+    emailIdx: index("quoteSubmissions_email_idx").on(table.email),
+  })
+);
+
+export type QuoteSubmission = typeof quoteSubmissions.$inferSelect;
+export type InsertQuoteSubmission = typeof quoteSubmissions.$inferInsert;
+
 // Translations table for multi-language support
 export const translations = mysqlTable(
   "translations",

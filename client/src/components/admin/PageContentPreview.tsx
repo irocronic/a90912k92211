@@ -1,5 +1,5 @@
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
-import { ImagePlus, Loader2, Monitor, Plus, Smartphone, Trash2, Upload } from "lucide-react";
+import { ImagePlus, Loader2, Monitor, Plus, Smartphone, Trash2, Upload, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { toast } from "sonner";
 
 type JsonRecord = Record<string, unknown>;
 type Path = Array<string | number>;
+type MediaKind = "image" | "video";
 
 interface PageContentPreviewProps {
   section: string;
@@ -182,18 +183,105 @@ function summarizeMetadataValue(value: unknown): string {
   return "-";
 }
 
+function getPathKey(path: Path): string {
+  return path
+    .filter((segment): segment is string => typeof segment === "string")
+    .join(".")
+    .toLowerCase();
+}
+
+function isImageUrl(value: string): boolean {
+  if (!value) return false;
+  return /(\.png|\.jpe?g|\.gif|\.webp|\.svg|\.avif)(\?|#|$)/i.test(value)
+    || /images\.unsplash\.com/i.test(value)
+    || value.startsWith("data:image/");
+}
+
+function isDirectVideoUrl(value: string): boolean {
+  if (!value) return false;
+  return /(\.mp4|\.webm|\.ogg|\.mov)(\?|#|$)/i.test(value);
+}
+
+function toEmbeddableVideoUrl(value: string): string | null {
+  if (!value) return null;
+  if (isDirectVideoUrl(value)) return value;
+
+  try {
+    const url = new URL(value);
+    if (url.hostname.includes("youtube.com")) {
+      const id = url.searchParams.get("v");
+      return id ? `https://www.youtube.com/embed/${id}` : null;
+    }
+    if (url.hostname.includes("youtu.be")) {
+      const id = url.pathname.replace("/", "").trim();
+      return id ? `https://www.youtube.com/embed/${id}` : null;
+    }
+    if (url.hostname.includes("vimeo.com")) {
+      const id = url.pathname.split("/").filter(Boolean).pop();
+      return id ? `https://player.vimeo.com/video/${id}` : null;
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+}
+
+function detectMediaKind(value: string, path: Path): MediaKind | null {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+
+  const pathKey = getPathKey(path);
+  if (pathKey.includes("image") || pathKey.includes("logo") || pathKey.includes("photo")) {
+    return "image";
+  }
+  if (pathKey.includes("video")) {
+    return "video";
+  }
+  if (isImageUrl(trimmed)) return "image";
+  if (isDirectVideoUrl(trimmed) || toEmbeddableVideoUrl(trimmed)) return "video";
+  return null;
+}
+
 export default function PageContentPreview(props: PageContentPreviewProps) {
   const [viewport, setViewport] = useState<"desktop" | "mobile">("desktop");
   const [newKey, setNewKey] = useState("");
   const [imageEditorOpen, setImageEditorOpen] = useState(false);
   const [imageDraft, setImageDraft] = useState(props.imageUrl);
   const [localImagePreview, setLocalImagePreview] = useState<string | null>(null);
+  const [mediaDrafts, setMediaDrafts] = useState<Record<string, string>>({});
+  const [openMediaEditors, setOpenMediaEditors] = useState<Record<string, boolean>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const mediaFileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const uploadMutation = trpc.admin.storage.uploadImage.useMutation();
 
   useEffect(() => {
     setImageDraft(props.imageUrl);
   }, [props.imageUrl]);
+
+  useEffect(() => {
+    setMediaDrafts((prev) => {
+      const next = { ...prev };
+      const walk = (value: unknown, path: Path) => {
+        if (typeof value === "string") {
+          const key = path.join(".");
+          next[key] = value;
+          return;
+        }
+        if (Array.isArray(value)) {
+          value.forEach((item, index) => walk(item, [...path, index]));
+          return;
+        }
+        if (isRecord(value)) {
+          Object.entries(value).forEach(([childKey, childValue]) =>
+            walk(childValue, [...path, childKey]),
+          );
+        }
+      };
+      walk(props.metadata, []);
+      return next;
+    });
+  }, [props.metadata]);
 
   const metadataEntries = useMemo(
     () => Object.entries(props.metadata).sort(([a], [b]) => a.localeCompare(b, "tr")),
@@ -277,6 +365,54 @@ export default function PageContentPreview(props: PageContentPreviewProps) {
     }
   };
 
+  const handleMediaDraftChange = (path: Path, value: string) => {
+    const pathKey = path.join(".");
+    setMediaDrafts((prev) => ({ ...prev, [pathKey]: value }));
+  };
+
+  const handleMediaApplyUrl = (path: Path) => {
+    const pathKey = path.join(".");
+    setMetadataAtPath(path, (mediaDrafts[pathKey] || "").trim());
+    setOpenMediaEditors((prev) => ({ ...prev, [pathKey]: false }));
+  };
+
+  const handleMediaClear = (path: Path) => {
+    const pathKey = path.join(".");
+    setMetadataAtPath(path, "");
+    setMediaDrafts((prev) => ({ ...prev, [pathKey]: "" }));
+    setOpenMediaEditors((prev) => ({ ...prev, [pathKey]: false }));
+    const input = mediaFileInputRefs.current[pathKey];
+    if (input) input.value = "";
+  };
+
+  const handleMetadataImageFileSelect = async (path: Path, file: File) => {
+    const pathKey = path.join(".");
+    if (!file.type.startsWith("image/")) {
+      toast.error("Lütfen bir görsel dosyası seçin");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Dosya boyutu 5MB'dan küçük olmalıdır");
+      return;
+    }
+
+    try {
+      const buffer = await file.arrayBuffer();
+      const result = await uploadMutation.mutateAsync({
+        file: new Uint8Array(buffer) as any,
+        fileName: file.name,
+        contentType: file.type,
+      });
+      setMetadataAtPath(path, result.url);
+      setMediaDrafts((prev) => ({ ...prev, [pathKey]: result.url }));
+      setOpenMediaEditors((prev) => ({ ...prev, [pathKey]: false }));
+      toast.success("Görsel başarıyla yüklendi");
+    } catch {
+      toast.error("Görsel yükleme başarısız");
+    }
+  };
+
   const renderEditor = (value: unknown, path: Path, depth = 0): ReactNode => {
     if (value === null || value === undefined) {
       return (
@@ -289,6 +425,127 @@ export default function PageContentPreview(props: PageContentPreviewProps) {
     }
 
     if (typeof value === "string") {
+      const mediaKind = detectMediaKind(value, path);
+      const pathKey = path.join(".");
+      const mediaDraft = mediaDrafts[pathKey] ?? value;
+      const mediaEditorOpen = openMediaEditors[pathKey] ?? false;
+
+      if (mediaKind) {
+        const videoUrl = mediaKind === "video" ? toEmbeddableVideoUrl(value) : null;
+        const isDirectVideo = mediaKind === "video" && isDirectVideoUrl(value);
+
+        return (
+          <div className="space-y-3 rounded-md border bg-background p-3">
+            <input
+              ref={(node) => {
+                mediaFileInputRefs.current[pathKey] = node;
+              }}
+              type="file"
+              accept={mediaKind === "image" ? "image/*" : undefined}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file && mediaKind === "image") {
+                  void handleMetadataImageFileSelect(path, file);
+                }
+              }}
+              className="hidden"
+            />
+
+            <div className="overflow-hidden rounded-md border bg-muted/20">
+              {mediaKind === "image" ? (
+                value ? (
+                  <img
+                    src={value}
+                    alt={pathKey || "media-preview"}
+                    className="h-48 w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-32 items-center justify-center text-sm text-muted-foreground">
+                    Görsel yok
+                  </div>
+                )
+              ) : isDirectVideo ? (
+                <video
+                  src={value}
+                  controls
+                  className="h-56 w-full bg-black object-contain"
+                />
+              ) : videoUrl ? (
+                <iframe
+                  src={videoUrl}
+                  title={pathKey || "video-preview"}
+                  className="h-56 w-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              ) : (
+                <div className="flex h-32 items-center justify-center gap-2 text-sm text-muted-foreground">
+                  <Video className="h-4 w-4" />
+                  Video önizlemesi desteklenmiyor
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() =>
+                  setOpenMediaEditors((prev) => ({ ...prev, [pathKey]: !mediaEditorOpen }))
+                }
+              >
+                {mediaKind === "image" ? "Görseli Değiştir" : "Videoyu Değiştir"}
+              </Button>
+              {mediaKind === "image" ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => mediaFileInputRefs.current[pathKey]?.click()}
+                  disabled={uploadMutation.isPending}
+                >
+                  {uploadMutation.isPending ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Upload className="mr-2 h-4 w-4" />
+                  )}
+                  Yükle
+                </Button>
+              ) : null}
+              <Button
+                type="button"
+                size="sm"
+                variant="destructive"
+                onClick={() => handleMediaClear(path)}
+                disabled={!value}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Sil
+              </Button>
+            </div>
+
+            {mediaEditorOpen ? (
+              <div className="space-y-2 rounded-md border bg-muted/10 p-3">
+                <p className="text-xs font-medium text-muted-foreground">
+                  {mediaKind === "image" ? "Görsel URL" : "Video URL"}
+                </p>
+                <div className="flex flex-col gap-2 md:flex-row">
+                  <Input
+                    value={mediaDraft}
+                    onChange={(e) => handleMediaDraftChange(path, e.target.value)}
+                    placeholder="https://..."
+                  />
+                  <Button type="button" size="sm" onClick={() => handleMediaApplyUrl(path)}>
+                    Uygula
+                  </Button>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        );
+      }
+
       if (looksLikeHtml(value)) {
         return (
           <div
