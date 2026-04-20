@@ -655,8 +655,7 @@ export default function ProductsCatalog() {
     setCurrentPage(1);
   };
 
-  const handleCatalogSearch = (searchValue: string) => {
-    setQuery(searchValue.trim());
+  const scrollToCatalogResults = () => {
     if (typeof window !== "undefined") {
       window.requestAnimationFrame(() => {
         document
@@ -666,15 +665,14 @@ export default function ProductsCatalog() {
     }
   };
 
+  const handleCatalogSearch = (searchValue: string) => {
+    setQuery(searchValue.trim());
+    scrollToCatalogResults();
+  };
+
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    if (typeof window !== "undefined") {
-      window.requestAnimationFrame(() => {
-        document
-          .getElementById("catalog-results")
-          ?.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
-    }
+    scrollToCatalogResults();
   };
 
   return (
@@ -892,6 +890,14 @@ export default function ProductsCatalog() {
                 );
               })}
             </div>
+
+            <button
+              onClick={scrollToCatalogResults}
+              className="mt-5 inline-flex min-w-[210px] items-center justify-center gap-2 rounded-[20px] bg-[oklch(0.60_0.18_42)] px-6 py-3.5 font-['Barlow_Condensed'] text-sm font-bold uppercase tracking-[0.16em] text-[var(--vaden-on-accent)] transition-colors hover:bg-[oklch(0.50_0.18_42)]"
+            >
+              {copy.searchButton}
+              <ArrowRight size={16} />
+            </button>
           </section>
 
           <section className="rounded-[30px] border border-[var(--vaden-border)] bg-[var(--vaden-surface-14)] p-6 shadow-[0_30px_90px_-60px_rgba(15,23,42,0.45)]">
@@ -940,6 +946,14 @@ export default function ProductsCatalog() {
                 );
               })}
             </div>
+
+            <button
+              onClick={scrollToCatalogResults}
+              className="mt-5 inline-flex min-w-[210px] items-center justify-center gap-2 rounded-[20px] bg-[oklch(0.60_0.18_42)] px-6 py-3.5 font-['Barlow_Condensed'] text-sm font-bold uppercase tracking-[0.16em] text-[var(--vaden-on-accent)] transition-colors hover:bg-[oklch(0.50_0.18_42)]"
+            >
+              {copy.searchButton}
+              <ArrowRight size={16} />
+            </button>
           </section>
         </div>
 
