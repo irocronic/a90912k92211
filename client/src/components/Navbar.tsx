@@ -272,7 +272,7 @@ const Navbar = () => {
               return (
                 <div
                   key={label}
-                  className="relative group"
+                  className="relative group pb-3 -mb-3"
                   onMouseEnter={() => setActiveDropdown(label)}
                   onMouseLeave={() => setActiveDropdown(null)}
                 >
@@ -292,7 +292,9 @@ const Navbar = () => {
                   </a>
 
                   {children.length > 0 && activeDropdown === label && (
-                    <div className="absolute left-0 top-full mt-1 w-56 bg-[var(--vaden-surface-10)] border border-[oklch(0.60_0.18_42)/30] shadow-2xl py-2 z-50">
+                    <div className="absolute left-0 top-full z-50 w-56 pt-1">
+                      <div className="absolute inset-x-0 top-0 h-3" />
+                      <div className="bg-[var(--vaden-surface-10)] border border-[oklch(0.60_0.18_42)/30] shadow-2xl py-2">
                       <div className="absolute top-0 left-4 w-8 h-0.5 bg-[oklch(0.60_0.18_42)]"></div>
                       {children.map((child, childIndex) => (
                         <a
@@ -304,6 +306,7 @@ const Navbar = () => {
                           <span className="text-sm font-['Inter']">{getLabel(child)}</span>
                         </a>
                       ))}
+                    </div>
                     </div>
                   )}
                 </div>

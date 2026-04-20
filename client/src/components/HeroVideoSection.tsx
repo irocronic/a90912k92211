@@ -219,12 +219,12 @@ export default function HeroVideoSection() {
         </div>
 
         <div className="order-1 relative lg:order-2 lg:justify-self-end">
-          <div className="hero-video-float absolute -left-8 top-8 hidden rounded-2xl border border-[var(--hero-video-chip-border)] bg-[var(--hero-video-floating-bg)] px-4 py-3 text-sm text-[var(--vaden-on-surface)] shadow-[var(--hero-video-soft-shadow)] backdrop-blur lg:flex lg:items-center lg:gap-3">
-            {isPlaying ? (
-              <Pause size={16} className="text-[oklch(0.6_0.18_42)]" />
-            ) : (
-              <Play size={16} className="text-[oklch(0.6_0.18_42)]" />
-            )}
+          <div className="hero-video-float pointer-events-none absolute -left-8 top-8 hidden rounded-2xl border border-[var(--hero-video-chip-border)] bg-[var(--hero-video-floating-bg)] px-4 py-3 text-sm text-[var(--vaden-on-surface)] shadow-[var(--hero-video-soft-shadow)] backdrop-blur lg:flex lg:items-center lg:gap-3">
+            <span
+              className={`h-2.5 w-2.5 rounded-full ${
+                isPlaying ? "bg-[oklch(0.6_0.18_42)]" : "bg-[var(--vaden-text-placeholder)]"
+              }`}
+            />
             <span>{isPlaying ? ui.statusPlaying : ui.floatingCard}</span>
           </div>
 
