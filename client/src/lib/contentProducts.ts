@@ -46,7 +46,14 @@ export function slugify(value: string): string {
 
 function normalizeStringArray(values: unknown): string[] {
   if (!Array.isArray(values)) return [];
-  return values.filter((item): item is string => typeof item === "string");
+  return values
+    .filter((item): item is string => typeof item === "string")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function normalizeTextValue(value: unknown, fallback = ""): string {
+  return typeof value === "string" ? value.trim() : fallback;
 }
 
 function normalizeOemCodes(values: unknown): Array<{ manufacturer: string; codes: string[] }> {
@@ -57,15 +64,16 @@ function normalizeOemCodes(values: unknown): Array<{ manufacturer: string; codes
       if (!item || typeof item !== "object") return null;
 
       const manufacturer =
-        "manufacturer" in item && typeof item.manufacturer === "string"
-          ? item.manufacturer
-          : "";
+        "manufacturer" in item ? normalizeTextValue(item.manufacturer) : "";
       const codes =
         "codes" in item && Array.isArray(item.codes)
-          ? item.codes.filter((code: unknown): code is string => typeof code === "string")
+          ? item.codes
+              .filter((code: unknown): code is string => typeof code === "string")
+              .map((code) => code.trim())
+              .filter(Boolean)
           : [];
 
-      if (!manufacturer) return null;
+      if (!manufacturer || codes.length === 0) return null;
       return { manufacturer, codes };
     })
     .filter((item): item is { manufacturer: string; codes: string[] } => Boolean(item));
@@ -75,8 +83,11 @@ function normalizeSpecifications(values: unknown): Array<{ label: string; value:
   if (!values || typeof values !== "object") return [];
 
   return Object.entries(values)
-    .filter((entry): entry is [string, string] => typeof entry[1] === "string")
-    .map(([label, value]) => ({ label, value }));
+    .map(([label, value]) => ({
+      label: normalizeTextValue(label),
+      value: normalizeTextValue(value),
+    }))
+    .filter((entry) => entry.label && entry.value);
 }
 
 export function buildProductSlug(product: DbProduct): string {
@@ -90,19 +101,19 @@ export function toDisplayProduct(
   const normalized: DisplayProduct = {
     id: product.id,
     slug: buildProductSlug(product),
-    category: product.category,
-    subcategory: product.subcategory || "",
-    title: product.title,
-    subtitle: product.subtitle,
-    description: product.description,
-    fullDescription: product.description,
-    image: product.imageUrl || "",
+    category: normalizeTextValue(product.category),
+    subcategory: normalizeTextValue(product.subcategory),
+    title: normalizeTextValue(product.title),
+    subtitle: normalizeTextValue(product.subtitle),
+    description: normalizeTextValue(product.description),
+    fullDescription: normalizeTextValue(product.description),
+    image: normalizeTextValue(product.imageUrl),
     oemCodes: normalizeOemCodes(product.oemCodes),
     features: normalizeStringArray(product.features),
     specifications: normalizeSpecifications(product.specifications),
     applications: normalizeStringArray(product.applications),
     certifications: normalizeStringArray(product.certifications),
-    catalogUrl: product.catalogUrl || undefined,
+    catalogUrl: normalizeTextValue(product.catalogUrl) || undefined,
   };
 
   return localizeDisplayProduct(normalized, language);

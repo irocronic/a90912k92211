@@ -418,6 +418,12 @@ export default function ProductsCatalog() {
   const [sortMode, setSortMode] = useState<SortMode>("featured");
   const [currentPage, setCurrentPage] = useState(1);
 
+  const initialCategoryFromUrl = useMemo(() => {
+    if (typeof window === "undefined") return null;
+    const params = new URLSearchParams(window.location.search);
+    return params.get("category");
+  }, []);
+
   const { data: products = [], isLoading } = trpc.content.products.list.useQuery();
   const { data: publicSettings = [] } = trpc.content.settings.list.useQuery(
     undefined,
@@ -519,6 +525,18 @@ export default function ProductsCatalog() {
         return left.label.localeCompare(right.label, language === "ar" ? "ar" : "tr");
       });
   }, [entries, categorySearch, language]);
+
+  useEffect(() => {
+    if (!initialCategoryFromUrl || categoryOptions.length === 0) return;
+
+    const matchingCategory = categoryOptions.find(
+      (item) => item.value === initialCategoryFromUrl || item.label === initialCategoryFromUrl,
+    );
+
+    if (matchingCategory) {
+      setSelectedCategory((current) => current ?? matchingCategory.value);
+    }
+  }, [categoryOptions, initialCategoryFromUrl]);
 
   const brandOptions = useMemo(() => {
     const map = new Map<string, number>();

@@ -6,7 +6,6 @@
 import { useEffect, useMemo } from "react";
 import { useParams, useLocation } from "wouter";
 import { ChevronRight, Download, Share2, Phone, Mail, Loader2 } from "lucide-react";
-import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import {
@@ -100,6 +99,12 @@ export default function ProductDetail() {
     ? displayProducts.find((item) => matchesProductParam(item, slug))
     : undefined;
   const relatedProducts = product ? getRelatedProducts(displayProducts, product.id, 3) : [];
+  const productImage = product?.image?.trim() || "";
+  const specifications = Array.isArray(product?.specifications) ? product.specifications : [];
+  const oemGroups = Array.isArray(product?.oemCodes) ? product.oemCodes : [];
+  const applications = Array.isArray(product?.applications) ? product.applications : [];
+  const certifications = Array.isArray(product?.certifications) ? product.certifications : [];
+  const features = Array.isArray(product?.features) ? product.features : [];
 
   if (isLoading) {
     return (
@@ -130,10 +135,6 @@ export default function ProductDetail() {
     );
   }
 
-  const { ref: specsRef, isVisible: specsVisible } = useIntersectionObserver({ threshold: 0.1 });
-  const { ref: oemRef, isVisible: oemVisible } = useIntersectionObserver({ threshold: 0.1 });
-  const { ref: relatedRef, isVisible: relatedVisible } = useIntersectionObserver({ threshold: 0.1 });
-
   const handleDownloadCatalog = () => {
     if (product.catalogUrl) {
       window.open(product.catalogUrl, "_blank", "noopener,noreferrer");
@@ -148,6 +149,8 @@ export default function ProductDetail() {
         title: product.title,
         text: product.description,
         url: window.location.href,
+      }).catch(() => {
+        toast.success(asString(metadata.linkCopiedToast, "Bağlantı kopyalandı!"));
       });
     } else {
       toast.success(asString(metadata.linkCopiedToast, "Bağlantı kopyalandı!"));
@@ -184,11 +187,17 @@ export default function ProductDetail() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
           {/* Product Image */}
           <div className="bg-[var(--vaden-surface-14)] border border-[var(--vaden-border)] p-8 flex items-center justify-center h-96 lg:h-full">
-            <img
-              src={product.image}
-              alt={product.title}
-              className="w-full h-full object-cover"
-            />
+            {productImage ? (
+              <img
+                src={productImage}
+                alt={product.title}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center bg-[var(--vaden-surface-10)] text-[var(--vaden-text-muted)] font-['Barlow_Condensed'] text-xl uppercase tracking-wide">
+                Görsel Yakında
+              </div>
+            )}
           </div>
 
           {/* Product Info */}
@@ -221,7 +230,7 @@ export default function ProductDetail() {
                 {asString(metadata.featuresTitle, "Özellikler")}
               </h3>
               <ul className="space-y-2">
-                {product.features.map((feature) => (
+                {features.map((feature) => (
                   <li key={feature} className="flex items-start gap-3 text-[var(--vaden-text-muted)]">
                     <span className="w-1.5 h-1.5 bg-[oklch(0.60_0.18_42)] rounded-full mt-2 flex-shrink-0"></span>
                     <span className="font-['Inter']">{feature}</span>
@@ -275,25 +284,17 @@ export default function ProductDetail() {
       </div>
 
       {/* Specifications Section */}
-      <section
-        ref={specsRef as React.RefObject<HTMLElement>}
-        className={`py-20 bg-[var(--vaden-surface-12)] border-t border-[var(--vaden-border-soft)] transition-all duration-700 ${
-          specsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-        }`}
-      >
+      <section className="py-20 bg-[var(--vaden-surface-12)] border-t border-[var(--vaden-border-soft)]">
         <div className="container mx-auto px-6 max-w-7xl">
           <h2 className="font-['Barlow_Condensed'] font-black text-[var(--vaden-on-surface)] text-4xl uppercase tracking-wide mb-12">
             {asString(metadata.specsTitle, "Teknik Özellikler")}
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {product.specifications.map((spec, index) => (
+            {specifications.map((spec) => (
               <div
                 key={spec.label}
-                className={`bg-[var(--vaden-surface-14)] border border-[var(--vaden-border)] p-6 transition-all duration-700 ${
-                  specsVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-                }`}
-                style={{ transitionDelay: `${index * 0.1}s` }}
+                className="bg-[var(--vaden-surface-14)] border border-[var(--vaden-border)] p-6"
               >
                 <p className="text-[oklch(0.60_0.18_42)] font-['Barlow_Condensed'] font-bold text-sm uppercase tracking-wide mb-2">
                   {spec.label}
@@ -306,25 +307,17 @@ export default function ProductDetail() {
       </section>
 
       {/* OEM Codes Section */}
-      <section
-        ref={oemRef as React.RefObject<HTMLElement>}
-        className={`py-20 bg-[var(--vaden-surface-10)] transition-all duration-700 ${
-          oemVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-        }`}
-      >
+      <section className="py-20 bg-[var(--vaden-surface-10)]">
         <div className="container mx-auto px-6 max-w-7xl">
           <h2 className="font-['Barlow_Condensed'] font-black text-[var(--vaden-on-surface)] text-4xl uppercase tracking-wide mb-12">
             {asString(metadata.oemCodesTitle, "OEM Kodları")}
           </h2>
 
           <div className="space-y-6">
-            {product.oemCodes.map((oem, index) => (
+            {oemGroups.map((oem) => (
               <div
                 key={oem.manufacturer}
-                className={`bg-[var(--vaden-surface-14)] border border-[var(--vaden-border)] p-6 transition-all duration-700 ${
-                  oemVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-                }`}
-                style={{ transitionDelay: `${index * 0.1}s` }}
+                className="bg-[var(--vaden-surface-14)] border border-[var(--vaden-border)] p-6"
               >
                 <h3 className="font-['Barlow_Condensed'] font-bold text-[var(--vaden-on-surface)] text-lg uppercase tracking-wide mb-3">
                   {oem.manufacturer}
@@ -349,7 +342,7 @@ export default function ProductDetail() {
               {asString(metadata.applicationsTitle, "Uygulamalar")}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {product.applications.map((app) => (
+              {applications.map((app) => (
                 <div
                   key={app}
                   className="bg-[var(--vaden-surface-14)] border border-[var(--vaden-border)] p-4 text-center"
@@ -366,7 +359,7 @@ export default function ProductDetail() {
               {asString(metadata.certificationsTitle, "Sertifikasyonlar")}
             </h3>
             <div className="flex flex-wrap gap-3">
-              {product.certifications.map((cert) => (
+              {certifications.map((cert) => (
                 <span
                   key={cert}
                   className="bg-[oklch(0.60_0.18_42)] text-[var(--vaden-on-accent)] px-4 py-2 font-['Barlow_Condensed'] font-bold text-sm uppercase tracking-wide"
@@ -382,10 +375,7 @@ export default function ProductDetail() {
       {/* Related Products */}
       {relatedProducts.length > 0 && (
         <section
-          ref={relatedRef as React.RefObject<HTMLElement>}
-          className={`py-20 bg-[var(--vaden-surface-12)] border-t border-[var(--vaden-border-soft)] transition-all duration-700 ${
-            relatedVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-          }`}
+          className="py-20 bg-[var(--vaden-surface-12)] border-t border-[var(--vaden-border-soft)]"
         >
           <div className="container mx-auto px-6 max-w-7xl">
             <h2 className="font-['Barlow_Condensed'] font-black text-[var(--vaden-on-surface)] text-4xl uppercase tracking-wide mb-12">
@@ -393,21 +383,24 @@ export default function ProductDetail() {
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {relatedProducts.map((relatedProduct, index) => (
+              {relatedProducts.map((relatedProduct) => (
                 <button
                   key={relatedProduct.id}
                   onClick={() => navigate(`/product/${relatedProduct.slug}`)}
-                  className={`bg-[var(--vaden-surface-14)] border border-[var(--vaden-border)] hover:border-[oklch(0.60_0.18_42)] overflow-hidden group transition-all duration-700 ${
-                    relatedVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-                  }`}
-                  style={{ transitionDelay: `${index * 0.1}s` }}
+                  className="bg-[var(--vaden-surface-14)] border border-[var(--vaden-border)] hover:border-[oklch(0.60_0.18_42)] overflow-hidden group transition-all duration-300"
                 >
                   <div className="h-48 overflow-hidden bg-[var(--vaden-surface-10)]">
-                    <img
-                      src={relatedProduct.image}
-                      alt={relatedProduct.title}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
+                    {relatedProduct.image ? (
+                      <img
+                        src={relatedProduct.image}
+                        alt={relatedProduct.title}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-[var(--vaden-text-muted)] font-['Barlow_Condensed'] uppercase tracking-wide">
+                        Görsel Yok
+                      </div>
+                    )}
                   </div>
                   <div className="p-4">
                     <p className="text-[oklch(0.60_0.18_42)] text-xs font-['Barlow_Condensed'] font-bold uppercase tracking-wide mb-2">

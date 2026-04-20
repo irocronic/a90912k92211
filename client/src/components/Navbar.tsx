@@ -40,6 +40,19 @@ type NavbarMetadata = {
   navItems: NavItem[];
 };
 
+const REAL_PRODUCT_CATEGORIES = [
+  "FREN SİSTEMİ",
+  "ELEKTRİK SİSTEMİ",
+  "HAVALI FREN KOMPRESÖRÜ",
+  "SÜSPANSİYON",
+  "DEBRİYAJ",
+  "ŞANZIMAN",
+  "KABİN PARÇALARI",
+  "MOTOR",
+  "SOĞUTMA SİSTEMİ",
+  "DİREKSİYON",
+];
+
 const Navbar = () => {
   const { language, setLanguage } = useI18n();
   const { theme, setTheme } = useTheme();
@@ -53,7 +66,27 @@ const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
   const navItems = useMemo(
-    () => asRecordArray<NavItem>(metadata.navItems, []),
+    () =>
+      asRecordArray<NavItem>(metadata.navItems, []).map((item) => {
+        const trLabel = asString(item.labelTr).toLowerCase();
+        const enLabel = asString(item.labelEn).toLowerCase();
+        const arLabel = asString(item.labelAr).toLowerCase();
+        const isProductsItem =
+          trLabel === "ürünler" || enLabel === "products" || arLabel === "المنتجات";
+
+        if (!isProductsItem) return item;
+
+        return {
+          ...item,
+          href: "/products",
+          children: REAL_PRODUCT_CATEGORIES.map((category) => ({
+            labelTr: category,
+            labelEn: category,
+            labelAr: category,
+            href: `/products?category=${encodeURIComponent(category)}`,
+          })),
+        };
+      }),
     [metadata.navItems],
   );
   const contactItems = [
@@ -79,6 +112,11 @@ const Navbar = () => {
       return asString(item.labelEn, asString(item.labelTr));
     }
     return asString(item.labelTr, asString(item.labelEn));
+  };
+
+  const normalizeNavHref = (href?: string) => {
+    const value = asString(href, "#");
+    return value === "/#urunler" || value === "#urunler" ? "/products" : value;
   };
 
   useEffect(() => {
@@ -201,7 +239,7 @@ const Navbar = () => {
                   onMouseLeave={() => setActiveDropdown(null)}
                 >
                   <a
-                    href={asString(item.href, "#")}
+                    href={normalizeNavHref(item.href)}
                     className="px-4 py-2 text-[var(--vaden-text-dim)] hover:text-[oklch(0.60_0.18_42)] transition flex items-center gap-1 rounded-lg hover:bg-[var(--vaden-surface-14)]"
                   >
                     {label}
@@ -221,7 +259,7 @@ const Navbar = () => {
                       {children.map((child, childIndex) => (
                         <a
                           key={`${label}-${childIndex}`}
-                          href={asString(child.href, "#")}
+                          href={normalizeNavHref(child.href)}
                           className="flex items-center gap-2 px-4 py-2.5 text-[var(--vaden-text-dim)] hover:text-[oklch(0.60_0.18_42)] hover:bg-[var(--vaden-surface-14)] transition group/item"
                         >
                           <span className="w-0 group-hover/item:w-2 h-px bg-[oklch(0.60_0.18_42)] transition-all duration-200 inline-block flex-shrink-0"></span>
@@ -297,16 +335,28 @@ const Navbar = () => {
               return (
                 <div key={key}>
                   {children.length > 0 ? (
-                    <button
-                      onClick={() => setActiveDropdown(open ? null : key)}
-                      className="w-full text-left px-4 py-2 text-[var(--vaden-on-surface)] hover:text-orange-500 hover:bg-[var(--vaden-surface-14)] rounded-lg transition flex items-center justify-between"
-                    >
-                      <span>{label}</span>
-                      <ChevronDown size={16} className={`transition ${open ? "rotate-180" : ""}`} />
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <a
+                        href={normalizeNavHref(item.href)}
+                        className="flex-1 px-4 py-2 text-[var(--vaden-on-surface)] hover:text-orange-500 hover:bg-[var(--vaden-surface-14)] rounded-lg transition"
+                        onClick={() => {
+                          setIsOpen(false);
+                          setActiveDropdown(null);
+                        }}
+                      >
+                        {label}
+                      </a>
+                      <button
+                        onClick={() => setActiveDropdown(open ? null : key)}
+                        className="px-3 py-2 text-[var(--vaden-on-surface)] hover:text-orange-500 hover:bg-[var(--vaden-surface-14)] rounded-lg transition"
+                        aria-label={`${label} alt menusu`}
+                      >
+                        <ChevronDown size={16} className={`transition ${open ? "rotate-180" : ""}`} />
+                      </button>
+                    </div>
                   ) : (
                     <a
-                      href={asString(item.href, "#")}
+                      href={normalizeNavHref(item.href)}
                       className="block w-full text-left px-4 py-2 text-[var(--vaden-on-surface)] hover:text-orange-500 hover:bg-[var(--vaden-surface-14)] rounded-lg transition"
                       onClick={() => {
                         setIsOpen(false);
@@ -321,7 +371,7 @@ const Navbar = () => {
                       {children.map((child, childIndex) => (
                         <a
                           key={`${key}-child-${childIndex}`}
-                          href={asString(child.href, "#")}
+                          href={normalizeNavHref(child.href)}
                           className="block px-3 py-2 text-sm text-[var(--vaden-on-surface)]/85 hover:text-orange-500 hover:bg-[var(--vaden-surface-14)] rounded-md transition"
                           onClick={() => {
                             setIsOpen(false);

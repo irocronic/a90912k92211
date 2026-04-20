@@ -71,6 +71,10 @@ function normalizeSearchText(value: string): string {
     .trim();
 }
 
+function normalizeSearchCompact(value: string): string {
+  return normalizeSearchText(value).replace(/\s+/g, "");
+}
+
 function splitSearchTokens(value: string): string[] {
   return normalizeSearchText(value)
     .split(/\s+/)
@@ -213,6 +217,7 @@ function scoreProductMatch(
   normalizedQuery: string,
   queryTokens: string[]
 ): ProductSearchResultItem | null {
+  const compactNormalizedQuery = normalizeSearchCompact(normalizedQuery);
   const normalizedTitle = normalizeSearchText(product.title);
   const normalizedSubtitle = normalizeSearchText(product.subtitle);
   const normalizedCategory = normalizeSearchText(product.category);
@@ -236,11 +241,27 @@ function scoreProductMatch(
   };
 
   oemRows.forEach((row) => {
+    const compactNormalizedCode = normalizeSearchCompact(row.normalizedCode);
     if (row.normalizedCode === normalizedQuery) {
       pushMatch(260, "oemCode", row.code);
       return;
     }
+    if (
+      compactNormalizedQuery &&
+      compactNormalizedCode &&
+      compactNormalizedCode === compactNormalizedQuery
+    ) {
+      pushMatch(260, "oemCode", row.code);
+      return;
+    }
     if (row.normalizedCode.includes(normalizedQuery)) {
+      pushMatch(230, "oemCode", row.code);
+    }
+    if (
+      compactNormalizedQuery &&
+      compactNormalizedCode &&
+      compactNormalizedCode.includes(compactNormalizedQuery)
+    ) {
       pushMatch(230, "oemCode", row.code);
     }
     if (row.normalizedManufacturer.includes(normalizedQuery)) {
@@ -249,6 +270,13 @@ function scoreProductMatch(
     const codeSimilarity = diceSimilarity(normalizedQuery, row.normalizedCode);
     if (codeSimilarity >= 0.62) {
       pushMatch(Math.round(140 + codeSimilarity * 80), "oemCode", row.code);
+    }
+    const compactCodeSimilarity = diceSimilarity(
+      compactNormalizedQuery,
+      compactNormalizedCode
+    );
+    if (compactCodeSimilarity >= 0.62) {
+      pushMatch(Math.round(140 + compactCodeSimilarity * 80), "oemCode", row.code);
     }
   });
 
@@ -369,6 +397,7 @@ export const contentRouter = router({
         await ensureOemIndexSynced(db);
 
         const normalizedQuery = normalizeSearchText(input.query);
+        const compactNormalizedQuery = normalizeSearchCompact(input.query);
         if (!normalizedQuery) {
           return {
             items: [] as Array<{
@@ -396,6 +425,7 @@ export const contentRouter = router({
         const queryTokens = splitSearchTokens(input.query);
         const queryPattern = `%${input.query.toLowerCase()}%`;
         const normalizedPattern = `%${normalizedQuery}%`;
+        const compactNormalizedPattern = `%${compactNormalizedQuery}%`;
 
         const [oemCandidateRows, textCandidateRows] = await Promise.all([
           db
@@ -410,6 +440,7 @@ export const contentRouter = router({
             .where(
               or(
                 like(productOemIndex.normalizedCode, normalizedPattern),
+                sql`REPLACE(${productOemIndex.normalizedCode}, ' ', '') LIKE ${compactNormalizedPattern}`,
                 like(productOemIndex.normalizedManufacturer, normalizedPattern)
               )
             )
@@ -658,10 +689,12 @@ export const contentRouter = router({
         await ensureOemIndexSynced(db);
 
         const normalizedQuery = normalizeSearchText(input.query);
+        const compactNormalizedQuery = normalizeSearchCompact(input.query);
         if (!normalizedQuery) return [];
 
         const queryPattern = `%${input.query.toLowerCase()}%`;
         const normalizedPattern = `%${normalizedQuery}%`;
+        const compactNormalizedPattern = `%${compactNormalizedQuery}%`;
         const limit = input.limit ?? 8;
 
         const [oemRows, productRows] = await Promise.all([
@@ -674,6 +707,7 @@ export const contentRouter = router({
             .where(
               or(
                 like(productOemIndex.normalizedCode, normalizedPattern),
+                sql`REPLACE(${productOemIndex.normalizedCode}, ' ', '') LIKE ${compactNormalizedPattern}`,
                 like(productOemIndex.normalizedManufacturer, normalizedPattern)
               )
             )

@@ -5,8 +5,7 @@
 
 import { useLocation } from "wouter";
 import { ChevronRight, AlertCircle, Loader2 } from "lucide-react";
-import { useState, useMemo, useEffect, type RefObject } from "react";
-import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
+import { useState, useMemo, useEffect } from "react";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import {
@@ -123,7 +122,7 @@ export default function SearchResults() {
       manufacturer: selectedManufacturer || undefined,
       sortBy,
       page: 1,
-      pageSize: 120,
+      pageSize: 100,
     }),
     [
       searchQuery,
@@ -136,7 +135,7 @@ export default function SearchResults() {
 
   const searchEnabled = searchInput.query.length > 0;
 
-  const { data: searchData, isLoading } = trpc.content.products.search.useQuery(
+  const { data: searchData, isLoading, error: searchError } = trpc.content.products.search.useQuery(
     searchInput,
     {
       enabled: searchEnabled,
@@ -196,8 +195,6 @@ export default function SearchResults() {
 
   const totalResults = searchData?.total ?? results.length;
 
-  const { ref, isVisible } = useIntersectionObserver({ threshold: 0.1 });
-
   return (
     <div className="min-h-screen bg-[var(--vaden-surface-10)]">
       <div className="bg-[var(--vaden-surface-12)] border-b border-[var(--vaden-border-soft)]">
@@ -247,6 +244,19 @@ export default function SearchResults() {
         ) : isLoading ? (
           <div className="py-12 flex justify-center">
             <Loader2 className="w-8 h-8 animate-spin text-[oklch(0.60_0.18_42)]" />
+          </div>
+        ) : searchError ? (
+          <div className="bg-[var(--vaden-surface-14)] border border-[var(--vaden-border)] p-12 text-center">
+            <AlertCircle size={48} className="mx-auto text-[oklch(0.60_0.18_42)] mb-4" />
+            <h2 className="font-['Barlow_Condensed'] font-bold text-[var(--vaden-on-surface)] text-2xl uppercase mb-2">
+              Arama Servisine Ulaşılamadı
+            </h2>
+            <p className="text-[var(--vaden-text-muted)] mb-3 font-['Inter']">
+              Arama isteği şu an tamamlanamadı. Lütfen sayfayı yenileyip tekrar deneyin.
+            </p>
+            <p className="text-xs text-[var(--vaden-text-placeholder)] font-mono break-all">
+              {searchError.message}
+            </p>
           </div>
         ) : results.length === 0 ? (
           <div className="bg-[var(--vaden-surface-14)] border border-[var(--vaden-border)] p-12 text-center">
@@ -409,26 +419,26 @@ export default function SearchResults() {
               </div>
             </div>
 
-            <div
-              ref={ref as RefObject<HTMLDivElement>}
-              className="lg:col-span-3 space-y-4"
-            >
+            <div className="lg:col-span-3 space-y-4">
               {results.map((result, index) => (
                 <Link
                   key={`${result.product.id}-${index}`}
                   href={`/product/${result.product.slug}`}
-                  className={`group bg-[var(--vaden-surface-14)] border border-[var(--vaden-border)] hover:border-[oklch(0.60_0.18_42)] p-6 transition-all duration-500 block ${
-                    isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-                  }`}
-                  style={{ transitionDelay: `${index * 0.05}s` }}
+                  className="group bg-[var(--vaden-surface-14)] border border-[var(--vaden-border)] hover:border-[oklch(0.60_0.18_42)] p-6 transition-all duration-300 block opacity-100"
                 >
                   <div className="flex gap-6">
                     <div className="w-32 h-32 flex-shrink-0 bg-[var(--vaden-surface-10)] border border-[var(--vaden-border-soft)] overflow-hidden">
-                      <img
-                        src={result.product.image}
-                        alt={result.product.title}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                      />
+                      {result.product.image ? (
+                        <img
+                          src={result.product.image}
+                          alt={result.product.title}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-center text-xs font-['Barlow_Condensed'] uppercase tracking-wide text-[var(--vaden-text-muted)]">
+                          Gorsel Yok
+                        </div>
+                      )}
                     </div>
 
                     <div className="flex-1">

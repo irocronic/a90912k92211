@@ -13,6 +13,23 @@ export interface AutocompleteSuggestion {
   icon?: string;
 }
 
+function normalizeSearchText(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/ğ/g, "g")
+    .replace(/ü/g, "u")
+    .replace(/ş/g, "s")
+    .replace(/ı/g, "i")
+    .replace(/ö/g, "o")
+    .replace(/ç/g, "c")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function normalizeSearchCompact(value: string): string {
+  return normalizeSearchText(value).replace(/\s+/g, "");
+}
+
 /**
  * Generate autocomplete suggestions based on input
  */
@@ -23,7 +40,8 @@ export function getAutocompleteSuggestions(
 ): AutocompleteSuggestion[] {
   if (!input.trim()) return [];
 
-  const normalizedInput = input.toLowerCase().trim();
+  const normalizedInput = normalizeSearchText(input);
+  const compactNormalizedInput = normalizeSearchCompact(input);
   const suggestions: AutocompleteSuggestion[] = [];
   const seen = new Set<string>();
 
@@ -31,8 +49,11 @@ export function getAutocompleteSuggestions(
   products.forEach((product) => {
     product.oemCodes.forEach((oemGroup) => {
       oemGroup.codes.forEach((code) => {
+        const normalizedCode = normalizeSearchText(code);
+        const compactNormalizedCode = normalizeSearchCompact(code);
         if (
-          code.toLowerCase().includes(normalizedInput) &&
+          (normalizedCode.includes(normalizedInput) ||
+            compactNormalizedCode.includes(compactNormalizedInput)) &&
           !seen.has(code)
         ) {
           suggestions.push({
@@ -52,8 +73,8 @@ export function getAutocompleteSuggestions(
   products.forEach((product) => {
     const productLabel = `${product.title} - ${product.subtitle}`;
     if (
-      (product.title.toLowerCase().includes(normalizedInput) ||
-        product.subtitle.toLowerCase().includes(normalizedInput)) &&
+      (normalizeSearchText(product.title).includes(normalizedInput) ||
+        normalizeSearchText(product.subtitle).includes(normalizedInput)) &&
       !seen.has(product.title)
     ) {
       suggestions.push({
@@ -69,10 +90,10 @@ export function getAutocompleteSuggestions(
   // 3. Category suggestions
   const categories = new Set<string>();
   products.forEach((product) => {
-    if (product.category.toLowerCase().includes(normalizedInput)) {
+    if (normalizeSearchText(product.category).includes(normalizedInput)) {
       categories.add(product.category);
     }
-    if (product.subcategory.toLowerCase().includes(normalizedInput)) {
+    if (normalizeSearchText(product.subcategory).includes(normalizedInput)) {
       categories.add(`${product.category} / ${product.subcategory}`);
     }
   });

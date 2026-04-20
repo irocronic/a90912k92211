@@ -11,6 +11,23 @@ export interface SearchResult {
   matchedValue: string;
 }
 
+function normalizeSearchText(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/ğ/g, "g")
+    .replace(/ü/g, "u")
+    .replace(/ş/g, "s")
+    .replace(/ı/g, "i")
+    .replace(/ö/g, "o")
+    .replace(/ç/g, "c")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function normalizeSearchCompact(value: string): string {
+  return normalizeSearchText(value).replace(/\s+/g, "");
+}
+
 /**
  * Search products by OEM code or product name
  * @param products - Product source list
@@ -20,7 +37,8 @@ export interface SearchResult {
 export function searchProducts(products: DisplayProduct[], query: string): SearchResult[] {
   if (!query.trim()) return [];
 
-  const normalizedQuery = query.toLowerCase().trim();
+  const normalizedQuery = normalizeSearchText(query);
+  const compactNormalizedQuery = normalizeSearchCompact(query);
   const results: SearchResult[] = [];
   const seenProductIds = new Set<string>();
 
@@ -29,7 +47,12 @@ export function searchProducts(products: DisplayProduct[], query: string): Searc
     // Search by OEM codes
     product.oemCodes.forEach((oemGroup) => {
       oemGroup.codes.forEach((code) => {
-        if (code.toLowerCase().includes(normalizedQuery)) {
+        const normalizedCode = normalizeSearchText(code);
+        const compactNormalizedCode = normalizeSearchCompact(code);
+        if (
+          normalizedCode.includes(normalizedQuery) ||
+          compactNormalizedCode.includes(compactNormalizedQuery)
+        ) {
           if (!seenProductIds.has(product.id)) {
             results.push({
               product,
@@ -44,8 +67,8 @@ export function searchProducts(products: DisplayProduct[], query: string): Searc
 
     // Search by product name/title
     if (
-      product.title.toLowerCase().includes(normalizedQuery) ||
-      product.subtitle.toLowerCase().includes(normalizedQuery)
+      normalizeSearchText(product.title).includes(normalizedQuery) ||
+      normalizeSearchText(product.subtitle).includes(normalizedQuery)
     ) {
       if (!seenProductIds.has(product.id)) {
         results.push({
@@ -58,7 +81,7 @@ export function searchProducts(products: DisplayProduct[], query: string): Searc
     }
 
     // Search by category
-    if (product.category.toLowerCase().includes(normalizedQuery)) {
+    if (normalizeSearchText(product.category).includes(normalizedQuery)) {
       if (!seenProductIds.has(product.id)) {
         results.push({
           product,
@@ -70,7 +93,7 @@ export function searchProducts(products: DisplayProduct[], query: string): Searc
     }
 
     // Search by subcategory
-    if (product.subcategory.toLowerCase().includes(normalizedQuery)) {
+    if (normalizeSearchText(product.subcategory).includes(normalizedQuery)) {
       if (!seenProductIds.has(product.id)) {
         results.push({
           product,
@@ -82,7 +105,7 @@ export function searchProducts(products: DisplayProduct[], query: string): Searc
     }
 
     // Search by description
-    if (product.description.toLowerCase().includes(normalizedQuery)) {
+    if (normalizeSearchText(product.description).includes(normalizedQuery)) {
       if (!seenProductIds.has(product.id)) {
         results.push({
           product,
@@ -95,7 +118,7 @@ export function searchProducts(products: DisplayProduct[], query: string): Searc
 
     // Search by applications
     product.applications.forEach((app) => {
-      if (app.toLowerCase().includes(normalizedQuery)) {
+      if (normalizeSearchText(app).includes(normalizedQuery)) {
         if (!seenProductIds.has(product.id)) {
           results.push({
             product,

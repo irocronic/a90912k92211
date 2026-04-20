@@ -98,11 +98,14 @@ export default function HeroSlider() {
       ))}
 
       <div className="relative z-10 h-full flex items-center">
-        <div className="container mx-auto px-6 max-w-7xl">
-          <div className="max-w-2xl rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(8,12,18,0.78)_0%,rgba(8,12,18,0.5)_55%,rgba(8,12,18,0.28)_100%)] p-5 shadow-[0_18px_50px_rgba(0,0,0,0.28)] backdrop-blur-[6px] md:border-transparent md:bg-transparent md:p-0 md:shadow-none md:backdrop-blur-0">
+        <div className="container mx-auto px-6 md:px-8 lg:px-10 max-w-7xl">
+          <div
+            className="max-w-2xl rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(8,12,18,0.82)_0%,rgba(8,12,18,0.56)_55%,rgba(8,12,18,0.34)_100%)] shadow-[0_18px_50px_rgba(0,0,0,0.28)] backdrop-blur-[6px]"
+            style={{ padding: "clamp(1.75rem, 3vw, 2.75rem)" }}
+          >
             <div
               key={`tag-${current}`}
-              className="inline-flex items-center gap-2 mb-4 fade-in-up"
+              className="inline-flex items-center gap-2 mb-5 md:mb-6 fade-in-up"
               style={{ animationDelay: "0.1s" }}
             >
               <span className="w-8 h-0.5 bg-[oklch(0.60_0.18_42)]"></span>
@@ -113,15 +116,15 @@ export default function HeroSlider() {
 
             <h1
               key={`title-${current}`}
-              className="font-['Barlow_Condensed'] font-black text-white leading-none mb-2 fade-in-up [text-shadow:0_6px_18px_rgba(0,0,0,0.45)]"
-              style={{ fontSize: "clamp(2.6rem, 8vw, 6rem)", animationDelay: "0.2s" }}
+              className="font-['Barlow_Condensed'] font-black text-white mb-4 md:mb-5 fade-in-up [text-shadow:0_6px_18px_rgba(0,0,0,0.45)]"
+              style={{ fontSize: "clamp(2.6rem, 8vw, 6rem)", lineHeight: 1.02, animationDelay: "0.2s" }}
             >
               {slides[current].title}
             </h1>
             <h2
               key={`subtitle-${current}`}
-              className="font-['Barlow_Condensed'] font-black text-[oklch(0.60_0.18_42)] leading-none mb-5 md:mb-6 fade-in-up [text-shadow:0_6px_18px_rgba(0,0,0,0.35)]"
-              style={{ fontSize: "clamp(2.2rem, 7vw, 5rem)", animationDelay: "0.3s" }}
+              className="font-['Barlow_Condensed'] font-black text-[oklch(0.60_0.18_42)] mb-7 md:mb-8 fade-in-up [text-shadow:0_6px_18px_rgba(0,0,0,0.35)]"
+              style={{ fontSize: "clamp(2.2rem, 7vw, 5rem)", lineHeight: 1.04, animationDelay: "0.3s" }}
             >
               {slides[current].subtitle}
             </h2>
