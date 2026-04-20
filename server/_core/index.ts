@@ -6,6 +6,7 @@ import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { createIpRateLimitMiddleware } from "./rateLimit";
 import { buildRobotsTxt, buildSitemapXml, getSiteOriginFromRequest } from "./seo";
+import { startSqliteImportWorker } from "./sqliteImportJobs";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
@@ -30,6 +31,8 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 }
 
 async function startServer() {
+  startSqliteImportWorker();
+
   const app = express();
   const server = createServer(app);
 

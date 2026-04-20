@@ -18,12 +18,14 @@ import {
 import { PRODUCT_TAXONOMY_SETTING_KEY } from "../../shared/const";
 
 const execFileAsync = promisify(execFile);
-const SQLITE_IMPORT_SOURCE = "supplier_sqlite";
+export const SQLITE_IMPORT_SOURCE = "supplier_sqlite";
 const SQLITE_MAX_BUFFER = 50 * 1024 * 1024;
+export const SQLITE_PREVIEW_SAMPLE_LIMIT = 5000;
+export const SQLITE_DEFAULT_CHUNK_SIZE = 1000;
 
-type SupplierProductRow = Record<string, unknown>;
-type SupplierCategoryRow = Record<string, unknown>;
-type SupplierBrandRow = Record<string, unknown>;
+export type SupplierProductRow = Record<string, unknown>;
+export type SupplierCategoryRow = Record<string, unknown>;
+export type SupplierBrandRow = Record<string, unknown>;
 
 type ProductTaxonomySubcategory = {
   id: string;
@@ -45,7 +47,7 @@ type PreparedImportProduct = {
   product: Product;
 };
 
-type ExistingImportLogSummary = {
+export type ExistingImportLogSummary = {
   id: string;
   fileName: string;
   fileHash: string;
@@ -57,6 +59,9 @@ type ExistingImportLogSummary = {
 export type SqliteImportSummary = {
   fileName: string;
   fileHash: string;
+  analysisMode: "sample" | "full";
+  analyzedRows: number;
+  sampleLimit: number | null;
   detectedTables: string[];
   detectedProductColumns: string[];
   totalRows: number;
@@ -78,7 +83,7 @@ export type SqliteImportResult = SqliteImportSummary & {
   duplicateFileSkipped: boolean;
 };
 
-function normalizeTurkishText(value: string): string {
+export function normalizeTurkishText(value: string): string {
   return value
     .toLowerCase()
     .replace(/ğ/g, "g")
@@ -90,7 +95,7 @@ function normalizeTurkishText(value: string): string {
     .trim();
 }
 
-function normalizeLabel(value: unknown): string {
+export function normalizeLabel(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
@@ -107,13 +112,13 @@ function fitVarchar(value: string, maxLength: number): string {
   return value.length <= maxLength ? value : value.slice(0, maxLength);
 }
 
-function sanitizeUploadFileName(value: string): string {
+export function sanitizeUploadFileName(value: string): string {
   const trimmed = value.trim();
   const sanitized = trimmed.replace(/[/\\]+/g, "-");
   return sanitized || "products.db";
 }
 
-function parseIntLike(value: unknown): number | null {
+export function parseIntLike(value: unknown): number | null {
   if (typeof value === "number" && Number.isFinite(value)) {
     return Math.trunc(value);
   }
@@ -126,7 +131,7 @@ function parseIntLike(value: unknown): number | null {
   return null;
 }
 
-function buildSourceImportKey(row: SupplierProductRow): string {
+export function buildSourceImportKey(row: SupplierProductRow): string {
   const logicalRef = parseIntLike(row.LOGICALREF);
   if (logicalRef !== null) {
     return `${SQLITE_IMPORT_SOURCE}:logicalref:${logicalRef}`;
@@ -141,11 +146,11 @@ function buildSourceImportKey(row: SupplierProductRow): string {
   return `${SQLITE_IMPORT_SOURCE}:hash:${createHash("sha1").update(fallback).digest("hex")}`;
 }
 
-function buildProductId(sourceImportKey: string): string {
+export function buildProductId(sourceImportKey: string): string {
   return `imp_${createHash("sha1").update(sourceImportKey).digest("hex").slice(0, 24)}`;
 }
 
-function normalizeSearchText(value: string): string {
+export function normalizeSearchText(value: string): string {
   return value
     .toLowerCase()
     .replace(/ğ/g, "g")
@@ -158,7 +163,7 @@ function normalizeSearchText(value: string): string {
     .trim();
 }
 
-function buildProductOemIndexRows(
+export function buildProductOemIndexRows(
   productId: string,
   oemCodes: Array<{ manufacturer: string; codes: string[] }>
 ): InsertProductOemIndex[] {
@@ -201,7 +206,7 @@ function ensureJsonArray<T>(value: string): T[] {
   return Array.isArray(parsed) ? (parsed as T[]) : [];
 }
 
-async function runSqliteJsonQuery<T>(dbPath: string, query: string): Promise<T[]> {
+export async function runSqliteJsonQuery<T>(dbPath: string, query: string): Promise<T[]> {
   try {
     const { stdout } = await execFileAsync(
       "sqlite3",
@@ -219,7 +224,7 @@ async function runSqliteJsonQuery<T>(dbPath: string, query: string): Promise<T[]
   }
 }
 
-function parseExistingTaxonomy(value: string | null, type: string | null): ProductTaxonomy {
+export function parseExistingTaxonomy(value: string | null, type: string | null): ProductTaxonomy {
   if (!value || type !== "json") return [];
 
   try {
@@ -311,7 +316,7 @@ function findSubcategory(
   );
 }
 
-function mergeImportedTaxonomy(
+export function mergeImportedTaxonomy(
   current: ProductTaxonomy,
   categoryRows: SupplierCategoryRow[],
   importedProducts: Product[]
@@ -453,7 +458,7 @@ function buildProductSpecifications(params: {
   return specifications;
 }
 
-function mapSupplierRowToProduct(
+export function mapSupplierRowToProduct(
   row: SupplierProductRow,
   categoryLookup: Map<string, SupplierCategoryRow>,
   brandLookup: Map<number, SupplierBrandRow>,
@@ -547,7 +552,7 @@ function mapSupplierRowToProduct(
   };
 }
 
-function isVisibleRow(row: SupplierProductRow): boolean {
+export function isVisibleRow(row: SupplierProductRow): boolean {
   const visibility = parseIntLike(row.urun_final_gorunurluk);
   return visibility === null || visibility !== 0;
 }
@@ -681,8 +686,144 @@ export async function previewSqliteImportBuffer(
     fileName: string;
   }
 ): Promise<SqliteImportSummary> {
-  const analysis = await analyzeSqliteImportBuffer(db, input);
-  return analysis.summary;
+  const tempDir = await mkdtemp(join(tmpdir(), "vaden-sqlite-preview-"));
+  const safeFileName = sanitizeUploadFileName(input.fileName);
+  const tempDbPath = join(tempDir, safeFileName);
+  const fileBuffer = Buffer.isBuffer(input.file) ? input.file : Buffer.from(input.file);
+  const fileHash = createHash("sha256").update(fileBuffer).digest("hex");
+
+  try {
+    await writeFile(tempDbPath, fileBuffer);
+
+    const tables = await runSqliteJsonQuery<{ name: string }>(
+      tempDbPath,
+      "SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name;"
+    );
+    const detectedTables = tables.map((item) => item.name).filter(Boolean);
+
+    if (!detectedTables.includes("urunler")) {
+      throw new Error("Yuklenen SQLite dosyasinda 'urunler' tablosu bulunamadi.");
+    }
+
+    const [categoryRows, brandRows, totalRowsResult, sampleRows] = await Promise.all([
+      detectedTables.includes("urun_kategorileri")
+        ? runSqliteJsonQuery<SupplierCategoryRow>(
+            tempDbPath,
+            "SELECT * FROM urun_kategorileri ORDER BY id;"
+          )
+        : Promise.resolve([]),
+      detectedTables.includes("markalar")
+        ? runSqliteJsonQuery<SupplierBrandRow>(
+            tempDbPath,
+            "SELECT * FROM markalar ORDER BY id;"
+          )
+        : Promise.resolve([]),
+      runSqliteJsonQuery<{ total: number }>(
+        tempDbPath,
+        "SELECT COUNT(*) as total FROM urunler;"
+      ),
+      runSqliteJsonQuery<SupplierProductRow>(
+        tempDbPath,
+        `SELECT * FROM urunler ORDER BY LOGICALREF LIMIT ${SQLITE_PREVIEW_SAMPLE_LIMIT};`
+      ),
+    ]);
+
+    const totalRows = Number(totalRowsResult[0]?.total ?? 0);
+    const now = new Date();
+    const categoryLookup = new Map<string, SupplierCategoryRow>();
+    categoryRows.forEach((row) => {
+      const categoryName = normalizeLabel(row.urun_kat_tr);
+      if (categoryName) {
+        categoryLookup.set(normalizeTurkishText(categoryName), row);
+      }
+    });
+
+    const brandLookup = new Map<number, SupplierBrandRow>();
+    brandRows.forEach((row) => {
+      const brandId = parseIntLike(row.id);
+      if (brandId !== null) {
+        brandLookup.set(brandId, row);
+      }
+    });
+
+    const visibleRows = sampleRows.filter(isVisibleRow);
+    const preparedProducts = visibleRows
+      .map((row) => mapSupplierRowToProduct(row, categoryLookup, brandLookup, now))
+      .filter((item): item is PreparedImportProduct => Boolean(item));
+    const sourceKeys = preparedProducts.map((item) => item.sourceImportKey);
+    const existingByImportKey = new Map<string, { id: string }>();
+
+    if (sourceKeys.length > 0) {
+      const existingRows = await db
+        .select({ id: products.id, sourceImportKey: products.sourceImportKey })
+        .from(products)
+        .where(inArray(products.sourceImportKey, sourceKeys));
+
+      existingRows.forEach((row: { id: string; sourceImportKey: string | null }) => {
+        if (row.sourceImportKey) {
+          existingByImportKey.set(row.sourceImportKey, { id: row.id });
+        }
+      });
+    }
+
+    const createdCount = preparedProducts.filter(
+      (prepared) => !existingByImportKey.has(prepared.sourceImportKey)
+    ).length;
+    const updatedCount = preparedProducts.length - createdCount;
+
+    const existingTaxonomySettingRows = await db
+      .select()
+      .from(settings)
+      .where(eq(settings.key, PRODUCT_TAXONOMY_SETTING_KEY))
+      .limit(1);
+    const existingTaxonomySetting = existingTaxonomySettingRows[0] ?? null;
+    const taxonomySummary = mergeImportedTaxonomy(
+      parseExistingTaxonomy(
+        existingTaxonomySetting?.value ?? null,
+        existingTaxonomySetting?.type ?? null
+      ),
+      categoryRows,
+      preparedProducts.map((item) => item.product)
+    );
+    const previousImportRows = await db
+      .select({
+        id: productImportLogs.id,
+        fileName: productImportLogs.fileName,
+        fileHash: productImportLogs.fileHash,
+        createdCount: productImportLogs.createdCount,
+        updatedCount: productImportLogs.updatedCount,
+        importedAt: productImportLogs.importedAt,
+      })
+      .from(productImportLogs)
+      .where(eq(productImportLogs.fileHash, fileHash))
+      .orderBy(desc(productImportLogs.importedAt))
+      .limit(1);
+
+    return {
+      fileName: safeFileName,
+      fileHash,
+      analysisMode: totalRows > SQLITE_PREVIEW_SAMPLE_LIMIT ? "sample" : "full",
+      analyzedRows: sampleRows.length,
+      sampleLimit: totalRows > SQLITE_PREVIEW_SAMPLE_LIMIT ? SQLITE_PREVIEW_SAMPLE_LIMIT : null,
+      detectedTables,
+      detectedProductColumns: sampleRows[0] ? Object.keys(sampleRows[0]) : [],
+      totalRows,
+      importedRows: preparedProducts.length,
+      skippedRows: sampleRows.length - preparedProducts.length,
+      createdCount,
+      updatedCount,
+      categoriesFound: categoryRows.length,
+      brandsFound: brandRows.length,
+      taxonomyCategoriesAdded: taxonomySummary.categoriesAdded,
+      taxonomyCategoriesUpdated: taxonomySummary.categoriesUpdated,
+      taxonomySubcategoriesAdded: taxonomySummary.subcategoriesAdded,
+      alreadyImported: previousImportRows.length > 0,
+      previousImport: previousImportRows[0] ?? null,
+    };
+  } finally {
+    await unlink(tempDbPath).catch(() => undefined);
+    await rm(tempDir, { recursive: true, force: true }).catch(() => undefined);
+  }
 }
 
 async function analyzeSqliteImportBuffer(
@@ -815,22 +956,25 @@ async function analyzeSqliteImportBuffer(
       preparedProducts,
       existingByImportKey,
       summary: {
-      fileName: safeFileName,
-      fileHash,
-      detectedTables,
-      detectedProductColumns: productRows[0] ? Object.keys(productRows[0]) : [],
-      totalRows: productRows.length,
-      importedRows: preparedProducts.length,
-      skippedRows: productRows.length - preparedProducts.length,
-      createdCount,
-      updatedCount,
-      categoriesFound: categoryRows.length,
-      brandsFound: brandRows.length,
-      taxonomyCategoriesAdded: taxonomySummary.categoriesAdded,
-      taxonomyCategoriesUpdated: taxonomySummary.categoriesUpdated,
-      taxonomySubcategoriesAdded: taxonomySummary.subcategoriesAdded,
-      alreadyImported: Boolean(previousImport),
-      previousImport,
+        fileName: safeFileName,
+        fileHash,
+        analysisMode: "full",
+        analyzedRows: productRows.length,
+        sampleLimit: null,
+        detectedTables,
+        detectedProductColumns: productRows[0] ? Object.keys(productRows[0]) : [],
+        totalRows: productRows.length,
+        importedRows: preparedProducts.length,
+        skippedRows: productRows.length - preparedProducts.length,
+        createdCount,
+        updatedCount,
+        categoriesFound: categoryRows.length,
+        brandsFound: brandRows.length,
+        taxonomyCategoriesAdded: taxonomySummary.categoriesAdded,
+        taxonomyCategoriesUpdated: taxonomySummary.categoriesUpdated,
+        taxonomySubcategoriesAdded: taxonomySummary.subcategoriesAdded,
+        alreadyImported: Boolean(previousImport),
+        previousImport,
       },
     };
   } finally {

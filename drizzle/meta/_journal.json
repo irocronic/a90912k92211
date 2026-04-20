@@ -43,6 +43,34 @@
       "when": 1775840331693,
       "tag": "0005_small_trauma",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1776696594000,
+      "tag": "0006_quote_submissions",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1776698140000,
+      "tag": "0007_quote_read_at",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1776712730000,
+      "tag": "0008_product_import_logs",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1776713879000,
+      "tag": "0009_product_import_jobs",
+      "breakpoints": true
     }
   ]
 }

@@ -250,6 +250,46 @@ export const productImportLogs = mysqlTable(
 export type ProductImportLog = typeof productImportLogs.$inferSelect;
 export type InsertProductImportLog = typeof productImportLogs.$inferInsert;
 
+export const productImportJobs = mysqlTable(
+  "productImportJobs",
+  {
+    id: varchar("id", { length: 64 }).primaryKey(),
+    sourceType: varchar("sourceType", { length: 64 }).notNull(),
+    fileName: varchar("fileName", { length: 255 }).notNull(),
+    fileHash: varchar("fileHash", { length: 64 }).notNull(),
+    filePath: text("filePath").notNull(),
+    status: mysqlEnum("status", [
+      "queued",
+      "running",
+      "completed",
+      "failed",
+      "cancelled",
+    ])
+      .default("queued")
+      .notNull(),
+    totalRows: int("totalRows").default(0).notNull(),
+    processedRows: int("processedRows").default(0).notNull(),
+    createdCount: int("createdCount").default(0).notNull(),
+    updatedCount: int("updatedCount").default(0).notNull(),
+    skippedCount: int("skippedCount").default(0).notNull(),
+    lastProcessedKey: varchar("lastProcessedKey", { length: 191 }),
+    chunkSize: int("chunkSize").default(1000).notNull(),
+    errorMessage: text("errorMessage"),
+    startedAt: timestamp("startedAt"),
+    finishedAt: timestamp("finishedAt"),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    statusIdx: index("productImportJobs_status_idx").on(table.status),
+    fileHashIdx: index("productImportJobs_fileHash_idx").on(table.fileHash),
+    createdAtIdx: index("productImportJobs_createdAt_idx").on(table.createdAt),
+  })
+);
+
+export type ProductImportJob = typeof productImportJobs.$inferSelect;
+export type InsertProductImportJob = typeof productImportJobs.$inferInsert;
+
 export const quoteSubmissions = mysqlTable(
   "quoteSubmissions",
   {

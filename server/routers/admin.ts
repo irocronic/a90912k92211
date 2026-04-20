@@ -1,4 +1,7 @@
 import { TRPCError } from "@trpc/server";
+import { createHash } from "node:crypto";
+import { readFile, readdir } from "node:fs/promises";
+import { join } from "node:path";
 import { z } from "zod";
 import {
   auditLogs,
@@ -6,6 +9,7 @@ import {
   articles,
   pageContent,
   pageContentRevisions,
+  productImportJobs,
   productOemIndex,
   quoteSubmissions,
   settings,
@@ -20,19 +24,23 @@ import {
   type User,
 } from "../../drizzle/schema";
 import { sanitizeHtml, sanitizeUnknownDeep } from "../../shared/htmlSanitizer";
+import { PRODUCT_TAXONOMY_SETTING_KEY } from "../../shared/const";
 import {
   createPermissionProcedure,
   superAdminProcedure,
 } from "../_core/adminAccess";
 import { router } from "../_core/trpc";
 import { getDb } from "../db";
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, like, or, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { storagePut } from "../storage";
 import {
-  importProductsFromSqliteBuffer,
+  parseExistingTaxonomy,
   previewSqliteImportBuffer,
+  SQLITE_IMPORT_SOURCE,
+  normalizeTurkishText,
 } from "../_core/sqliteProductImport";
+import { createSqliteImportJob } from "../_core/sqliteImportJobs";
 
 type ProductOemInput = Array<{ manufacturer: string; codes: string[] }>;
 
@@ -237,6 +245,114 @@ async function listAdminPageContentItems(db: any): Promise<AdminPageContentItem[
       draft: draftBySection.get(section) ?? null,
       latestPublishedRevision: latestPublishedRevisionBySection.get(section) ?? null,
     }));
+}
+
+type MigrationJournalEntry = {
+  idx: number;
+  version: string;
+  when: number;
+  tag: string;
+  breakpoints: boolean;
+};
+
+async function getMigrationStatus(db: any) {
+  const journalPath = join(process.cwd(), "drizzle", "meta", "_journal.json");
+  const drizzleDir = join(process.cwd(), "drizzle");
+  const [journalRaw, dbMigrations, tableRows, sqlFiles] = await Promise.all([
+    readFile(journalPath, "utf8"),
+    db.execute(sql`SELECT id, hash, created_at FROM __drizzle_migrations ORDER BY id`),
+    db.execute(sql`
+      SELECT table_name as tableName
+      FROM information_schema.tables
+      WHERE table_schema = DATABASE()
+    `),
+    readdir(drizzleDir),
+  ]);
+
+  const journal = JSON.parse(journalRaw) as {
+    version: string;
+    dialect: string;
+    entries: MigrationJournalEntry[];
+  };
+
+  const migrationFiles = sqlFiles
+    .filter((file) => /^\d{4}_.+\.sql$/.test(file))
+    .sort((a, b) => a.localeCompare(b, "en"));
+
+  const fileHashes = await Promise.all(
+    migrationFiles.map(async (fileName) => {
+      const contents = await readFile(join(drizzleDir, fileName), "utf8");
+      return {
+        fileName,
+        hash: createHash("sha256").update(contents).digest("hex"),
+      };
+    }),
+  );
+
+  const dbMigrationRows = Array.isArray((dbMigrations as any)[0])
+    ? (dbMigrations as any)[0]
+    : (dbMigrations as any);
+  const tables = new Set(
+    (Array.isArray((tableRows as any)[0]) ? (tableRows as any)[0] : (tableRows as any)).map(
+      (row: any) => String(row.tableName),
+    ),
+  );
+  const appliedHashes = new Set(
+    dbMigrationRows.map((row: any) => String(row.hash)),
+  );
+
+  const journalByTag = new Map(journal.entries.map((entry) => [entry.tag, entry]));
+  const migrationSummaries = fileHashes.map((item) => {
+    const tag = item.fileName.replace(/\.sql$/, "");
+    const journalEntry = journalByTag.get(tag) ?? null;
+    const applied = appliedHashes.has(item.hash);
+    return {
+      tag,
+      fileName: item.fileName,
+      hash: item.hash,
+      inJournal: Boolean(journalEntry),
+      applied,
+      createdAt: journalEntry?.when ?? null,
+    };
+  });
+
+  const missingInJournal = migrationSummaries.filter((item) => !item.inJournal);
+  const missingInDatabase = migrationSummaries.filter((item) => !item.applied);
+
+  const requiredTables = [
+    "quoteSubmissions",
+    "productImportLogs",
+    "productImportJobs",
+    "__drizzle_migrations",
+  ];
+
+  const requiredTableChecks = requiredTables.map((tableName) => ({
+    tableName,
+    exists: tables.has(tableName),
+  }));
+
+  const latestJournal = journal.entries[journal.entries.length - 1] ?? null;
+  const latestDatabaseMigration =
+    dbMigrationRows.length > 0 ? dbMigrationRows[dbMigrationRows.length - 1] : null;
+
+  return {
+    ok:
+      missingInJournal.length === 0 &&
+      missingInDatabase.length === 0 &&
+      requiredTableChecks.every((item) => item.exists),
+    journalVersion: journal.version,
+    localMigrationCount: migrationSummaries.length,
+    dbMigrationCount: dbMigrationRows.length,
+    latestJournalTag: latestJournal?.tag ?? null,
+    latestDatabaseId: latestDatabaseMigration?.id
+      ? Number(latestDatabaseMigration.id)
+      : null,
+    missingInJournal,
+    missingInDatabase,
+    requiredTableChecks,
+    checkedAt: new Date(),
+    migrations: migrationSummaries,
+  };
 }
 
 const productsProcedure = createPermissionProcedure("products:write");
@@ -464,6 +580,157 @@ export const adminRouter = router({
       return db.select().from(products);
     }),
 
+    listPage: productsProcedure
+      .input(
+        z.object({
+          page: z.number().int().min(1).default(1),
+          pageSize: z.number().int().min(1).max(100).default(25),
+          search: z.string().trim().max(200).optional(),
+          category: z.string().trim().max(128).optional(),
+          brand: z.string().trim().max(191).optional(),
+          oemCode: z.string().trim().max(255).optional(),
+          sortBy: z
+            .enum(["updated_desc", "title_asc", "brand_asc"])
+            .default("updated_desc"),
+        }),
+      )
+      .query(async (opts: any) => {
+        const { input } = opts;
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        const page = input.page ?? 1;
+        const pageSize = input.pageSize ?? 25;
+        const offset = (page - 1) * pageSize;
+        const search = input.search?.trim() || "";
+        const category = input.category?.trim() || "";
+        const brand = input.brand?.trim() || "";
+        const oemCode = input.oemCode?.trim() || "";
+        const sortBy = input.sortBy ?? "updated_desc";
+
+        const filters = [];
+        if (search) {
+          const pattern = `%${search}%`;
+          filters.push(
+            or(
+              like(products.title, pattern),
+              like(products.subtitle, pattern),
+              like(products.description, pattern),
+              like(products.sourceCode, pattern),
+              like(products.sourceBrand, pattern),
+              like(products.category, pattern),
+              like(products.subcategory, pattern),
+            ),
+          );
+        }
+
+        if (category) {
+          filters.push(eq(products.category, category));
+        }
+
+        if (brand) {
+          filters.push(eq(products.sourceBrand, brand));
+        }
+
+        if (oemCode) {
+          const normalizedOemCode = oemCode.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+          const rawPattern = `%${oemCode}%`;
+          const normalizedPattern = `%${normalizedOemCode}%`;
+          filters.push(
+            or(
+              like(products.sourceCode, rawPattern),
+              sql`exists (
+                select 1
+                from ${productOemIndex}
+                where ${productOemIndex.productId} = ${products.id}
+                  and (
+                    ${productOemIndex.code} like ${rawPattern}
+                    or ${productOemIndex.normalizedCode} like ${normalizedPattern}
+                  )
+              )`,
+            ),
+          );
+        }
+
+        const whereClause = filters.length > 0 ? and(...filters) : undefined;
+        const orderByClause =
+          sortBy === "title_asc"
+            ? [asc(products.title), desc(products.updatedAt)]
+            : sortBy === "brand_asc"
+              ? [asc(products.sourceBrand), asc(products.title)]
+              : [desc(products.updatedAt), desc(products.createdAt)];
+
+        const [items, totalRows, importedRows] = await Promise.all([
+          (whereClause
+            ? db.select().from(products).where(whereClause)
+            : db.select().from(products))
+            .orderBy(...orderByClause)
+            .limit(pageSize)
+            .offset(offset),
+          (whereClause
+            ? db.select({ count: sql<number>`COUNT(*)` }).from(products).where(whereClause)
+            : db.select({ count: sql<number>`COUNT(*)` }).from(products)),
+          db
+            .select({ count: sql<number>`COUNT(*)` })
+            .from(products)
+            .where(eq(products.sourceType, SQLITE_IMPORT_SOURCE)),
+        ]);
+
+        const totalCount = Number(totalRows[0]?.count ?? 0);
+        const importedCount = Number(importedRows[0]?.count ?? 0);
+        const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+
+        return {
+          items,
+          totalCount,
+          importedCount,
+          page,
+          pageSize,
+          totalPages,
+          search,
+          category,
+          brand,
+          oemCode,
+          sortBy,
+        };
+      }),
+
+    filterOptions: productsProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+      const brandRows = await db
+        .selectDistinct({ brand: products.sourceBrand })
+        .from(products)
+        .where(sql`${products.sourceBrand} IS NOT NULL AND ${products.sourceBrand} <> ''`)
+        .orderBy(asc(products.sourceBrand))
+        .limit(500);
+
+      return {
+        brands: brandRows
+          .map((row: { brand: string | null }) => row.brand)
+          .filter((brand): brand is string => Boolean(brand)),
+      };
+    }),
+
+    stats: productsProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+      const [totalRows, importedRows] = await Promise.all([
+        db.select({ count: sql<number>`COUNT(*)` }).from(products),
+        db
+          .select({ count: sql<number>`COUNT(*)` })
+          .from(products)
+          .where(eq(products.sourceType, SQLITE_IMPORT_SOURCE)),
+      ]);
+
+      return {
+        totalCount: Number(totalRows[0]?.count ?? 0),
+        importedCount: Number(importedRows[0]?.count ?? 0),
+      };
+    }),
+
     get: productsProcedure.input(z.object({ id: z.string() })).query(async (opts: any) => {
       const { input } = opts;
       const db = await getDb();
@@ -547,12 +814,12 @@ export const adminRouter = router({
         return updated[0] || null;
       }),
 
-    importSqlite: productsProcedure
+    createImportJob: productsProcedure
       .input(
         z.object({
           file: z.union([z.instanceof(Uint8Array), z.instanceof(Buffer)]),
           fileName: z.string().min(1),
-          force: z.boolean().optional(),
+          chunkSize: z.number().int().min(200).max(5000).optional(),
         })
       )
       .mutation(async (opts: any) => {
@@ -565,10 +832,10 @@ export const adminRouter = router({
             ? input.file
             : Buffer.from(input.file);
 
-          return await importProductsFromSqliteBuffer(db, {
+          return await createSqliteImportJob(db, {
             file: fileBuffer,
             fileName: input.fileName,
-            force: input.force,
+            chunkSize: input.chunkSize,
           });
         } catch (error) {
           throw new TRPCError({
@@ -576,7 +843,7 @@ export const adminRouter = router({
             message:
               error instanceof Error
                 ? error.message
-                : "SQLite urun importu sirasinda hata olustu.",
+                : "SQLite import kuyruğu olusturulamadi.",
           });
         }
       }),
@@ -613,6 +880,26 @@ export const adminRouter = router({
         }
       }),
 
+    listImportJobs: productsProcedure
+      .input(
+        z
+          .object({
+            limit: z.number().int().min(1).max(50).optional(),
+          })
+          .optional(),
+      )
+      .query(async (opts: any) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        const limit = opts.input?.limit ?? 10;
+        return db
+          .select()
+          .from(productImportJobs)
+          .orderBy(desc(productImportJobs.createdAt))
+          .limit(limit);
+      }),
+
     delete: productsProcedure.input(z.object({ id: z.string() })).mutation(async (opts: any) => {
       const { input } = opts;
       const db = await getDb();
@@ -623,6 +910,164 @@ export const adminRouter = router({
       });
       return { success: true };
     }),
+
+    deleteImported: productsProcedure.mutation(async () => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+      const importedRows = await db
+        .select({ id: products.id })
+        .from(products)
+        .where(eq(products.sourceType, SQLITE_IMPORT_SOURCE));
+
+      if (importedRows.length === 0) {
+        return { success: true, deletedCount: 0 };
+      }
+
+      const importedIds = importedRows.map((row: { id: string }) => row.id);
+
+      await db.transaction(async (tx: any) => {
+        await tx
+          .delete(productOemIndex)
+          .where(inArray(productOemIndex.productId, importedIds));
+
+        await tx
+          .delete(products)
+          .where(eq(products.sourceType, SQLITE_IMPORT_SOURCE));
+      });
+
+      return { success: true, deletedCount: importedIds.length };
+    }),
+
+    deleteImportedWithTaxonomy: productsProcedure.mutation(async () => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+      const importedRows = await db
+        .select({
+          id: products.id,
+          category: products.category,
+          subcategory: products.subcategory,
+        })
+        .from(products)
+        .where(eq(products.sourceType, SQLITE_IMPORT_SOURCE));
+
+      if (importedRows.length === 0) {
+        return { success: true, deletedCount: 0, removedCategories: 0, removedSubcategories: 0 };
+      }
+
+      const importedIds = importedRows.map((row: { id: string }) => row.id);
+      const importedCategoryKeys = new Set(
+        importedRows
+          .map((row: { category: string | null }) => String(row.category || "").trim())
+          .filter(Boolean)
+          .map((value) => normalizeTurkishText(value)),
+      );
+      const importedSubcategoryKeys = new Set(
+        importedRows
+          .map((row: { subcategory: string | null }) => String(row.subcategory || "").trim())
+          .filter(Boolean)
+          .map((value) => normalizeTurkishText(value)),
+      );
+
+      const remainingRows = await db
+        .select({
+          category: products.category,
+          subcategory: products.subcategory,
+        })
+        .from(products)
+        .where(sql`${products.sourceType} <> ${SQLITE_IMPORT_SOURCE} OR ${products.sourceType} IS NULL`);
+
+      const remainingCategoryKeys = new Set(
+        remainingRows
+          .map((row: { category: string | null }) => String(row.category || "").trim())
+          .filter(Boolean)
+          .map((value) => normalizeTurkishText(value)),
+      );
+      const remainingSubcategoryKeys = new Set(
+        remainingRows
+          .map((row: { subcategory: string | null }) => String(row.subcategory || "").trim())
+          .filter(Boolean)
+          .map((value) => normalizeTurkishText(value)),
+      );
+
+      const taxonomySettingRows = await db
+        .select()
+        .from(settings)
+        .where(eq(settings.key, PRODUCT_TAXONOMY_SETTING_KEY))
+        .limit(1);
+      const taxonomySetting = taxonomySettingRows[0] ?? null;
+      const existingTaxonomy = parseExistingTaxonomy(
+        taxonomySetting?.value ?? null,
+        taxonomySetting?.type ?? null,
+      );
+
+      let removedCategories = 0;
+      let removedSubcategories = 0;
+
+      const nextTaxonomy = existingTaxonomy
+        .map((category) => {
+          const normalizedCategory = normalizeTurkishText(category.nameTr || category.nameEn || "");
+          const shouldRemoveCategory =
+            importedCategoryKeys.has(normalizedCategory) &&
+            !remainingCategoryKeys.has(normalizedCategory);
+
+          if (shouldRemoveCategory) {
+            removedCategories += 1;
+            removedSubcategories += category.subcategories.length;
+            return null;
+          }
+
+          const nextSubcategories = category.subcategories.filter((subcategory) => {
+            const normalizedSubcategory = normalizeTurkishText(
+              subcategory.nameTr || subcategory.nameEn || "",
+            );
+            const shouldRemoveSubcategory =
+              importedSubcategoryKeys.has(normalizedSubcategory) &&
+              !remainingSubcategoryKeys.has(normalizedSubcategory);
+
+            if (shouldRemoveSubcategory) {
+              removedSubcategories += 1;
+              return false;
+            }
+            return true;
+          });
+
+          return {
+            ...category,
+            subcategories: nextSubcategories,
+          };
+        })
+        .filter((category): category is NonNullable<typeof category> => Boolean(category));
+
+      await db.transaction(async (tx: any) => {
+        await tx
+          .delete(productOemIndex)
+          .where(inArray(productOemIndex.productId, importedIds));
+
+        await tx
+          .delete(products)
+          .where(eq(products.sourceType, SQLITE_IMPORT_SOURCE));
+
+        if (taxonomySetting) {
+          await tx
+            .update(settings)
+            .set({
+              value: JSON.stringify(nextTaxonomy),
+              type: "json",
+              updatedAt: new Date(),
+            })
+            .where(eq(settings.key, PRODUCT_TAXONOMY_SETTING_KEY));
+        }
+      });
+
+      return {
+        success: true,
+        deletedCount: importedIds.length,
+        removedCategories,
+        removedSubcategories,
+      };
+    }),
   }),
 
   // ===== ARTICLES =====
@@ -631,6 +1076,16 @@ export const adminRouter = router({
       const db = await getDb();
       if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
       return db.select().from(articles);
+    }),
+
+    stats: articlesProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+      const rows = await db.select({ count: sql<number>`COUNT(*)` }).from(articles);
+      return {
+        totalCount: Number(rows[0]?.count ?? 0),
+      };
     }),
 
     get: articlesProcedure.input(z.object({ id: z.string() })).query(async (opts: any) => {
@@ -1086,6 +1541,23 @@ export const adminRouter = router({
           return newSetting;
         }
       }),
+
+    migrationStatus: superAdminProcedure.query(async () => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+      try {
+        return await getMigrationStatus(db);
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            error instanceof Error
+              ? error.message
+              : "Migration durumu okunamadi.",
+        });
+      }
+    }),
   }),
 
   quoteSubmissions: router({

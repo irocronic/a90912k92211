@@ -42,17 +42,19 @@ import {
   findSubcategoryByLabel,
   getCategoryName,
   getSubcategoryName,
-  mergeTaxonomyWithProducts,
   parseProductTaxonomy,
   PRODUCT_TAXONOMY_SETTING_KEY,
   serializeProductTaxonomy,
   type ProductTaxonomy,
 } from "@/lib/productTaxonomy";
 
+const SUPPLIER_SQLITE_SOURCE = "supplier_sqlite";
+const PRODUCTS_PAGE_SIZE = 25;
+
 type RouterOutputs = inferRouterOutputs<AppRouter>;
-type AdminProduct = RouterOutputs["admin"]["products"]["list"][number];
-type ProductImportResult = RouterOutputs["admin"]["products"]["importSqlite"];
+type AdminProduct = RouterOutputs["admin"]["products"]["listPage"]["items"][number];
 type ProductImportPreview = RouterOutputs["admin"]["products"]["previewImportSqlite"];
+type ProductImportJob = RouterOutputs["admin"]["products"]["listImportJobs"][number];
 type EditingLanguage = "tr" | "en" | "ar";
 
 type ProductFormData = {
@@ -163,6 +165,40 @@ function serializeDisplaySpecifications(
   return values.map((item) => `${item.label}: ${item.value}`).join("\n");
 }
 
+function formatEta(seconds: number | null): string {
+  if (seconds === null || !Number.isFinite(seconds) || seconds <= 0) return "-";
+  if (seconds < 60) return `${Math.round(seconds)} sn`;
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = Math.round(seconds % 60);
+  if (minutes < 60) return `${minutes} dk ${remainingSeconds} sn`;
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  return `${hours} sa ${remainingMinutes} dk`;
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function normalizeOemValue(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "");
+}
+
+function renderHighlightedText(text: string, term: string) {
+  if (!term.trim()) return text;
+  const pattern = new RegExp(`(${escapeRegExp(term.trim())})`, "ig");
+  const parts = text.split(pattern);
+  return parts.map((part, index) =>
+    part.toLowerCase() === term.trim().toLowerCase() ? (
+      <mark key={`${part}-${index}`} className="rounded bg-amber-200 px-0.5 text-inherit">
+        {part}
+      </mark>
+    ) : (
+      part
+    ),
+  );
+}
+
 function formFromProduct(product: AdminProduct): ProductFormData {
   return {
     title: product.title,
@@ -236,6 +272,10 @@ function payloadFromForm(formData: ProductFormData): ProductPayload {
 }
 
 export default function AdminProducts() {
+  const initialParams =
+    typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search)
+      : new URLSearchParams();
   const [isOpen, setIsOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingLanguage, setEditingLanguage] = useState<EditingLanguage>("tr");
@@ -245,27 +285,74 @@ export default function AdminProducts() {
   const [newCategoryTr, setNewCategoryTr] = useState("");
   const [newCategoryEn, setNewCategoryEn] = useState("");
   const [newCategoryAr, setNewCategoryAr] = useState("");
+  const [currentPage, setCurrentPage] = useState(
+    Math.max(1, Number(initialParams.get("productsPage") || "1") || 1),
+  );
+  const [searchTerm, setSearchTerm] = useState(initialParams.get("productsSearch") || "");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(
+    initialParams.get("productsSearch") || "",
+  );
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState(
+    initialParams.get("productsCategory") || "__all__",
+  );
+  const [selectedBrandFilter, setSelectedBrandFilter] = useState(
+    initialParams.get("productsBrand") || "__all__",
+  );
+  const [oemSearchTerm, setOemSearchTerm] = useState(initialParams.get("productsOem") || "");
+  const [debouncedOemSearchTerm, setDebouncedOemSearchTerm] = useState(
+    initialParams.get("productsOem") || "",
+  );
+  const [sortBy, setSortBy] = useState<"updated_desc" | "title_asc" | "brand_asc">(
+    (initialParams.get("productsSort") as "updated_desc" | "title_asc" | "brand_asc") ||
+      "updated_desc",
+  );
+  const [goToPageValue, setGoToPageValue] = useState(initialParams.get("productsPage") || "");
   const [subcategoryDrafts, setSubcategoryDrafts] = useState<SubcategoryDraftState>(
     {},
   );
   const [selectedImportFile, setSelectedImportFile] = useState<File | null>(null);
   const [importPreviewResult, setImportPreviewResult] =
     useState<ProductImportPreview | null>(null);
-  const [lastImportResult, setLastImportResult] = useState<ProductImportResult | null>(
-    null,
-  );
   const importFileInputRef = useRef<HTMLInputElement>(null);
+  const notifiedJobStatusRef = useRef<Set<string>>(new Set());
 
-  const { data: products = [], isLoading, refetch } =
-    trpc.admin.products.list.useQuery();
+  const { data: productPageData, isLoading, isFetching, refetch } =
+    trpc.admin.products.listPage.useQuery({
+      page: currentPage,
+      pageSize: PRODUCTS_PAGE_SIZE,
+      search: debouncedSearchTerm || undefined,
+      category: selectedCategoryFilter === "__all__" ? undefined : selectedCategoryFilter,
+      brand: selectedBrandFilter === "__all__" ? undefined : selectedBrandFilter,
+      oemCode: debouncedOemSearchTerm || undefined,
+      sortBy,
+    }, {
+      placeholderData: (previous) => previous,
+    });
+  const products = productPageData?.items ?? [];
+  const { data: productFilterOptions } = trpc.admin.products.filterOptions.useQuery();
   const { data: settings = [], refetch: refetchSettings } =
     trpc.admin.settings.list.useQuery();
   const createMutation = trpc.admin.products.create.useMutation();
   const updateMutation = trpc.admin.products.update.useMutation();
   const previewImportMutation = trpc.admin.products.previewImportSqlite.useMutation();
-  const importMutation = trpc.admin.products.importSqlite.useMutation();
+  const createImportJobMutation = trpc.admin.products.createImportJob.useMutation();
+  const deleteImportedMutation = trpc.admin.products.deleteImported.useMutation();
+  const deleteImportedWithTaxonomyMutation =
+    trpc.admin.products.deleteImportedWithTaxonomy.useMutation();
   const deleteMutation = trpc.admin.products.delete.useMutation();
   const setSettingMutation = trpc.admin.settings.set.useMutation();
+  const { data: importJobs = [], refetch: refetchImportJobs } =
+    trpc.admin.products.listImportJobs.useQuery(
+      { limit: 12 },
+      {
+        refetchInterval: (query) => {
+          const jobs = query.state.data ?? [];
+          return jobs.some((job) => job.status === "queued" || job.status === "running")
+            ? 3000
+            : 10000;
+        },
+      },
+    );
 
   const {
     data: englishProductTranslations = {},
@@ -297,8 +384,8 @@ export default function AdminProducts() {
         rawValue = undefined;
       }
     }
-    return mergeTaxonomyWithProducts(parseProductTaxonomy(rawValue), products);
-  }, [taxonomySetting, products]);
+    return parseProductTaxonomy(rawValue);
+  }, [taxonomySetting]);
 
   useEffect(() => {
     if (taxonomyDirty) return;
@@ -366,6 +453,80 @@ export default function AdminProducts() {
     taxonomyDraft,
   ]);
 
+  useEffect(() => {
+    importJobs.forEach((job) => {
+      const key = `${job.id}:${job.status}`;
+      if (notifiedJobStatusRef.current.has(key)) return;
+
+      if (job.status === "completed") {
+        notifiedJobStatusRef.current.add(key);
+        void Promise.all([refetch(), refetchSettings()]);
+        toast.success(`${job.fileName} importu tamamlandi`);
+      }
+
+      if (job.status === "failed") {
+        notifiedJobStatusRef.current.add(key);
+        toast.error(job.errorMessage || `${job.fileName} importu basarisiz oldu`);
+      }
+    });
+  }, [importJobs, refetch, refetchSettings]);
+
+  useEffect(() => {
+    const totalPages = productPageData?.totalPages ?? 1;
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, productPageData?.totalPages]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearchTerm, selectedCategoryFilter, selectedBrandFilter, debouncedOemSearchTerm, sortBy]);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
+    return () => window.clearTimeout(timeout);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      setDebouncedOemSearchTerm(oemSearchTerm);
+    }, 300);
+    return () => window.clearTimeout(timeout);
+  }, [oemSearchTerm]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const setOrDelete = (key: string, value: string, emptyValue = "") => {
+      if (!value || value === emptyValue) {
+        params.delete(key);
+      } else {
+        params.set(key, value);
+      }
+    };
+
+    setOrDelete("productsPage", String(currentPage), "1");
+    setOrDelete("productsSearch", debouncedSearchTerm);
+    setOrDelete("productsCategory", selectedCategoryFilter, "__all__");
+    setOrDelete("productsBrand", selectedBrandFilter, "__all__");
+    setOrDelete("productsOem", debouncedOemSearchTerm);
+    setOrDelete("productsSort", sortBy, "updated_desc");
+
+    const nextSearch = params.toString();
+    const nextUrl = `${window.location.pathname}${nextSearch ? `?${nextSearch}` : ""}${window.location.hash}`;
+    const currentUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    if (nextUrl === currentUrl) return;
+
+    const scrollX = window.scrollX;
+    const scrollY = window.scrollY;
+    window.history.replaceState(window.history.state, "", nextUrl);
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ left: scrollX, top: scrollY, behavior: "auto" });
+    });
+  }, [currentPage, debouncedSearchTerm, selectedCategoryFilter, selectedBrandFilter, debouncedOemSearchTerm, sortBy]);
+
   const openCreateDialog = () => {
     setEditingLanguage("tr");
     setEditingId(null);
@@ -396,6 +557,7 @@ export default function AdminProducts() {
       taxonomyDraft.map((item) => ({
         id: item.id,
         label: getCategoryName(item, editingLanguage),
+        trLabel: item.nameTr,
       })),
     [taxonomyDraft, editingLanguage],
   );
@@ -714,7 +876,6 @@ export default function AdminProducts() {
 
     setSelectedImportFile(file);
     setImportPreviewResult(null);
-    setLastImportResult(null);
   };
 
   const handlePreviewImport = async () => {
@@ -748,26 +909,28 @@ export default function AdminProducts() {
 
     try {
       const buffer = await selectedImportFile.arrayBuffer();
-      const result = await importMutation.mutateAsync({
+      const result = await createImportJobMutation.mutateAsync({
         file: new Uint8Array(buffer) as any,
         fileName: selectedImportFile.name,
-        force: false,
       });
+      await refetchImportJobs();
 
-      setLastImportResult(result);
-      setImportPreviewResult(result);
-      setTaxonomyDirty(false);
-      if (result.duplicateFileSkipped) {
+      if (result.duplicate && result.previousImport) {
         toast.message(
-          "Bu dosya daha once ayni hash ile ice aktarildigi icin tekrar islenmedi.",
+          "Bu dosya daha once ayni hash ile ice aktarildigi icin yeniden kuyruga alinmadi.",
         );
         return;
       }
 
-      await Promise.all([refetch(), refetchSettings()]);
-      toast.success(
-        `${result.createdCount + result.updatedCount} urun basariyla ice aktarildi`,
-      );
+      if (result.existingJob) {
+        toast.message("Bu dosya icin zaten aktif bir import isi bulunuyor.");
+        return;
+      }
+
+      if (result.job) {
+        setTaxonomyDirty(false);
+        toast.success("Import isi kuyruga alindi. Arka planda islenmeye baslayacak.");
+      }
     } catch (error) {
       toast.error(
         error instanceof Error
@@ -777,12 +940,119 @@ export default function AdminProducts() {
     }
   };
 
+  const activeImportJob = useMemo(
+    () => importJobs.find((job) => job.status === "running" || job.status === "queued") ?? null,
+    [importJobs],
+  );
+
+  const latestFinishedImportJob = useMemo(
+    () =>
+      importJobs.find(
+        (job) => job.status === "completed" || job.status === "failed" || job.status === "cancelled",
+      ) ?? null,
+    [importJobs],
+  );
+
+  const activeImportProgress = useMemo(() => {
+    if (!activeImportJob) return null;
+    const totalRows = Math.max(activeImportJob.totalRows || 0, 0);
+    const processedRows = Math.max(activeImportJob.processedRows || 0, 0);
+    const percent = totalRows > 0 ? Math.min(100, Math.round((processedRows / totalRows) * 100)) : 0;
+    const startedAt = activeImportJob.startedAt ? new Date(activeImportJob.startedAt).getTime() : null;
+    const now = Date.now();
+    const elapsedSeconds = startedAt ? Math.max(1, (now - startedAt) / 1000) : null;
+    const throughput = elapsedSeconds && processedRows > 0 ? processedRows / elapsedSeconds : null;
+    const remainingRows = totalRows > 0 ? Math.max(0, totalRows - processedRows) : null;
+    const etaSeconds =
+      throughput && remainingRows !== null && throughput > 0 ? remainingRows / throughput : null;
+
+    return {
+      percent,
+      etaSeconds,
+    };
+  }, [activeImportJob]);
+
+  const importedProductCount = useMemo(
+    () => productPageData?.importedCount ?? 0,
+    [productPageData?.importedCount],
+  );
+
   const isSaving =
     createMutation.isPending ||
     updateMutation.isPending ||
     updateTranslationMutation.isPending;
+  const totalProducts = productPageData?.totalCount ?? 0;
+  const totalPages = productPageData?.totalPages ?? 1;
+  const visibleStart =
+    totalProducts === 0 ? 0 : (currentPage - 1) * PRODUCTS_PAGE_SIZE + 1;
+  const visibleEnd = Math.min(currentPage * PRODUCTS_PAGE_SIZE, totalProducts);
+  const handleGoToPage = () => {
+    const parsed = Number(goToPageValue);
+    if (!Number.isInteger(parsed)) {
+      toast.error("Geçerli bir sayfa numarası girin.");
+      return;
+    }
 
-  if (isLoading) {
+    const nextPage = Math.min(Math.max(parsed, 1), totalPages);
+    setCurrentPage(nextPage);
+    setGoToPageValue(String(nextPage));
+  };
+
+  const handleClearFilters = () => {
+    setSearchTerm("");
+    setDebouncedSearchTerm("");
+    setSelectedCategoryFilter("__all__");
+    setSelectedBrandFilter("__all__");
+    setOemSearchTerm("");
+    setDebouncedOemSearchTerm("");
+    setSortBy("updated_desc");
+    setCurrentPage(1);
+    setGoToPageValue("");
+  };
+
+  const handleDeleteImportedProducts = async () => {
+    if (importedProductCount === 0) {
+      toast.message("Silinecek içe aktarılmış ürün bulunmuyor.");
+      return;
+    }
+
+    const approved = window.confirm(
+      `${importedProductCount} adet içe aktarılmış ürünü toplu silmek istiyor musunuz? Bu işlem geri alınamaz.`,
+    );
+    if (!approved) return;
+
+    try {
+      const result = await deleteImportedMutation.mutateAsync();
+      await Promise.all([refetch(), refetchSettings()]);
+      toast.success(`${result.deletedCount} içe aktarılmış ürün silindi.`);
+    } catch {
+      toast.error("İçe aktarılmış ürünler silinemedi.");
+    }
+  };
+
+  const handleDeleteImportedProductsWithTaxonomy = async () => {
+    if (importedProductCount === 0) {
+      toast.message("Silinecek içe aktarılmış ürün bulunmuyor.");
+      return;
+    }
+
+    const approved = window.confirm(
+      `${importedProductCount} adet içe aktarılmış ürünü ve onlara ait kullanılmayan import kategorilerini silmek istiyor musunuz? Bu işlem geri alınamaz.`,
+    );
+    if (!approved) return;
+
+    try {
+      const result = await deleteImportedWithTaxonomyMutation.mutateAsync();
+      await Promise.all([refetch(), refetchSettings()]);
+      toast.success(
+        `${result.deletedCount} ürün silindi · ${result.removedCategories} kategori · ${result.removedSubcategories} alt kategori temizlendi.`,
+      );
+    } catch {
+      toast.error("İçe aktarılan ürünler ve kategoriler silinemedi.");
+    }
+  };
+
+  if (isLoading && !productPageData) {
     return (
       <div className="flex justify-center py-8">
         <Loader2 className="animate-spin" />
@@ -795,8 +1065,17 @@ export default function AdminProducts() {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold">Ürün Yönetimi</h2>
-          <p className="text-sm text-muted-foreground">Toplam {products.length} ürün</p>
+          <p className="text-sm text-muted-foreground">
+            Toplam {totalProducts} ürün · Sayfa {currentPage}/{totalPages}
+            {totalProducts > 0 ? ` · ${visibleStart}-${visibleEnd} arası gösteriliyor` : ""}
+          </p>
         </div>
+        {isFetching ? (
+          <div className="inline-flex items-center gap-2 rounded-full border bg-background px-3 py-1 text-xs text-muted-foreground">
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            Filtreler uygulanıyor...
+          </div>
+        ) : null}
         <Dialog
           open={isOpen}
           onOpenChange={(open) => {
@@ -1106,7 +1385,7 @@ export default function AdminProducts() {
                 type="button"
                 variant="outline"
                 onClick={() => importFileInputRef.current?.click()}
-                disabled={importMutation.isPending || previewImportMutation.isPending}
+                disabled={createImportJobMutation.isPending || previewImportMutation.isPending}
               >
                 <Upload className="mr-2 h-4 w-4" />
                 Dosya Sec
@@ -1117,7 +1396,7 @@ export default function AdminProducts() {
                 onClick={handlePreviewImport}
                 disabled={
                   !selectedImportFile ||
-                  importMutation.isPending ||
+                  createImportJobMutation.isPending ||
                   previewImportMutation.isPending
                 }
               >
@@ -1133,18 +1412,54 @@ export default function AdminProducts() {
               <Button
                 type="button"
                 onClick={handleImportProducts}
-                disabled={!selectedImportFile || importMutation.isPending}
+                disabled={!selectedImportFile || createImportJobMutation.isPending}
               >
-                {importMutation.isPending ? (
+                {createImportJobMutation.isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Import Ediliyor...
+                    Kuyruga Aliniyor...
                   </>
                 ) : (
-                  "DB'yi Ice Aktar"
+                  "DB'yi Kuyruga Al"
+                )}
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={handleDeleteImportedProducts}
+                disabled={deleteImportedMutation.isPending || importedProductCount === 0}
+              >
+                {deleteImportedMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Siliniyor...
+                  </>
+                ) : (
+                  "İçe Aktarılanları Sil"
+                )}
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={handleDeleteImportedProductsWithTaxonomy}
+                disabled={
+                  deleteImportedWithTaxonomyMutation.isPending || importedProductCount === 0
+                }
+              >
+                {deleteImportedWithTaxonomyMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Temizleniyor...
+                  </>
+                ) : (
+                  "İçe Aktarılanları ve Kategorileri Sil"
                 )}
               </Button>
             </div>
+          </div>
+
+          <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            İçe aktarılmış ürün sayısı: <span className="font-semibold">{importedProductCount}</span>
           </div>
 
           {importPreviewResult ? (
@@ -1154,6 +1469,12 @@ export default function AdminProducts() {
                   <p className="text-sm font-medium">Dry Run Ozeti</p>
                   <p className="text-xs text-muted-foreground">
                     Dosya hash: {importPreviewResult.fileHash}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Mod: {importPreviewResult.analysisMode === "sample" ? "Hizli onizleme" : "Tam analiz"}
+                    {importPreviewResult.sampleLimit
+                      ? ` · Ilk ${importPreviewResult.sampleLimit} satir uzerinden`
+                      : ""}
                   </p>
                 </div>
                 {importPreviewResult.alreadyImported ? (
@@ -1198,42 +1519,154 @@ export default function AdminProducts() {
             </div>
           ) : null}
 
-          {lastImportResult ? (
+          {activeImportJob ? (
+            <div className="space-y-3 rounded-md border bg-muted/20 p-4">
+              <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+                <div>
+                  <p className="text-sm font-medium">Aktif Import Isi</p>
+                  <p className="text-xs text-muted-foreground">
+                    {activeImportJob.fileName} · {activeImportJob.status === "queued" ? "Kuyrukta" : "Calisiyor"}
+                  </p>
+                </div>
+                <div className="rounded-full border px-3 py-1 text-xs font-medium">
+                  %{activeImportProgress?.percent ?? 0}
+                </div>
+              </div>
+
+              <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full bg-primary transition-all"
+                  style={{ width: `${activeImportProgress?.percent ?? 0}%` }}
+                />
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+                <div className="rounded-md border bg-background p-3">
+                  <p className="text-xs text-muted-foreground">Islenen</p>
+                  <p className="text-sm font-semibold">
+                    {activeImportJob.processedRows} / {activeImportJob.totalRows}
+                  </p>
+                </div>
+                <div className="rounded-md border bg-background p-3">
+                  <p className="text-xs text-muted-foreground">Yeni</p>
+                  <p className="text-sm font-semibold">{activeImportJob.createdCount}</p>
+                </div>
+                <div className="rounded-md border bg-background p-3">
+                  <p className="text-xs text-muted-foreground">Guncellenen</p>
+                  <p className="text-sm font-semibold">{activeImportJob.updatedCount}</p>
+                </div>
+                <div className="rounded-md border bg-background p-3">
+                  <p className="text-xs text-muted-foreground">Atlanan</p>
+                  <p className="text-sm font-semibold">{activeImportJob.skippedCount}</p>
+                </div>
+                <div className="rounded-md border bg-background p-3">
+                  <p className="text-xs text-muted-foreground">Tahmini Kalan Sure</p>
+                  <p className="text-sm font-semibold">
+                    {activeImportJob.status === "queued"
+                      ? "Sirada"
+                      : formatEta(activeImportProgress?.etaSeconds ?? null)}
+                  </p>
+                </div>
+              </div>
+
+              <p className="text-xs text-muted-foreground">
+                Chunk boyutu: {activeImportJob.chunkSize} · Son anahtar:{" "}
+                {activeImportJob.lastProcessedKey || "-"}
+              </p>
+            </div>
+          ) : null}
+
+          {latestFinishedImportJob ? (
             <div className="grid gap-3 rounded-md border bg-muted/20 p-4 md:grid-cols-2 xl:grid-cols-4">
               <div>
-                <p className="text-xs text-muted-foreground">Kaynak Dosya</p>
-                <p className="text-sm font-medium">{lastImportResult.fileName}</p>
+                <p className="text-xs text-muted-foreground">Son Is</p>
+                <p className="text-sm font-medium">{latestFinishedImportJob.fileName}</p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Toplam / Import</p>
+                <p className="text-xs text-muted-foreground">Durum</p>
                 <p className="text-sm font-medium">
-                  {lastImportResult.totalRows} / {lastImportResult.importedRows}
+                  {latestFinishedImportJob.status === "completed"
+                    ? "Tamamlandi"
+                    : latestFinishedImportJob.status === "failed"
+                      ? "Basarisiz"
+                      : "Iptal"}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Olusan / Guncellenen</p>
+                <p className="text-xs text-muted-foreground">Toplam / Islenen</p>
                 <p className="text-sm font-medium">
-                  {lastImportResult.createdCount} / {lastImportResult.updatedCount}
+                  {latestFinishedImportJob.totalRows} / {latestFinishedImportJob.processedRows}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Taxonomy Ekleme</p>
+                <p className="text-xs text-muted-foreground">Yeni / Guncellenen</p>
                 <p className="text-sm font-medium">
-                  {lastImportResult.taxonomyCategoriesAdded} kategori,{" "}
-                  {lastImportResult.taxonomySubcategoriesAdded} alt kategori
+                  {latestFinishedImportJob.createdCount} / {latestFinishedImportJob.updatedCount}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-muted-foreground">Taxonomy Guncelleme</p>
+                <p className="text-xs text-muted-foreground">Atlanan</p>
                 <p className="text-sm font-medium">
-                  {lastImportResult.taxonomyCategoriesUpdated} kategori
+                  {latestFinishedImportJob.skippedCount}
                 </p>
               </div>
-              <div className="md:col-span-2 xl:col-span-4">
-                <p className="text-xs text-muted-foreground">Tespit Edilen Kolonlar</p>
+              <div>
+                <p className="text-xs text-muted-foreground">Baslangic</p>
+                <p className="text-sm font-medium">
+                  {latestFinishedImportJob.startedAt
+                    ? new Date(latestFinishedImportJob.startedAt).toLocaleString("tr-TR")
+                    : "-"}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Bitis</p>
+                <p className="text-sm font-medium">
+                  {latestFinishedImportJob.finishedAt
+                    ? new Date(latestFinishedImportJob.finishedAt).toLocaleString("tr-TR")
+                    : "-"}
+                </p>
+              </div>
+              <div className="md:col-span-2 xl:col-span-2">
+                <p className="text-xs text-muted-foreground">Hata</p>
                 <p className="text-sm">
-                  {lastImportResult.detectedProductColumns.join(", ") || "-"}
+                  {latestFinishedImportJob.errorMessage || "-"}
                 </p>
+              </div>
+            </div>
+          ) : null}
+
+          {importJobs.length > 0 ? (
+            <div className="space-y-2 rounded-md border p-4">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium">Son Import Isleri</p>
+                <Button type="button" variant="ghost" size="sm" onClick={() => void refetchImportJobs()}>
+                  Yenile
+                </Button>
+              </div>
+              <div className="space-y-2">
+                {importJobs.map((job) => {
+                  const percentage =
+                    job.totalRows > 0 ? Math.min(100, Math.round((job.processedRows / job.totalRows) * 100)) : 0;
+                  return (
+                    <div
+                      key={job.id}
+                      className="flex flex-col gap-2 rounded-md border bg-background p-3 md:flex-row md:items-center md:justify-between"
+                    >
+                      <div>
+                        <p className="text-sm font-medium">{job.fileName}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(job.createdAt).toLocaleString("tr-TR")} · {job.status}
+                        </p>
+                      </div>
+                      <div className="grid gap-2 text-xs text-muted-foreground md:grid-cols-4 md:items-center">
+                        <span>%{percentage}</span>
+                        <span>{job.processedRows}/{job.totalRows}</span>
+                        <span>Yeni {job.createdCount}</span>
+                        <span>Gunc. {job.updatedCount}</span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           ) : null}
@@ -1447,15 +1880,113 @@ export default function AdminProducts() {
       </Card>
 
       <div className="grid gap-4">
+        <Card>
+          <CardContent className="flex flex-wrap items-end gap-3 overflow-hidden py-4">
+            <Input
+              className="min-w-[260px] flex-[1_1_320px]"
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder="Ürün adı, marka, kod veya kategori ara"
+            />
+
+            <div className="min-w-[220px] flex-[1_1_220px]">
+              <Select
+                value={selectedCategoryFilter}
+                onValueChange={setSelectedCategoryFilter}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Kategoriye göre filtrele" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__all__">Tüm Kategoriler</SelectItem>
+                  {categoryOptions.map((option) => (
+                    <SelectItem key={option.id} value={option.trLabel}>
+                      {option.trLabel}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="min-w-[220px] flex-[1_1_220px]">
+              <Select
+                value={selectedBrandFilter}
+                onValueChange={setSelectedBrandFilter}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Markaya göre filtrele" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__all__">Tüm Markalar</SelectItem>
+                  {(productFilterOptions?.brands ?? []).map((brand) => (
+                    <SelectItem key={brand} value={brand}>
+                      {brand}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Input
+              className="min-w-[240px] flex-[1_1_280px]"
+              value={oemSearchTerm}
+              onChange={(event) => setOemSearchTerm(event.target.value)}
+              placeholder="OEM koduna göre ara"
+            />
+
+            <div className="min-w-[220px] flex-[1_1_220px]">
+              <Select
+                value={sortBy}
+                onValueChange={(value) =>
+                  setSortBy(value as "updated_desc" | "title_asc" | "brand_asc")
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Sıralama" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="updated_desc">Son Güncellenen</SelectItem>
+                  <SelectItem value="title_asc">Alfabetik</SelectItem>
+                  <SelectItem value="brand_asc">Markaya Göre</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex min-w-[190px] flex-[0_1_220px] gap-2">
+              <Input
+                value={goToPageValue}
+                onChange={(event) => setGoToPageValue(event.target.value)}
+                placeholder="Sayfa no"
+                inputMode="numeric"
+              />
+              <Button type="button" variant="outline" onClick={handleGoToPage}>
+                Git
+              </Button>
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              className="shrink-0"
+              onClick={handleClearFilters}
+            >
+              Filtreleri Temizle
+            </Button>
+          </CardContent>
+        </Card>
+
         {products.map((product) => (
           <Card key={product.id}>
             <CardHeader>
               <div className="flex justify-between items-start">
                 <div>
-                  <CardTitle>{product.title}</CardTitle>
+                  <CardTitle>{renderHighlightedText(product.title, debouncedSearchTerm)}</CardTitle>
                   <CardDescription>
-                    {product.category}
-                    {product.subcategory ? ` / ${product.subcategory}` : ""}
+                    {renderHighlightedText(product.category, debouncedSearchTerm)}
+                    {product.subcategory ? " / " : ""}
+                    {product.subcategory
+                      ? renderHighlightedText(product.subcategory, debouncedSearchTerm)
+                      : ""}
                   </CardDescription>
                 </div>
                 <div className="flex gap-2">
@@ -1478,18 +2009,105 @@ export default function AdminProducts() {
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">{product.description}</p>
+              <p className="text-sm text-muted-foreground">
+                {renderHighlightedText(product.description, debouncedSearchTerm)}
+              </p>
               {product.sourceCode || product.sourceBrand ? (
                 <p className="mt-3 text-xs text-muted-foreground">
-                  {product.sourceCode ? `Kod: ${product.sourceCode}` : ""}
+                  {product.sourceCode ? (
+                    <>
+                      Kod:{" "}
+                      {debouncedOemSearchTerm
+                        ? renderHighlightedText(product.sourceCode, debouncedOemSearchTerm)
+                        : renderHighlightedText(product.sourceCode, debouncedSearchTerm)}
+                    </>
+                  ) : (
+                    ""
+                  )}
                   {product.sourceCode && product.sourceBrand ? " | " : ""}
-                  {product.sourceBrand ? `Marka: ${product.sourceBrand}` : ""}
+                  {product.sourceBrand ? (
+                    <>
+                      Marka: {renderHighlightedText(product.sourceBrand, debouncedSearchTerm)}
+                    </>
+                  ) : (
+                    ""
+                  )}
                 </p>
+              ) : null}
+              {debouncedOemSearchTerm ? (
+                (() => {
+                  const normalizedNeedle = normalizeOemValue(debouncedOemSearchTerm);
+                  const matchedCodes = product.oemCodes.flatMap((group) =>
+                    group.codes.filter((code) =>
+                      normalizeOemValue(code).includes(normalizedNeedle),
+                    ),
+                  );
+                  if (matchedCodes.length === 0) return null;
+                  return (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {matchedCodes.slice(0, 6).map((code, index) => (
+                        <span
+                          key={`${code}-${index}`}
+                          className="rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-900"
+                        >
+                          OEM Eşleşmesi: {renderHighlightedText(code, debouncedOemSearchTerm)}
+                        </span>
+                      ))}
+                    </div>
+                  );
+                })()
               ) : null}
             </CardContent>
           </Card>
         ))}
       </div>
+
+      <Card>
+        <CardContent className="flex flex-col gap-3 py-4 md:flex-row md:items-center md:justify-between">
+          <p className="text-sm text-muted-foreground">
+            Sayfa başına {PRODUCTS_PAGE_SIZE} ürün gösteriliyor.
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+              disabled={currentPage <= 1}
+            >
+              Önceki
+            </Button>
+
+            <div className="min-w-[180px]">
+              <Select
+                value={String(currentPage)}
+                onValueChange={(value) => setCurrentPage(Number(value))}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Sayfa seçin" />
+                </SelectTrigger>
+                <SelectContent className="max-h-72">
+                  {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
+                    <SelectItem key={page} value={String(page)}>
+                      {page}. Sayfa
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+              disabled={currentPage >= totalPages}
+            >
+              Sonraki
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

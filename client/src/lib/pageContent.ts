@@ -28,6 +28,10 @@ function deepMerge(base: unknown, override: unknown): unknown {
   if (override === undefined) return base;
   if (base === undefined) return override;
 
+  if (Array.isArray(base) && Array.isArray(override)) {
+    return override.map((item, index) => deepMerge(base[index], item));
+  }
+
   if (Array.isArray(override)) {
     return override;
   }

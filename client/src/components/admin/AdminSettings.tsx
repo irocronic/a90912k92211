@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +14,7 @@ import {
   QUOTE_MAIL_SUBJECT_PREFIX_SETTING_KEY,
   QUOTE_MAIL_TO_EMAIL_SETTING_KEY,
 } from "@shared/const";
+import { isSuperAdminRole } from "@shared/adminRoles";
 import { Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
 
@@ -82,12 +84,22 @@ const DEFAULT_SETTINGS: SettingDefinition[] = [
 ];
 
 export default function AdminSettings() {
+  const { user } = useAuth();
   const [settingsData, setSettingsData] = useState<Record<string, string>>({});
   const [newSettingKey, setNewSettingKey] = useState("");
+  const canSeeMigrationStatus = Boolean(user && isSuperAdminRole(user.role));
 
   const { data: settings = [], isLoading: settingsLoading, refetch } = trpc.admin.settings.list.useQuery();
-  const { data: products = [] } = trpc.admin.products.list.useQuery();
-  const { data: articles = [] } = trpc.admin.articles.list.useQuery();
+  const { data: productStats } = trpc.admin.products.stats.useQuery();
+  const { data: articleStats } = trpc.admin.articles.stats.useQuery();
+  const {
+    data: migrationStatus,
+    isLoading: migrationStatusLoading,
+    refetch: refetchMigrationStatus,
+  } = trpc.admin.settings.migrationStatus.useQuery(undefined, {
+    enabled: canSeeMigrationStatus,
+    retry: false,
+  });
   const setMutation = trpc.admin.settings.set.useMutation();
 
   useEffect(() => {
@@ -277,11 +289,11 @@ export default function AdminSettings() {
         <CardContent className="space-y-2 text-sm">
           <div className="flex justify-between">
             <span className="text-muted-foreground">Toplam Ürün:</span>
-            <span className="font-medium">{products.length}</span>
+            <span className="font-medium">{productStats?.totalCount ?? 0}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Toplam Haber:</span>
-            <span className="font-medium">{articles.length}</span>
+            <span className="font-medium">{articleStats?.totalCount ?? 0}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Toplam Ayar:</span>
@@ -289,6 +301,131 @@ export default function AdminSettings() {
           </div>
         </CardContent>
       </Card>
+
+      {canSeeMigrationStatus ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Migration Status</CardTitle>
+            <CardDescription>
+              Sunucudaki migration dosyalari ile veritabani migration gecmisinin hizali olup olmadigini kontrol eder.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {migrationStatusLoading ? (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Migration durumu okunuyor...
+              </div>
+            ) : migrationStatus ? (
+              <>
+                <div
+                  className={`rounded-md border px-4 py-3 text-sm ${
+                    migrationStatus.ok
+                      ? "border-emerald-300 bg-emerald-50 text-emerald-900"
+                      : "border-amber-300 bg-amber-50 text-amber-900"
+                  }`}
+                >
+                  {migrationStatus.ok
+                    ? "Migration gecmisi senkron gorunuyor."
+                    : "Migration gecmisinde dikkat edilmesi gereken farklar var."}
+                </div>
+
+                <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                  <div className="rounded-md border p-3">
+                    <p className="text-xs text-muted-foreground">Local Migration</p>
+                    <p className="text-lg font-semibold">{migrationStatus.localMigrationCount}</p>
+                  </div>
+                  <div className="rounded-md border p-3">
+                    <p className="text-xs text-muted-foreground">DB Migration</p>
+                    <p className="text-lg font-semibold">{migrationStatus.dbMigrationCount}</p>
+                  </div>
+                  <div className="rounded-md border p-3">
+                    <p className="text-xs text-muted-foreground">Son Journal Tag</p>
+                    <p className="text-sm font-semibold">{migrationStatus.latestJournalTag || "-"}</p>
+                  </div>
+                  <div className="rounded-md border p-3">
+                    <p className="text-xs text-muted-foreground">Kontrol Zamanı</p>
+                    <p className="text-sm font-semibold">
+                      {new Date(migrationStatus.checkedAt).toLocaleString("tr-TR")}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid gap-4 xl:grid-cols-3">
+                  <div className="rounded-md border p-3">
+                    <p className="mb-2 text-sm font-medium">Eksik Journal Kaydi</p>
+                    {migrationStatus.missingInJournal.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">Eksik kayit yok.</p>
+                    ) : (
+                      <div className="space-y-1 text-sm">
+                        {migrationStatus.missingInJournal.map((item) => (
+                          <p key={item.tag}>{item.tag}</p>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="rounded-md border p-3">
+                    <p className="mb-2 text-sm font-medium">DB'de Eksik Migration</p>
+                    {migrationStatus.missingInDatabase.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">Eksik migration yok.</p>
+                    ) : (
+                      <div className="space-y-1 text-sm">
+                        {migrationStatus.missingInDatabase.map((item) => (
+                          <p key={item.tag}>{item.tag}</p>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="rounded-md border p-3">
+                    <p className="mb-2 text-sm font-medium">Gerekli Tablolar</p>
+                    <div className="space-y-1 text-sm">
+                      {migrationStatus.requiredTableChecks.map((item) => (
+                        <p key={item.tableName} className={item.exists ? "text-emerald-700" : "text-red-700"}>
+                          {item.exists ? "Var" : "Yok"} · {item.tableName}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2 rounded-md border p-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium">Dosya Bazli Durum</p>
+                    <Button type="button" variant="outline" size="sm" onClick={() => void refetchMigrationStatus()}>
+                      Yenile
+                    </Button>
+                  </div>
+                  <div className="space-y-2">
+                    {migrationStatus.migrations.map((item) => (
+                      <div
+                        key={item.tag}
+                        className="flex flex-col gap-2 rounded-md border p-3 text-sm md:flex-row md:items-center md:justify-between"
+                      >
+                        <div>
+                          <p className="font-medium">{item.tag}</p>
+                          <p className="text-xs text-muted-foreground">{item.fileName}</p>
+                        </div>
+                        <div className="flex flex-wrap gap-2 text-xs">
+                          <span className={`rounded-full px-2 py-1 ${item.inJournal ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"}`}>
+                            {item.inJournal ? "Journal OK" : "Journal Eksik"}
+                          </span>
+                          <span className={`rounded-full px-2 py-1 ${item.applied ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>
+                            {item.applied ? "DB OK" : "DB Eksik"}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">Migration durumu okunamadi.</p>
+            )}
+          </CardContent>
+        </Card>
+      ) : null}
     </div>
   );
 }
