@@ -52,6 +52,7 @@ import {
 type RouterOutputs = inferRouterOutputs<AppRouter>;
 type AdminProduct = RouterOutputs["admin"]["products"]["list"][number];
 type ProductImportResult = RouterOutputs["admin"]["products"]["importSqlite"];
+type ProductImportPreview = RouterOutputs["admin"]["products"]["previewImportSqlite"];
 type EditingLanguage = "tr" | "en" | "ar";
 
 type ProductFormData = {
@@ -248,6 +249,8 @@ export default function AdminProducts() {
     {},
   );
   const [selectedImportFile, setSelectedImportFile] = useState<File | null>(null);
+  const [importPreviewResult, setImportPreviewResult] =
+    useState<ProductImportPreview | null>(null);
   const [lastImportResult, setLastImportResult] = useState<ProductImportResult | null>(
     null,
   );
@@ -259,6 +262,7 @@ export default function AdminProducts() {
     trpc.admin.settings.list.useQuery();
   const createMutation = trpc.admin.products.create.useMutation();
   const updateMutation = trpc.admin.products.update.useMutation();
+  const previewImportMutation = trpc.admin.products.previewImportSqlite.useMutation();
   const importMutation = trpc.admin.products.importSqlite.useMutation();
   const deleteMutation = trpc.admin.products.delete.useMutation();
   const setSettingMutation = trpc.admin.settings.set.useMutation();
@@ -689,6 +693,7 @@ export default function AdminProducts() {
   const handleSelectImportFile = (file: File | null) => {
     if (!file) {
       setSelectedImportFile(null);
+      setImportPreviewResult(null);
       return;
     }
 
@@ -708,6 +713,31 @@ export default function AdminProducts() {
     }
 
     setSelectedImportFile(file);
+    setImportPreviewResult(null);
+    setLastImportResult(null);
+  };
+
+  const handlePreviewImport = async () => {
+    if (!selectedImportFile) {
+      toast.error("Once analiz edilecek DB dosyasini secin");
+      return;
+    }
+
+    try {
+      const buffer = await selectedImportFile.arrayBuffer();
+      const result = await previewImportMutation.mutateAsync({
+        file: new Uint8Array(buffer) as any,
+        fileName: selectedImportFile.name,
+      });
+      setImportPreviewResult(result);
+      toast.success("Dry run analizi hazir");
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "SQLite urun dosyasi analiz edilemedi",
+      );
+    }
   };
 
   const handleImportProducts = async () => {
@@ -721,10 +751,19 @@ export default function AdminProducts() {
       const result = await importMutation.mutateAsync({
         file: new Uint8Array(buffer) as any,
         fileName: selectedImportFile.name,
+        force: false,
       });
 
       setLastImportResult(result);
+      setImportPreviewResult(result);
       setTaxonomyDirty(false);
+      if (result.duplicateFileSkipped) {
+        toast.message(
+          "Bu dosya daha once ayni hash ile ice aktarildigi icin tekrar islenmedi.",
+        );
+        return;
+      }
+
       await Promise.all([refetch(), refetchSettings()]);
       toast.success(
         `${result.createdCount + result.updatedCount} urun basariyla ice aktarildi`,
@@ -1067,10 +1106,29 @@ export default function AdminProducts() {
                 type="button"
                 variant="outline"
                 onClick={() => importFileInputRef.current?.click()}
-                disabled={importMutation.isPending}
+                disabled={importMutation.isPending || previewImportMutation.isPending}
               >
                 <Upload className="mr-2 h-4 w-4" />
                 Dosya Sec
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handlePreviewImport}
+                disabled={
+                  !selectedImportFile ||
+                  importMutation.isPending ||
+                  previewImportMutation.isPending
+                }
+              >
+                {previewImportMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Analiz Ediliyor...
+                  </>
+                ) : (
+                  "Dry Run Analizi"
+                )}
               </Button>
               <Button
                 type="button"
@@ -1088,6 +1146,57 @@ export default function AdminProducts() {
               </Button>
             </div>
           </div>
+
+          {importPreviewResult ? (
+            <div className="space-y-3 rounded-md border bg-muted/20 p-4">
+              <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <p className="text-sm font-medium">Dry Run Ozeti</p>
+                  <p className="text-xs text-muted-foreground">
+                    Dosya hash: {importPreviewResult.fileHash}
+                  </p>
+                </div>
+                {importPreviewResult.alreadyImported ? (
+                  <div className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                    Bu dosya daha once ice aktarilmis.
+                  </div>
+                ) : (
+                  <div className="rounded-md border border-emerald-300 bg-emerald-50 px-3 py-2 text-xs text-emerald-900">
+                    Bu hash icin onceki import kaydi bulunmadi.
+                  </div>
+                )}
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-3">
+                <div className="rounded-md border bg-background p-3">
+                  <p className="text-xs text-muted-foreground">Yeni</p>
+                  <p className="text-lg font-semibold">{importPreviewResult.createdCount}</p>
+                </div>
+                <div className="rounded-md border bg-background p-3">
+                  <p className="text-xs text-muted-foreground">Guncellenecek</p>
+                  <p className="text-lg font-semibold">{importPreviewResult.updatedCount}</p>
+                </div>
+                <div className="rounded-md border bg-background p-3">
+                  <p className="text-xs text-muted-foreground">Atlanacak</p>
+                  <p className="text-lg font-semibold">{importPreviewResult.skippedRows}</p>
+                </div>
+              </div>
+
+              {importPreviewResult.previousImport ? (
+                <div className="rounded-md border bg-background p-3 text-sm">
+                  <p className="font-medium">Son Ayni Hash Importu</p>
+                  <p className="text-muted-foreground">
+                    {importPreviewResult.previousImport.fileName} ·{" "}
+                    {new Date(importPreviewResult.previousImport.importedAt).toLocaleString("tr-TR")}
+                  </p>
+                  <p className="text-muted-foreground">
+                    Yeni: {importPreviewResult.previousImport.createdCount} · Guncellenen:{" "}
+                    {importPreviewResult.previousImport.updatedCount}
+                  </p>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
 
           {lastImportResult ? (
             <div className="grid gap-3 rounded-md border bg-muted/20 p-4 md:grid-cols-2 xl:grid-cols-4">

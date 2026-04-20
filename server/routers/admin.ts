@@ -29,7 +29,10 @@ import { getDb } from "../db";
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { storagePut } from "../storage";
-import { importProductsFromSqliteBuffer } from "../_core/sqliteProductImport";
+import {
+  importProductsFromSqliteBuffer,
+  previewSqliteImportBuffer,
+} from "../_core/sqliteProductImport";
 
 type ProductOemInput = Array<{ manufacturer: string; codes: string[] }>;
 
@@ -549,6 +552,7 @@ export const adminRouter = router({
         z.object({
           file: z.union([z.instanceof(Uint8Array), z.instanceof(Buffer)]),
           fileName: z.string().min(1),
+          force: z.boolean().optional(),
         })
       )
       .mutation(async (opts: any) => {
@@ -564,6 +568,7 @@ export const adminRouter = router({
           return await importProductsFromSqliteBuffer(db, {
             file: fileBuffer,
             fileName: input.fileName,
+            force: input.force,
           });
         } catch (error) {
           throw new TRPCError({
@@ -572,6 +577,38 @@ export const adminRouter = router({
               error instanceof Error
                 ? error.message
                 : "SQLite urun importu sirasinda hata olustu.",
+          });
+        }
+      }),
+
+    previewImportSqlite: productsProcedure
+      .input(
+        z.object({
+          file: z.union([z.instanceof(Uint8Array), z.instanceof(Buffer)]),
+          fileName: z.string().min(1),
+        })
+      )
+      .mutation(async (opts: any) => {
+        const { input } = opts;
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        try {
+          const fileBuffer = Buffer.isBuffer(input.file)
+            ? input.file
+            : Buffer.from(input.file);
+
+          return await previewSqliteImportBuffer(db, {
+            file: fileBuffer,
+            fileName: input.fileName,
+          });
+        } catch (error) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message:
+              error instanceof Error
+                ? error.message
+                : "SQLite urun dosyasi analiz edilemedi.",
           });
         }
       }),

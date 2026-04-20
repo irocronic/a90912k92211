@@ -4,9 +4,10 @@ import { promisify } from "node:util";
 import { mkdtemp, rm, unlink, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { inArray, eq } from "drizzle-orm";
+import { desc, inArray, eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import {
+  productImportLogs,
   productOemIndex,
   products,
   settings,
@@ -44,8 +45,18 @@ type PreparedImportProduct = {
   product: Product;
 };
 
+type ExistingImportLogSummary = {
+  id: string;
+  fileName: string;
+  fileHash: string;
+  createdCount: number;
+  updatedCount: number;
+  importedAt: Date;
+};
+
 export type SqliteImportSummary = {
   fileName: string;
+  fileHash: string;
   detectedTables: string[];
   detectedProductColumns: string[];
   totalRows: number;
@@ -58,6 +69,13 @@ export type SqliteImportSummary = {
   taxonomyCategoriesAdded: number;
   taxonomyCategoriesUpdated: number;
   taxonomySubcategoriesAdded: number;
+  alreadyImported: boolean;
+  previousImport: ExistingImportLogSummary | null;
+};
+
+export type SqliteImportResult = SqliteImportSummary & {
+  executed: boolean;
+  duplicateFileSkipped: boolean;
 };
 
 function normalizeTurkishText(value: string): string {
@@ -539,12 +557,152 @@ export async function importProductsFromSqliteBuffer(
   input: {
     file: Buffer | Uint8Array;
     fileName: string;
+    force?: boolean;
+  }
+): Promise<SqliteImportResult> {
+  const analysis = await analyzeSqliteImportBuffer(db, input);
+
+  if (analysis.summary.alreadyImported && !input.force) {
+    return {
+      ...analysis.summary,
+      executed: false,
+      duplicateFileSkipped: true,
+    };
+  }
+
+  const {
+    now,
+    categoryRows,
+    preparedProducts,
+    summary,
+  } = analysis;
+
+  await db.transaction(async (tx: any) => {
+    for (const prepared of preparedProducts) {
+      const existing = analysis.existingByImportKey.get(prepared.sourceImportKey);
+      if (existing) {
+        const { id: _ignoredId, createdAt: _ignoredCreatedAt, ...updateData } =
+          prepared.product;
+        await tx
+          .update(products)
+          .set({
+            ...updateData,
+            updatedAt: now,
+          })
+          .where(eq(products.id, existing.id));
+        prepared.product.id = existing.id;
+        continue;
+      }
+
+      await tx.insert(products).values(prepared.product);
+    }
+
+    const importedProductIds = preparedProducts.map((item) => item.product.id);
+    if (importedProductIds.length > 0) {
+      await tx
+        .delete(productOemIndex)
+        .where(inArray(productOemIndex.productId, importedProductIds));
+
+      const oemIndexRows = preparedProducts.flatMap((item) =>
+        buildProductOemIndexRows(item.product.id, item.product.oemCodes)
+      );
+
+      if (oemIndexRows.length > 0) {
+        await tx.insert(productOemIndex).values(oemIndexRows);
+      }
+    }
+
+    const existingTaxonomySettingRows = await tx
+      .select()
+      .from(settings)
+      .where(eq(settings.key, PRODUCT_TAXONOMY_SETTING_KEY))
+      .limit(1);
+    const existingTaxonomySetting = existingTaxonomySettingRows[0] ?? null;
+    const mergedTaxonomy = mergeImportedTaxonomy(
+      parseExistingTaxonomy(
+        existingTaxonomySetting?.value ?? null,
+        existingTaxonomySetting?.type ?? null
+      ),
+      categoryRows,
+      preparedProducts.map((item) => item.product)
+    );
+
+    const serializedTaxonomy = JSON.stringify(mergedTaxonomy.taxonomy);
+    if (existingTaxonomySetting) {
+      await tx
+        .update(settings)
+        .set({
+          value: serializedTaxonomy,
+          type: "json",
+          updatedAt: now,
+        })
+        .where(eq(settings.key, PRODUCT_TAXONOMY_SETTING_KEY));
+    } else {
+      const settingRow: Setting = {
+        id: nanoid(),
+        key: PRODUCT_TAXONOMY_SETTING_KEY,
+        value: serializedTaxonomy,
+        type: "json",
+        createdAt: now,
+        updatedAt: now,
+      };
+      await tx.insert(settings).values(settingRow);
+    }
+
+    await tx.insert(productImportLogs).values({
+      id: nanoid(),
+      sourceType: SQLITE_IMPORT_SOURCE,
+      fileName: summary.fileName,
+      fileHash: summary.fileHash,
+      totalRows: summary.totalRows,
+      importedRows: summary.importedRows,
+      skippedRows: summary.skippedRows,
+      createdCount: summary.createdCount,
+      updatedCount: summary.updatedCount,
+      detectedTables: summary.detectedTables,
+      detectedProductColumns: summary.detectedProductColumns,
+      importedAt: now,
+      createdAt: now,
+      updatedAt: now,
+    });
+  });
+
+  return {
+    ...summary,
+    executed: true,
+    duplicateFileSkipped: false,
+  };
+}
+
+export async function previewSqliteImportBuffer(
+  db: any,
+  input: {
+    file: Buffer | Uint8Array;
+    fileName: string;
   }
 ): Promise<SqliteImportSummary> {
+  const analysis = await analyzeSqliteImportBuffer(db, input);
+  return analysis.summary;
+}
+
+async function analyzeSqliteImportBuffer(
+  db: any,
+  input: {
+    file: Buffer | Uint8Array;
+    fileName: string;
+  }
+): Promise<{
+  now: Date;
+  categoryRows: SupplierCategoryRow[];
+  preparedProducts: PreparedImportProduct[];
+  existingByImportKey: Map<string, { id: string }>;
+  summary: SqliteImportSummary;
+}> {
   const tempDir = await mkdtemp(join(tmpdir(), "vaden-sqlite-import-"));
   const safeFileName = sanitizeUploadFileName(input.fileName);
   const tempDbPath = join(tempDir, safeFileName);
   const fileBuffer = Buffer.isBuffer(input.file) ? input.file : Buffer.from(input.file);
+  const fileHash = createHash("sha256").update(fileBuffer).digest("hex");
 
   try {
     await writeFile(tempDbPath, fileBuffer);
@@ -616,88 +774,49 @@ export async function importProductsFromSqliteBuffer(
       });
     }
 
-    let createdCount = 0;
-    let updatedCount = 0;
+    const createdCount = preparedProducts.filter(
+      (prepared) => !existingByImportKey.has(prepared.sourceImportKey)
+    ).length;
+    const updatedCount = preparedProducts.length - createdCount;
 
-    const taxonomySummary = await db.transaction(async (tx: any) => {
-      for (const prepared of preparedProducts) {
-        const existing = existingByImportKey.get(prepared.sourceImportKey);
-        if (existing) {
-          updatedCount += 1;
-          const { id: _ignoredId, createdAt: _ignoredCreatedAt, ...updateData } =
-            prepared.product;
-          await tx
-            .update(products)
-            .set({
-              ...updateData,
-              updatedAt: now,
-            })
-            .where(eq(products.id, existing.id));
-          prepared.product.id = existing.id;
-          continue;
-        }
+    const existingTaxonomySettingRows = await db
+      .select()
+      .from(settings)
+      .where(eq(settings.key, PRODUCT_TAXONOMY_SETTING_KEY))
+      .limit(1);
+    const existingTaxonomySetting = existingTaxonomySettingRows[0] ?? null;
+    const taxonomySummary = mergeImportedTaxonomy(
+      parseExistingTaxonomy(
+        existingTaxonomySetting?.value ?? null,
+        existingTaxonomySetting?.type ?? null
+      ),
+      categoryRows,
+      preparedProducts.map((item) => item.product)
+    );
 
-        createdCount += 1;
-        await tx.insert(products).values(prepared.product);
-      }
-
-      const importedProductIds = preparedProducts.map((item) => item.product.id);
-      if (importedProductIds.length > 0) {
-        await tx
-          .delete(productOemIndex)
-          .where(inArray(productOemIndex.productId, importedProductIds));
-
-        const oemIndexRows = preparedProducts.flatMap((item) =>
-          buildProductOemIndexRows(item.product.id, item.product.oemCodes)
-        );
-
-        if (oemIndexRows.length > 0) {
-          await tx.insert(productOemIndex).values(oemIndexRows);
-        }
-      }
-
-      const existingTaxonomySettingRows = await tx
-        .select()
-        .from(settings)
-        .where(eq(settings.key, PRODUCT_TAXONOMY_SETTING_KEY))
-        .limit(1);
-      const existingTaxonomySetting = existingTaxonomySettingRows[0] ?? null;
-      const mergedTaxonomy = mergeImportedTaxonomy(
-        parseExistingTaxonomy(
-          existingTaxonomySetting?.value ?? null,
-          existingTaxonomySetting?.type ?? null
-        ),
-        categoryRows,
-        preparedProducts.map((item) => item.product)
-      );
-
-      const serializedTaxonomy = JSON.stringify(mergedTaxonomy.taxonomy);
-      if (existingTaxonomySetting) {
-        await tx
-          .update(settings)
-          .set({
-            value: serializedTaxonomy,
-            type: "json",
-            updatedAt: now,
-          })
-          .where(eq(settings.key, PRODUCT_TAXONOMY_SETTING_KEY));
-      } else {
-        const settingRow: Setting = {
-          id: nanoid(),
-          key: PRODUCT_TAXONOMY_SETTING_KEY,
-          value: serializedTaxonomy,
-          type: "json",
-          createdAt: now,
-          updatedAt: now,
-        };
-        await tx.insert(settings).values(settingRow);
-      }
-
-      return mergedTaxonomy;
-    });
+    const previousImportRows = await db
+      .select({
+        id: productImportLogs.id,
+        fileName: productImportLogs.fileName,
+        fileHash: productImportLogs.fileHash,
+        createdCount: productImportLogs.createdCount,
+        updatedCount: productImportLogs.updatedCount,
+        importedAt: productImportLogs.importedAt,
+      })
+      .from(productImportLogs)
+      .where(eq(productImportLogs.fileHash, fileHash))
+      .orderBy(desc(productImportLogs.importedAt))
+      .limit(1);
+    const previousImport = previousImportRows[0] ?? null;
 
     return {
+      now,
+      categoryRows,
+      preparedProducts,
+      existingByImportKey,
+      summary: {
       fileName: safeFileName,
+      fileHash,
       detectedTables,
       detectedProductColumns: productRows[0] ? Object.keys(productRows[0]) : [],
       totalRows: productRows.length,
@@ -710,6 +829,9 @@ export async function importProductsFromSqliteBuffer(
       taxonomyCategoriesAdded: taxonomySummary.categoriesAdded,
       taxonomyCategoriesUpdated: taxonomySummary.categoriesUpdated,
       taxonomySubcategoriesAdded: taxonomySummary.subcategoriesAdded,
+      alreadyImported: Boolean(previousImport),
+      previousImport,
+      },
     };
   } finally {
     await unlink(tempDbPath).catch(() => undefined);

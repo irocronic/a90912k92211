@@ -223,6 +223,33 @@ export const settings = mysqlTable("settings", {
 export type Setting = typeof settings.$inferSelect;
 export type InsertSetting = typeof settings.$inferInsert;
 
+export const productImportLogs = mysqlTable(
+  "productImportLogs",
+  {
+    id: varchar("id", { length: 64 }).primaryKey(),
+    sourceType: varchar("sourceType", { length: 64 }).notNull(),
+    fileName: varchar("fileName", { length: 255 }).notNull(),
+    fileHash: varchar("fileHash", { length: 64 }).notNull(),
+    totalRows: int("totalRows").notNull(),
+    importedRows: int("importedRows").notNull(),
+    skippedRows: int("skippedRows").notNull(),
+    createdCount: int("createdCount").notNull(),
+    updatedCount: int("updatedCount").notNull(),
+    detectedTables: json("detectedTables").$type<string[]>().notNull(),
+    detectedProductColumns: json("detectedProductColumns").$type<string[]>().notNull(),
+    importedAt: timestamp("importedAt").defaultNow().notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    fileHashIdx: index("productImportLogs_fileHash_idx").on(table.fileHash),
+    importedAtIdx: index("productImportLogs_importedAt_idx").on(table.importedAt),
+  })
+);
+
+export type ProductImportLog = typeof productImportLogs.$inferSelect;
+export type InsertProductImportLog = typeof productImportLogs.$inferInsert;
+
 export const quoteSubmissions = mysqlTable(
   "quoteSubmissions",
   {
