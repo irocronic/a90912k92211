@@ -4,6 +4,7 @@ import {
   localizeDisplayProduct,
   type LanguageCode,
 } from "@/lib/contentLocalization";
+import { buildProductSlugFromFields, slugify } from "../../../shared/productSlug";
 
 type RouterOutputs = inferRouterOutputs<AppRouter>;
 export type DbProduct = RouterOutputs["content"]["products"]["list"][number];
@@ -24,24 +25,6 @@ export interface DisplayProduct {
   applications: string[];
   certifications: string[];
   catalogUrl?: string;
-}
-
-function normalizeText(value: string): string {
-  return value
-    .toLowerCase()
-    .replace(/ğ/g, "g")
-    .replace(/ü/g, "u")
-    .replace(/ş/g, "s")
-    .replace(/ı/g, "i")
-    .replace(/ö/g, "o")
-    .replace(/ç/g, "c");
-}
-
-export function slugify(value: string): string {
-  return normalizeText(value)
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .replace(/-{2,}/g, "-");
 }
 
 function normalizeStringArray(values: unknown): string[] {
@@ -69,7 +52,7 @@ function normalizeOemCodes(values: unknown): Array<{ manufacturer: string; codes
         "codes" in item && Array.isArray(item.codes)
           ? item.codes
               .filter((code: unknown): code is string => typeof code === "string")
-              .map((code) => code.trim())
+              .map((code: string) => code.trim())
               .filter(Boolean)
           : [];
 
@@ -91,7 +74,7 @@ function normalizeSpecifications(values: unknown): Array<{ label: string; value:
 }
 
 export function buildProductSlug(product: DbProduct): string {
-  return `${slugify(`${product.title}-${product.subtitle}`)}-${product.id.slice(0, 6)}`;
+  return buildProductSlugFromFields(product.title, product.subtitle, product.id);
 }
 
 export function toDisplayProduct(

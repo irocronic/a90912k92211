@@ -10,6 +10,7 @@ import { useI18n } from "@/contexts/I18nContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useLocation } from "wouter";
 import { asRecordArray, asString, useTemplateBackedPageContent } from "@/lib/pageContent";
+import { usePublicSiteSettings } from "@/lib/siteSettings";
 import BrandLogo from "@/components/BrandLogo";
 
 type NavChild = {
@@ -40,6 +41,14 @@ type NavbarMetadata = {
   navItems: NavItem[];
 };
 
+const QUOTE_NAV_LABELS = {
+  labelTr: "Teklif",
+  labelEn: "Quote",
+  labelAr: "طلب عرض سعر",
+};
+
+const CONTACT_FOOTER_HREF = "/#iletisim-bilgileri";
+
 const REAL_PRODUCT_CATEGORIES = [
   "FREN SİSTEMİ",
   "ELEKTRİK SİSTEMİ",
@@ -58,6 +67,7 @@ const Navbar = () => {
   const { theme, setTheme } = useTheme();
   const [, navigate] = useLocation();
   const { metadata } = useTemplateBackedPageContent<NavbarMetadata>("layout.navbar");
+  const siteSettings = usePublicSiteSettings();
 
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -66,40 +76,68 @@ const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
   const navItems = useMemo(
-    () =>
-      asRecordArray<NavItem>(metadata.navItems, []).map((item) => {
+    () => {
+      const sourceItems = asRecordArray<NavItem>(metadata.navItems, []);
+      const items: NavItem[] = [];
+
+      sourceItems.forEach((item) => {
         const trLabel = asString(item.labelTr).toLowerCase();
         const enLabel = asString(item.labelEn).toLowerCase();
         const arLabel = asString(item.labelAr).toLowerCase();
         const isProductsItem =
           trLabel === "ürünler" || enLabel === "products" || arLabel === "المنتجات";
+        const normalizedHref = asString(item.href).trim();
+        const isLegacyContactItem =
+          (trLabel === "iletişim" || enLabel === "contact" || arLabel === "اتصل بنا") &&
+          (normalizedHref === "/#iletisim" || normalizedHref === "#iletisim");
 
-        if (!isProductsItem) return item;
+        if (isProductsItem) {
+          items.push({
+            ...item,
+            href: "/products",
+            children: REAL_PRODUCT_CATEGORIES.map((category) => ({
+              labelTr: category,
+              labelEn: category,
+              labelAr: category,
+              href: `/products?category=${encodeURIComponent(category)}`,
+            })),
+          });
+          return;
+        }
 
-        return {
-          ...item,
-          href: "/products",
-          children: REAL_PRODUCT_CATEGORIES.map((category) => ({
-            labelTr: category,
-            labelEn: category,
-            labelAr: category,
-            href: `/products?category=${encodeURIComponent(category)}`,
-          })),
-        };
-      }),
+        if (isLegacyContactItem) {
+          items.push({
+            ...item,
+            ...QUOTE_NAV_LABELS,
+            href: "/#teklif",
+          });
+          items.push({
+            labelTr: asString(item.labelTr, "İletişim"),
+            labelEn: asString(item.labelEn, "Contact"),
+            labelAr: asString(item.labelAr, "اتصل بنا"),
+            href: CONTACT_FOOTER_HREF,
+          });
+          return;
+        }
+
+        items.push(item);
+      });
+
+      return items;
+    },
     [metadata.navItems],
   );
   const contactItems = [
     {
       type: "phone" as const,
-      value: asString(metadata.topBarPhone),
-      href: `tel:${asString(metadata.topBarPhone).replace(/\s+/g, "")}`,
+      value: siteSettings.contactPhone || asString(metadata.topBarPhone),
+      href: `tel:${(siteSettings.contactPhone || asString(metadata.topBarPhone)).replace(/\s+/g, "")}`,
       icon: Phone,
     },
     {
       type: "email" as const,
-      value: asString(metadata.topBarEmail),
-      href: `mailto:${asString(metadata.topBarEmail)}`,
+      value: siteSettings.contactEmail || asString(metadata.topBarEmail),
+      href: `mailto:${siteSettings.contactEmail || asString(metadata.topBarEmail)}`,
       icon: Mail,
     },
   ].filter((item) => item.value);

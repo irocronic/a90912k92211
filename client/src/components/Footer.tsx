@@ -5,15 +5,15 @@
 
 import {
   Facebook,
-  Instagram,
   Linkedin,
   Mail,
   MapPin,
   Phone,
   Twitter,
-  Youtube,
 } from "lucide-react";
+import { useI18n } from "@/contexts/I18nContext";
 import { asRecordArray, asString, useTemplateBackedPageContent } from "@/lib/pageContent";
+import { usePublicSiteSettings } from "@/lib/siteSettings";
 import BrandLogo from "@/components/BrandLogo";
 
 type FooterMetadata = {
@@ -38,22 +38,51 @@ type FooterMetadata = {
 
 const SOCIAL_ICONS = {
   facebook: Facebook,
-  instagram: Instagram,
   twitter: Twitter,
   linkedin: Linkedin,
-  youtube: Youtube,
 } as const;
 
 export default function Footer() {
+  const { language } = useI18n();
   const { metadata } = useTemplateBackedPageContent<FooterMetadata>("layout.footer");
-  const socialLinks = asRecordArray<{ icon: string; href: string }>(metadata.socialLinks, []);
+  const siteSettings = usePublicSiteSettings();
+  const socialLinks = [
+    ...(siteSettings.socialFacebook
+      ? [{ icon: "facebook", href: siteSettings.socialFacebook }]
+      : []),
+    ...(siteSettings.socialTwitter
+      ? [{ icon: "twitter", href: siteSettings.socialTwitter }]
+      : []),
+    ...(siteSettings.socialLinkedin
+      ? [{ icon: "linkedin", href: siteSettings.socialLinkedin }]
+      : []),
+    ...asRecordArray<{ icon: string; href: string }>(metadata.socialLinks, []).filter(
+      (item) =>
+        !["facebook", "twitter", "linkedin"].includes(asString(item.icon).toLowerCase()),
+    ),
+  ];
   const productLinks = asRecordArray<{ label: string; href: string }>(metadata.productLinks, []);
   const corporateLinks = asRecordArray<{ label: string; href: string }>(metadata.corporateLinks, []);
   const policyLinks = asRecordArray<{ label: string; href: string }>(metadata.policyLinks, []);
   const addressLines = Array.isArray(metadata.addressLines) ? metadata.addressLines : [];
+  const displayPhone = siteSettings.contactPhone || asString(metadata.phone);
+  const displayEmail = siteSettings.contactEmail || asString(metadata.email);
+  const displayDescription =
+    siteSettings.siteDescription || asString(metadata.brandDescription);
+  const rawContactTitle = asString(metadata.sectionContactTitle).trim();
+  const localizedContactTitle =
+    language === "ar" ? "اتصل بنا" : language === "en" ? "Contact" : "İletişim";
+  const displayContactTitle =
+    !rawContactTitle ||
+    ["teklif", "quote", "request quote", "طلب عرض سعر"].includes(rawContactTitle.toLowerCase())
+      ? localizedContactTitle
+      : rawContactTitle;
 
   return (
-    <footer className="bg-[var(--vaden-surface-08)] border-t border-[var(--vaden-border-soft)]">
+    <footer
+      id="iletisim-bilgileri"
+      className="scroll-mt-28 bg-[var(--vaden-surface-08)] border-t border-[var(--vaden-border-soft)]"
+    >
       <div className="container mx-auto px-6 max-w-7xl py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           <div className="lg:col-span-1">
@@ -61,25 +90,28 @@ export default function Footer() {
               <BrandLogo className="h-16 w-auto" />
             </div>
             <p className="text-[var(--vaden-text-muted)] text-sm leading-relaxed font-['Inter'] mb-6">
-              {asString(metadata.brandDescription)}
+              {displayDescription}
             </p>
-            <div className="flex items-center gap-3">
-              {socialLinks.map((item, index) => {
-                const Icon =
-                  SOCIAL_ICONS[(asString(item.icon) as keyof typeof SOCIAL_ICONS) || "facebook"];
-                return (
-                  <a
-                    key={`${item.href}-${index}`}
-                    href={asString(item.href, "#")}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-8 h-8 flex items-center justify-center border border-[var(--vaden-border-strong)] text-[var(--vaden-text-muted)] hover:border-[oklch(0.60_0.18_42)] hover:text-[oklch(0.60_0.18_42)] transition-all"
-                  >
-                    <Icon size={14} />
-                  </a>
-                );
-              })}
-            </div>
+            {socialLinks.length > 0 ? (
+              <div className="flex flex-wrap items-center gap-3">
+                {socialLinks.map((item, index) => {
+                  const Icon =
+                    SOCIAL_ICONS[(asString(item.icon).toLowerCase() as keyof typeof SOCIAL_ICONS) || "facebook"];
+                  return (
+                    <a
+                      key={`${item.href}-${index}`}
+                      href={asString(item.href, "#")}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-8 h-8 flex items-center justify-center border border-[var(--vaden-border-strong)] text-[var(--vaden-text-muted)] hover:border-[oklch(0.60_0.18_42)] hover:text-[oklch(0.60_0.18_42)] transition-all"
+                      aria-label={asString(item.icon)}
+                    >
+                      <Icon size={14} />
+                    </a>
+                  );
+                })}
+              </div>
+            ) : null}
           </div>
 
           <div>
@@ -125,7 +157,7 @@ export default function Footer() {
           <div>
             <h4 className="font-['Barlow_Condensed'] font-bold text-[var(--vaden-on-surface)] text-lg tracking-wide uppercase mb-4 flex items-center gap-2">
               <span className="w-6 h-0.5 bg-[oklch(0.60_0.18_42)] inline-block"></span>
-              {asString(metadata.sectionContactTitle, "İletişim")}
+              {displayContactTitle}
             </h4>
             <div className="space-y-4">
               <div className="flex items-start gap-3">
@@ -139,25 +171,25 @@ export default function Footer() {
                   ))}
                 </p>
               </div>
-              {asString(metadata.phone) ? (
+              {displayPhone ? (
                 <div className="flex items-center gap-3">
                   <Phone size={16} className="text-[oklch(0.60_0.18_42)] flex-shrink-0" />
                   <a
-                    href={`tel:${asString(metadata.phone).replace(/\s+/g, "")}`}
+                    href={`tel:${displayPhone.replace(/\s+/g, "")}`}
                     className="text-[var(--vaden-text-muted)] hover:text-[oklch(0.60_0.18_42)] text-sm font-['Inter'] transition-colors"
                   >
-                    {asString(metadata.phone)}
+                    {displayPhone}
                   </a>
                 </div>
               ) : null}
-              {asString(metadata.email) ? (
+              {displayEmail ? (
                 <div className="flex items-center gap-3">
                   <Mail size={16} className="text-[oklch(0.60_0.18_42)] flex-shrink-0" />
                   <a
-                    href={`mailto:${asString(metadata.email)}`}
+                    href={`mailto:${displayEmail}`}
                     className="text-[var(--vaden-text-muted)] hover:text-[oklch(0.60_0.18_42)] text-sm font-['Inter'] transition-colors"
                   >
-                    {asString(metadata.email)}
+                    {displayEmail}
                   </a>
                 </div>
               ) : null}

@@ -7,6 +7,7 @@ import { useLocation } from "wouter";
 import { ChevronRight, AlertCircle, Loader2 } from "lucide-react";
 import { useState, useMemo, useEffect } from "react";
 import { Link } from "wouter";
+import { Helmet } from "react-helmet-async";
 import { trpc } from "@/lib/trpc";
 import {
   getProductCategoryLabel,
@@ -23,6 +24,7 @@ import {
   parseProductTaxonomy,
   PRODUCT_TAXONOMY_SETTING_KEY,
 } from "@/lib/productTaxonomy";
+import { toAbsoluteUrl } from "@/lib/seo";
 
 type SearchResultsMetadata = {
   breadcrumbHome: string;
@@ -194,9 +196,22 @@ export default function SearchResults() {
   }, [searchData, selectedCategory]);
 
   const totalResults = searchData?.total ?? results.length;
+  const canonicalUrl = toAbsoluteUrl("/search");
+  const seoTitle = searchQuery
+    ? `"${searchQuery}" arama sonucu | BRAC`
+    : "Arama Sonuçları | BRAC";
+  const seoDescription = searchQuery
+    ? `"${searchQuery}" için arama sonuçları. İlgili ürünleri ve OEM eşleşmelerini görüntüleyin.`
+    : emptyQueryDescription;
 
   return (
     <div className="min-h-screen bg-[var(--vaden-surface-10)]">
+      <Helmet>
+        <title>{seoTitle}</title>
+        <meta name="description" content={seoDescription} />
+        <meta name="robots" content="noindex,follow" />
+        <link rel="canonical" href={canonicalUrl} />
+      </Helmet>
       <div className="bg-[var(--vaden-surface-12)] border-b border-[var(--vaden-border-soft)]">
         <div className="container mx-auto px-6 max-w-7xl py-4">
           <div className="flex items-center gap-2 text-sm">

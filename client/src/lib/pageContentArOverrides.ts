@@ -61,10 +61,16 @@ export const AR_PAGE_CONTENT_OVERRIDES: Record<string, PageContentOverride> = {
           href: "/#global",
         },
         {
+          labelTr: "Teklif",
+          labelEn: "Quote",
+          labelAr: "طلب عرض سعر",
+          href: "/#teklif",
+        },
+        {
           labelTr: "İletişim",
           labelEn: "Contact",
           labelAr: "اتصل بنا",
-          href: "/#iletisim",
+          href: "/#iletisim-bilgileri",
         },
       ],
     },

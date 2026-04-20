@@ -34,6 +34,7 @@ import {
   parseProductTaxonomy,
   PRODUCT_TAXONOMY_SETTING_KEY,
 } from "@/lib/productTaxonomy";
+import { toAbsoluteUrl } from "@/lib/seo";
 import type { AutocompleteSuggestion } from "@/lib/autocomplete";
 
 type SortMode = "featured" | "name" | "recent";
@@ -629,6 +630,7 @@ export default function ProductsCatalog() {
     () => entries.reduce((sum, entry) => sum + entry.oemCodeCount, 0),
     [entries],
   );
+  const canonicalUrl = toAbsoluteUrl("/products");
 
   const hasActiveFilters = Boolean(query.trim() || selectedCategory || selectedBrand);
 
@@ -680,6 +682,11 @@ export default function ProductsCatalog() {
       <Helmet>
         <title>{copy.pageTitle}</title>
         <meta name="description" content={copy.pageDescription} />
+        <link rel="canonical" href={canonicalUrl} />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content={copy.pageTitle} />
+        <meta property="og:description" content={copy.pageDescription} />
+        <meta property="og:url" content={canonicalUrl} />
       </Helmet>
 
       <Navbar />

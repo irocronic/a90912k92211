@@ -125,10 +125,11 @@ export default function ContactSection() {
 
   return (
     <section
-      id="iletisim"
+      id="teklif"
       className="py-20 bg-[var(--vaden-surface-09)]"
       ref={ref as React.RefObject<HTMLElement>}
     >
+      <div id="iletisim" className="pointer-events-none relative -top-28 block h-0 scroll-mt-28" />
       <div className="container mx-auto px-6 max-w-7xl">
         <div
           className={`mb-12 transition-all duration-700 ${

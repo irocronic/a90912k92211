@@ -5,6 +5,7 @@ import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { createIpRateLimitMiddleware } from "./rateLimit";
+import { buildRobotsTxt, buildSitemapXml, getSiteOriginFromRequest } from "./seo";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
@@ -38,6 +39,21 @@ async function startServer() {
       service: "vaden-web",
       timestamp: Date.now(),
     });
+  });
+
+  app.get("/robots.txt", (req, res) => {
+    const origin = getSiteOriginFromRequest(req);
+    res.type("text/plain").send(buildRobotsTxt(origin));
+  });
+
+  app.get("/sitemap.xml", async (req, res, next) => {
+    try {
+      const origin = getSiteOriginFromRequest(req);
+      const xml = await buildSitemapXml(origin);
+      res.type("application/xml").send(xml);
+    } catch (error) {
+      next(error);
+    }
   });
 
   const apiRateLimitMiddleware = createIpRateLimitMiddleware({

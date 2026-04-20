@@ -6,6 +6,7 @@
 import { useEffect, useMemo } from "react";
 import { useParams, useLocation } from "wouter";
 import { ChevronRight, Download, Share2, Phone, Mail, Loader2 } from "lucide-react";
+import { Helmet } from "react-helmet-async";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import {
@@ -25,6 +26,7 @@ import {
   parseProductTaxonomy,
   PRODUCT_TAXONOMY_SETTING_KEY,
 } from "@/lib/productTaxonomy";
+import { toAbsoluteUrl } from "@/lib/seo";
 
 type ProductDetailMetadata = {
   notFoundTitle: string;
@@ -106,6 +108,41 @@ export default function ProductDetail() {
   const certifications = Array.isArray(product?.certifications) ? product.certifications : [];
   const features = Array.isArray(product?.features) ? product.features : [];
 
+  const canonicalUrl = product ? toAbsoluteUrl(`/product/${product.slug}`) : "";
+  const oemSnippet = product
+    ? product.oemCodes.flatMap((group) => group.codes).slice(0, 3).join(", ")
+    : "";
+  const seoTitle = product
+    ? `${product.title}${product.subtitle ? ` ${product.subtitle}` : ""} | BRAC`
+    : "BRAC | Ürün";
+  const seoDescription = product
+    ? [product.description, oemSnippet ? `OEM: ${oemSnippet}` : "", getProductCategoryLabel(product)]
+        .filter(Boolean)
+        .join(" | ")
+        .slice(0, 320)
+    : "BRAC ürün detayı";
+  const productStructuredData = product
+    ? {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        name: [product.title, product.subtitle].filter(Boolean).join(" "),
+        description: product.description || product.fullDescription,
+        category: getProductCategoryLabel(product),
+        image: product.image ? [product.image] : undefined,
+        sku: product.id,
+        mpn: product.oemCodes.flatMap((group) => group.codes)[0] || undefined,
+        brand: {
+          "@type": "Brand",
+          name: product.oemCodes[0]?.manufacturer || "BRAC",
+        },
+        additionalProperty: specifications.slice(0, 12).map((spec) => ({
+          "@type": "PropertyValue",
+          name: spec.label,
+          value: spec.value,
+        })),
+      }
+    : null;
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[var(--vaden-surface-10)] flex items-center justify-center">
@@ -159,6 +196,22 @@ export default function ProductDetail() {
 
   return (
     <div className="min-h-screen bg-[var(--vaden-surface-10)]">
+      <Helmet>
+        <title>{seoTitle}</title>
+        <meta name="description" content={seoDescription} />
+        <link rel="canonical" href={canonicalUrl} />
+        <meta property="og:type" content="product" />
+        <meta property="og:title" content={seoTitle} />
+        <meta property="og:description" content={seoDescription} />
+        <meta property="og:url" content={canonicalUrl} />
+        {product.image ? <meta property="og:image" content={product.image} /> : null}
+        <meta name="twitter:card" content={product.image ? "summary_large_image" : "summary"} />
+        <meta name="twitter:title" content={seoTitle} />
+        <meta name="twitter:description" content={seoDescription} />
+        {productStructuredData ? (
+          <script type="application/ld+json">{JSON.stringify(productStructuredData)}</script>
+        ) : null}
+      </Helmet>
       {/* Breadcrumb */}
       <div className="bg-[var(--vaden-surface-12)] border-b border-[var(--vaden-border-soft)]">
         <div className="container mx-auto px-6 max-w-7xl py-4">
