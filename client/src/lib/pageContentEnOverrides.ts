@@ -408,11 +408,11 @@ export const EN_PAGE_CONTENT_OVERRIDES: Record<string, PageContentOverride> = {
     title: "Our Promotional Film",
     content: "Video section texts",
     metadata: {
-      kicker: "Vaden Original Factory Promotional Film",
+      kicker: "BRAC Original Factory Promotional Film",
       headingMain: "Watch Our",
       headingHighlight: "Promotional Film",
-      imageAlt: "Vaden Factory Promotional Film",
-      videoTitle: "Vaden Original Promotional Film",
+      imageAlt: "BRAC Factory Promotional Film",
+      videoTitle: "BRAC Original Promotional Film",
     },
   },
 
@@ -470,11 +470,11 @@ export const EN_PAGE_CONTENT_OVERRIDES: Record<string, PageContentOverride> = {
     title: "Corporate Information",
     content: "Corporate page texts and tab content",
     metadata: {
-      pageTitle: "Corporate | Vaden Original - Heavy Vehicle Spare Parts",
+      pageTitle: "Corporate | BRAC - Heavy Vehicle Spare Parts",
       metaDescription:
-        "The success story of Vaden Original since 1968, our board of directors and quality certifications.",
+        "The success story of BRAC since 1968, our board of directors and quality certifications.",
       metaKeywords:
-        "vaden corporate, air brake systems, heavy vehicle spare parts, ISO 9001, IATF 16949",
+        "brac corporate, air brake systems, heavy vehicle spare parts, ISO 9001, IATF 16949",
       heroLabel: "Corporate",
       heroHeadingMain: "Corporate",
       heroHeadingHighlight: "Information",
@@ -486,21 +486,21 @@ export const EN_PAGE_CONTENT_OVERRIDES: Record<string, PageContentOverride> = {
         { id: "certifications", label: "Certifications", title: "Certifications" },
       ],
       aboutParagraphs: [
-        "Vaden Original has been one of Turkiye's leading brands in air brake systems and automotive spare parts manufacturing since 1968.",
+        "BRAC has been one of Turkiye's leading brands in air brake systems and automotive spare parts manufacturing since 1968.",
         "We manufacture with more than 1,500 employees and over 600 CNC machines in our 105,000 m² indoor production area in Konya.",
         "Customer focus, confidentiality and security, business ethics and corporate responsibility are at the core of how we work.",
       ],
       milestones: [
-        { year: "1968", text: "Vaden Automotive was founded under the name Yildiz Injector and Washer Seals" },
+        { year: "1968", text: "BRAC Automotive was founded under the name Yildiz Injector and Washer Seals" },
         { year: "1985", text: "Exports started" },
         { year: "2000", text: "ISO 9001 certification obtained" },
-        { year: "2007", text: "VADEN ORIGINAL brand launched" },
+        { year: "2007", text: "BRAC ORIGINAL brand launched" },
         { year: "2015", text: "New Konya facility opened" },
         { year: "2018", text: "Entered Turkiye's top 1000 exporter and manufacturer companies list" },
         { year: "2021", text: "Warehouse and showroom opened in Istanbul, joined Turquality Program" },
         { year: "2022", text: "Bursa R&D and rubber factory commissioned" },
         { year: "2024", text: "1 millionth compressor produced" },
-        { year: "2025", text: "Company name changed to Vaden Automotive Industry and Trade Inc." },
+        { year: "2025", text: "Company name changed to BRAC Automotive Industry and Trade Inc." },
       ],
       boardMembers: [
         { name: "Chairman of the Board", title: "Chairman" },
@@ -521,16 +521,16 @@ export const EN_PAGE_CONTENT_OVERRIDES: Record<string, PageContentOverride> = {
     title: "Career Opportunities",
     content: "Career page contents",
     metadata: {
-      pageTitle: "Career | Vaden Automotive Job Opportunities",
+      pageTitle: "Career | BRAC Automotive Job Opportunities",
       metaDescription:
-        "Shape your career at Vaden Automotive. Explore open positions and join our team.",
-      metaKeywords: "vaden career, automotive jobs, Konya jobs, Bursa jobs",
+        "Shape your career at BRAC Automotive. Explore open positions and join our team.",
+      metaKeywords: "brac career, automotive jobs, Konya jobs, Bursa jobs",
       heroLabel: "Human Resources",
       heroHeadingMain: "Career",
       heroHeadingHighlight: "Opportunities",
       heroDescription:
-        "Develop your career at Vaden Automotive. Become part of a dynamic team and shape the future of the industry.",
-      benefitsTitle: "Why Work at Vaden?",
+        "Develop your career at BRAC Automotive. Become part of a dynamic team and shape the future of the industry.",
+      benefitsTitle: "Why Work at BRAC?",
       jobsTitle: "Open Positions",
       benefits: [
         { icon: "💼", title: "Competitive Salary", description: "Above-industry salary and benefits package" },
@@ -576,7 +576,7 @@ export const EN_PAGE_CONTENT_OVERRIDES: Record<string, PageContentOverride> = {
       ],
       ctaTitle: "No Suitable Position for You?",
       ctaDescription:
-        "Send your CV and be informed about future opportunities. We are looking for talented professionals at Vaden Automotive.",
+        "Send your CV and be informed about future opportunities. We are looking for talented professionals at BRAC Automotive.",
       ctaButtonText: "Send CV",
     },
   },
@@ -585,27 +585,27 @@ export const EN_PAGE_CONTENT_OVERRIDES: Record<string, PageContentOverride> = {
     title: "Policies & Terms",
     content: "Legal policy content",
     metadata: {
-      pageTitle: "Legal Policies | Vaden Original PDPL and Privacy",
+      pageTitle: "Legal Policies | BRAC PDPL and Privacy",
       metaDescription:
-        "Information about Vaden Automotive Privacy Policy, PDPL Clarification Text and Cookie Policy.",
+        "Information about BRAC Automotive Privacy Policy, PDPL Clarification Text and Cookie Policy.",
       metaKeywords: "privacy policy, PDPL, cookie policy, data security, personal data",
       heroLabel: "Legal",
       heroHeadingMain: "Policies &",
       heroHeadingHighlight: "Terms",
       heroDescription:
-        "Learn about the policies and legal terms that apply when using the Vaden Automotive website.",
+        "Learn about the policies and legal terms that apply when using the BRAC Automotive website.",
       policies: [
         {
           id: "privacy",
           title: "Privacy Policy",
           content:
-            "<h3>1. Introduction</h3><p>Vaden Automotive Industry & Trade Inc. (\"Company\") attaches importance to protecting the personal data of website visitors.</p><h3>2. Information Collected</h3><ul><li>Name, surname and contact information</li><li>E-mail address</li><li>Phone number</li></ul>",
+            "<h3>1. Introduction</h3><p>BRAC Automotive Industry & Trade Inc. (\"Company\") attaches importance to protecting the personal data of website visitors.</p><h3>2. Information Collected</h3><ul><li>Name, surname and contact information</li><li>E-mail address</li><li>Phone number</li></ul>",
         },
         {
           id: "kvkk",
           title: "PDPL Clarification Text",
           content:
-            "<h3>Personal Data Protection Law Clarification Text</h3><h3>1. Data Controller</h3><p>Vaden Automotive Industry & Trade Inc., Konya Organized Industrial Zone, Konya, Turkiye</p><h3>2. Purposes of Processing Personal Data</h3><ul><li>Providing customer services</li><li>Providing information about products and services</li></ul>",
+            "<h3>Personal Data Protection Law Clarification Text</h3><h3>1. Data Controller</h3><p>BRAC Automotive Industry & Trade Inc., Konya Organized Industrial Zone, Konya, Turkiye</p><h3>2. Purposes of Processing Personal Data</h3><ul><li>Providing customer services</li><li>Providing information about products and services</li></ul>",
         },
         {
           id: "cookies",

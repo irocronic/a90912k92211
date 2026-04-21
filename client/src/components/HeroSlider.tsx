@@ -1,5 +1,5 @@
 /*
-  VADEN ORIGINAL - Hero Slider Component
+  BRAC ORIGINAL - Hero Slider Component
   Design: Industrial Precision - Full-width hero with product slides
   Features: Auto-play carousel, dark overlay, orange accents
 */

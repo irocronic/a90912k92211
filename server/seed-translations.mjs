@@ -6,8 +6,8 @@ const DATABASE_URL = process.env.DATABASE_URL;
 
 const translationData = [
   // Common
-  { key: "common.appName", section: "common", language: "tr", value: "Vaden" },
-  { key: "common.appName", section: "common", language: "en", value: "Vaden" },
+  { key: "common.appName", section: "common", language: "tr", value: "BRAC" },
+  { key: "common.appName", section: "common", language: "en", value: "BRAC" },
   { key: "common.appDescription", section: "common", language: "tr", value: "Hava Fren Sistemleri ve Otomotiv Parçaları" },
   { key: "common.appDescription", section: "common", language: "en", value: "Air Brake Systems & Automotive Parts" },
   { key: "common.language", section: "common", language: "tr", value: "Dil" },
@@ -56,8 +56,8 @@ const translationData = [
   { key: "navbar.logout", section: "navbar", language: "en", value: "Logout" },
 
   // Home
-  { key: "home.heroTitle", section: "home", language: "tr", value: "Vaden - Otomotiv Endüstrisinin Lider Üreticisi" },
-  { key: "home.heroTitle", section: "home", language: "en", value: "Vaden - Leading Manufacturer in the Automotive Industry" },
+  { key: "home.heroTitle", section: "home", language: "tr", value: "BRAC - Otomotiv Endüstrisinin Lider Üreticisi" },
+  { key: "home.heroTitle", section: "home", language: "en", value: "BRAC - Leading Manufacturer in the Automotive Industry" },
   { key: "home.heroSubtitle", section: "home", language: "tr", value: "Yüksek kaliteli hava fren sistemleri ve otomotiv parçaları" },
   { key: "home.heroSubtitle", section: "home", language: "en", value: "High-quality air brake systems and automotive parts" },
   { key: "home.exploreProducts", section: "home", language: "tr", value: "Ürünleri Keşfet" },
@@ -108,8 +108,8 @@ const translationData = [
   { key: "footer.contact", section: "footer", language: "en", value: "Contact" },
   { key: "footer.followUs", section: "footer", language: "tr", value: "Bizi Takip Edin" },
   { key: "footer.followUs", section: "footer", language: "en", value: "Follow Us" },
-  { key: "footer.copyright", section: "footer", language: "tr", value: "© 2026 Vaden. Tüm Hakları Saklıdır." },
-  { key: "footer.copyright", section: "footer", language: "en", value: "© 2026 Vaden. All Rights Reserved." },
+  { key: "footer.copyright", section: "footer", language: "tr", value: "© 2026 BRAC. Tüm Hakları Saklıdır." },
+  { key: "footer.copyright", section: "footer", language: "en", value: "© 2026 BRAC. All Rights Reserved." },
 ];
 
 async function seedTranslations() {

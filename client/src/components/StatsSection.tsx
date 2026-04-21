@@ -1,5 +1,5 @@
 /*
-  VADEN ORIGINAL - Stats/Achievements Section Component
+  BRAC ORIGINAL - Stats/Achievements Section Component
   Design: Industrial Precision - Counter animations, orange accents
 */
 

@@ -1,5 +1,5 @@
 /*
-  VADEN ORIGINAL - Search Autocomplete Component
+  BRAC ORIGINAL - Search Autocomplete Component
   Design: Industrial Precision - Dark dropdown with orange highlights
 */
 

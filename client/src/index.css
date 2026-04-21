@@ -5,9 +5,9 @@
 @custom-variant dark (&:is(.dark *));
 
 /* 
-  VADEN ORIGINAL - Industrial Precision Design System
+  BRAC ORIGINAL - Industrial Precision Design System
   Design Movement: Bauhaus + Modern Industrial
-  Colors: Dark navy/black base + Vaden Orange (#E8650A) accents
+  Colors: Dark navy/black base + BRAC Orange (#E8650A) accents
   Typography: Barlow Condensed (headings) + Inter (body)
   Layout: Asymmetric grid, diagonal section breaks, strong data hierarchy
 */
@@ -50,7 +50,7 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
   
-  /* Vaden Brand Colors */
+  /* BRAC Brand Colors */
   --color-vaden-orange: oklch(0.60 0.18 42);
   --color-vaden-orange-dark: oklch(0.50 0.18 42);
   --color-vaden-dark: oklch(0.12 0.01 250);

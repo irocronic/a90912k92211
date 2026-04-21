@@ -1,5 +1,5 @@
 /*
-  VADEN ORIGINAL - Policies Page
+  BRAC ORIGINAL - Policies Page
   Design: Industrial Precision - Gizlilik, KVKK, Çerez Politikaları
 */
 

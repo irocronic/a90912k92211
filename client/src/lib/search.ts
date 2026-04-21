@@ -1,5 +1,5 @@
 /*
-  VADEN ORIGINAL - Search Utilities
+  BRAC ORIGINAL - Search Utilities
   Functions for searching products by OEM codes and product names
 */
 

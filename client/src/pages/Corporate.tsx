@@ -1,5 +1,5 @@
 /*
-  VADEN ORIGINAL - Corporate Page
+  BRAC ORIGINAL - Corporate Page
   Design: Industrial Precision - Kurumsal bilgiler ve alt sayfalar
 */
 

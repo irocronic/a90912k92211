@@ -1,5 +1,5 @@
 /*
-  VADEN ORIGINAL - News Section Component
+  BRAC ORIGINAL - News Section Component
   Design: Industrial Precision - Dark news cards
 */
 

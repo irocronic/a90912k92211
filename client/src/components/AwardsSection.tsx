@@ -1,5 +1,5 @@
 /*
-  VADEN ORIGINAL - Awards & Achievements Section Component
+  BRAC ORIGINAL - Awards & Achievements Section Component
   Design: Industrial Precision - Dark cards with orange accents
 */
 

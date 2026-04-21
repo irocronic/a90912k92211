@@ -1,5 +1,5 @@
 /*
-  VADEN ORIGINAL - Promotional Video Section Component
+  BRAC ORIGINAL - Promotional Video Section Component
   Design: Industrial Precision - Dark video section with play button
 */
 
@@ -28,7 +28,7 @@ export default function VideoSection() {
         <div className="relative h-[500px] md:h-[600px]">
           <img
             src={imageUrl}
-            alt={asString(metadata.imageAlt, "Vaden Fabrika Tanıtım Filmi")}
+            alt={asString(metadata.imageAlt, "BRAC Fabrika Tanıtım Filmi")}
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-[oklch(0.08_0.01_250)/75]"></div>

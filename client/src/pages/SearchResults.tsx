@@ -1,5 +1,5 @@
 /*
-  VADEN ORIGINAL - Search Results Page
+  BRAC ORIGINAL - Search Results Page
   Design: Industrial Precision - Display search results with filters
 */
 

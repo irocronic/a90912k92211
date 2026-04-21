@@ -1,5 +1,5 @@
 /*
-  VADEN ORIGINAL - Contact Section Component
+  BRAC ORIGINAL - Contact Section Component
   Design: Industrial Precision - Dark form with orange accents
 */
 

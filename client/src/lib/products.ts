@@ -1,5 +1,5 @@
 /*
-  VADEN ORIGINAL - Product Data Model
+  BRAC ORIGINAL - Product Data Model
   Defines product structure with technical specs, OEM codes, and catalogs
 */
 
@@ -36,7 +36,7 @@ export const products: Product[] = [
     subtitle: "(E-APU)",
     description: "Güvenli ve Verimli Hava Yönetimi",
     image: "https://private-us-east-1.manuscdn.com/sessionFile/GNtGadg2DHthUOVlxRmf9Z/sandbox/zj5v354O1vGB50VA1neK2B-img-1_1772104798000_na1fn_dmFkZW4taGVyby1iYW5uZXI.jpg?x-oss-process=image/resize,w_1920,h_1920/format,webp/quality,q_80",
-    fullDescription: "Vaden Original E-APU (Elektrik Hava İşleme Ünitesi), modern araçların artan hava yönetimi gereksinimlerini karşılamak için geliştirilmiştir. Düşük gürültü seviyesi, yüksek verimlilik ve uzun ömür ile tasarlanmıştır.",
+    fullDescription: "BRAC Original E-APU (Elektrik Hava İşleme Ünitesi), modern araçların artan hava yönetimi gereksinimlerini karşılamak için geliştirilmiştir. Düşük gürültü seviyesi, yüksek verimlilik ve uzun ömür ile tasarlanmıştır.",
     features: [
       "Düşük gürültü seviyesi (<75 dB)",
       "Yüksek verimlilik (%95+)",
@@ -84,7 +84,7 @@ export const products: Product[] = [
     subtitle: "Kompresörleri",
     description: "Gelişmiş teknolojiyle donatılmış, güvenilir ve yüksek performanslı kompresörler",
     image: "https://private-us-east-1.manuscdn.com/sessionFile/GNtGadg2DHthUOVlxRmf9Z/sandbox/zj5v354O1vGB50VA1neK2B-img-2_1772104793000_na1fn_dmFkZW4tY29tcHJlc3Nvci1oZXJv.jpg?x-oss-process=image/resize,w_1920,h_1920/format,webp/quality,q_80",
-    fullDescription: "Vaden Original hava fren kompresörleri, yüksek basınç ve güvenilirlik gerektiren uygulamalar için tasarlanmıştır. 1 milyondan fazla üretilen kompresörlerimiz dünya çapında güvenilir bir marka olarak tanınmaktadır.",
+    fullDescription: "BRAC Original hava fren kompresörleri, yüksek basınç ve güvenilirlik gerektiren uygulamalar için tasarlanmıştır. 1 milyondan fazla üretilen kompresörlerimiz dünya çapında güvenilir bir marka olarak tanınmaktadır.",
     features: [
       "Yüksek verimlilik",
       "Düşük bakım gereksinimi",
@@ -136,7 +136,7 @@ export const products: Product[] = [
     subtitle: "Sistemleri",
     description: "Temiz Hava, Üstün Kalite Standartları!",
     image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80",
-    fullDescription: "Vaden Original hava fren sistemleri, araç güvenliğinin en kritik bileşenlerinden biridir. Kompresörden fren aktüatörlerine kadar tam sistem çözümleri sunuyoruz.",
+    fullDescription: "BRAC Original hava fren sistemleri, araç güvenliğinin en kritik bileşenlerinden biridir. Kompresörden fren aktüatörlerine kadar tam sistem çözümleri sunuyoruz.",
     features: [
       "Tam sistem entegrasyonu",
       "Güvenlik sertifikasyonları",
@@ -179,7 +179,7 @@ export const products: Product[] = [
     subtitle: "Valfler",
     description: "Teknolojik Hassasiyet, Kontrolde Mükemmellik!",
     image: "https://private-us-east-1.manuscdn.com/sessionFile/GNtGadg2DHthUOVlxRmf9Z/sandbox/zj5v354O1vGB50VA1neK2B-img-4_1772104799000_na1fn_dmFkZW4tcHJvZHVjdHMtc2hvd2Nhc2U.jpg?x-oss-process=image/resize,w_1920,h_1920/format,webp/quality,q_80",
-    fullDescription: "Vaden Original solenoid valfler, hassas kontrol ve güvenilir performans sağlayan elektromanyetik valflerdir. Şanzıman ve fren sistemlerinde kullanılır.",
+    fullDescription: "BRAC Original solenoid valfler, hassas kontrol ve güvenilir performans sağlayan elektromanyetik valflerdir. Şanzıman ve fren sistemlerinde kullanılır.",
     features: [
       "Hızlı yanıt süresi",
       "Düşük güç tüketimi",
@@ -221,7 +221,7 @@ export const products: Product[] = [
     subtitle: "Fren Valfleri",
     description: "Performansın Kaliteyle Buluştuğu Yer!",
     image: "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=800&q=80",
-    fullDescription: "Vaden Original motor ve egzoz fren valfleri, araçların performansını optimize ederken yakıt tüketimini azaltır.",
+    fullDescription: "BRAC Original motor ve egzoz fren valfleri, araçların performansını optimize ederken yakıt tüketimini azaltır.",
     features: [
       "Yüksek sıcaklık direnci",
       "Düşük emisyon",
@@ -255,7 +255,7 @@ export const products: Product[] = [
     subtitle: "Muhafazası",
     description: "Üstün Kalite, Kusursuz Performans!",
     image: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800&q=80",
-    fullDescription: "Vaden Original volan muhafazası, motorun korunması ve titreşim kontrolü için tasarlanmıştır.",
+    fullDescription: "BRAC Original volan muhafazası, motorun korunması ve titreşim kontrolü için tasarlanmıştır.",
     features: [
       "Titreşim absorpsiyonu",
       "Yüksek dayanıklılık",

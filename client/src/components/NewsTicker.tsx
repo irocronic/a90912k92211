@@ -1,5 +1,5 @@
 /*
-  VADEN ORIGINAL - News Ticker / Announcements Component
+  BRAC ORIGINAL - News Ticker / Announcements Component
   Design: Industrial Precision - Orange accent news strip
 */
 

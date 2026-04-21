@@ -1,5 +1,5 @@
 /*
-  VADEN ORIGINAL - Production Facilities Section Component
+  BRAC ORIGINAL - Production Facilities Section Component
   Design: Industrial Precision - Split layout with factory imagery
 */
 

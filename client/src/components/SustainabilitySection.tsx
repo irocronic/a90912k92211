@@ -1,5 +1,5 @@
 /*
-  VADEN ORIGINAL - Sustainability Section Component
+  BRAC ORIGINAL - Sustainability Section Component
   Design: Industrial Precision - Green accents on dark background
 */
 

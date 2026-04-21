@@ -39,7 +39,7 @@ async function startServer() {
   app.get(["/healthz", "/healthz/"], (_req, res) => {
     res.status(200).json({
       ok: true,
-      service: "vaden-web",
+      service: "brac-web",
       timestamp: Date.now(),
     });
   });

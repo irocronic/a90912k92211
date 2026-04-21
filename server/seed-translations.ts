@@ -7,8 +7,8 @@ const DATABASE_URL = process.env.DATABASE_URL;
 
 const translationData: Array<{ key: string; section: string; language: "tr" | "en"; value: string }> = [
   // Common
-  { key: "common.appName", section: "common", language: "tr", value: "Vaden" },
-  { key: "common.appName", section: "common", language: "en", value: "Vaden" },
+  { key: "common.appName", section: "common", language: "tr", value: "BRAC" },
+  { key: "common.appName", section: "common", language: "en", value: "BRAC" },
   { key: "common.appDescription", section: "common", language: "tr" as const, value: "Hava Fren Sistemleri ve Otomotiv Parçaları" },
   { key: "common.appDescription", section: "common", language: "en" as const, value: "Air Brake Systems & Automotive Parts" },
   { key: "common.language", section: "common", language: "tr" as const, value: "Dil" },
@@ -57,8 +57,8 @@ const translationData: Array<{ key: string; section: string; language: "tr" | "e
   { key: "navbar.logout", section: "navbar", language: "en" as const, value: "Logout" },
 
   // Home
-  { key: "home.heroTitle", section: "home", language: "tr" as const, value: "Vaden - Otomotiv Endüstrisinin Lider Üreticisi" },
-  { key: "home.heroTitle", section: "home", language: "en" as const, value: "Vaden - Leading Manufacturer in the Automotive Industry" },
+  { key: "home.heroTitle", section: "home", language: "tr" as const, value: "BRAC - Otomotiv Endüstrisinin Lider Üreticisi" },
+  { key: "home.heroTitle", section: "home", language: "en" as const, value: "BRAC - Leading Manufacturer in the Automotive Industry" },
   { key: "home.heroSubtitle", section: "home", language: "tr" as const, value: "Yüksek kaliteli hava fren sistemleri ve otomotiv parçaları" },
   { key: "home.heroSubtitle", section: "home", language: "en" as const, value: "High-quality air brake systems and automotive parts" },
   { key: "home.exploreProducts", section: "home", language: "tr" as const, value: "Ürünleri Keşfet" },
@@ -109,8 +109,8 @@ const translationData: Array<{ key: string; section: string; language: "tr" | "e
   { key: "footer.contact", section: "footer", language: "en" as const, value: "Contact" },
   { key: "footer.followUs", section: "footer", language: "tr" as const, value: "Bizi Takip Edin" },
   { key: "footer.followUs", section: "footer", language: "en" as const, value: "Follow Us" },
-  { key: "footer.copyright", section: "footer", language: "tr" as const, value: "© 2026 Vaden. Tüm Hakları Saklıdır." },
-  { key: "footer.copyright", section: "footer", language: "en" as const, value: "© 2026 Vaden. All Rights Reserved." },
+  { key: "footer.copyright", section: "footer", language: "tr" as const, value: "© 2026 BRAC. Tüm Hakları Saklıdır." },
+  { key: "footer.copyright", section: "footer", language: "en" as const, value: "© 2026 BRAC. All Rights Reserved." },
 ];
 
 async function seedTranslations() {

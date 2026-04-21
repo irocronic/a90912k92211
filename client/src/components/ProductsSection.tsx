@@ -1,5 +1,5 @@
 /*
-  VADEN ORIGINAL - Products Section Component
+  BRAC ORIGINAL - Products Section Component
   Design: Industrial Precision - Dark product cards with orange hover
 */
 

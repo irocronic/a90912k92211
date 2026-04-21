@@ -1,5 +1,5 @@
 /*
-  VADEN ORIGINAL - Navbar Component
+  BRAC ORIGINAL - Navbar Component
   Design: Industrial Precision - Dark background with orange accent
   Fixed top navigation with transparent-to-dark scroll behavior
 */

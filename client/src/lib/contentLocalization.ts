@@ -83,7 +83,7 @@ const PRODUCT_EN_OVERRIDES_BY_KEY: Record<string, ProductOverride> = {
     subtitle: "(E-APU)",
     description: "Safe and Efficient Air Management",
     fullDescription:
-      "Vaden Original E-APU (Electric Air Processing Unit) is developed to meet the growing air management needs of modern vehicles. It is designed with low noise, high efficiency, and long service life.",
+      "BRAC Original E-APU (Electric Air Processing Unit) is developed to meet the growing air management needs of modern vehicles. It is designed with low noise, high efficiency, and long service life.",
     features: [
       "Low noise level (<75 dB)",
       "High efficiency (95%+)",
@@ -115,7 +115,7 @@ const PRODUCT_EN_OVERRIDES_BY_KEY: Record<string, ProductOverride> = {
     description:
       "Reliable and high-performance compressors equipped with advanced technology",
     fullDescription:
-      "Vaden Original air brake compressors are designed for applications requiring high pressure and reliability. With over 1 million units produced, our compressors are recognized as a trusted brand worldwide.",
+      "BRAC Original air brake compressors are designed for applications requiring high pressure and reliability. With over 1 million units produced, our compressors are recognized as a trusted brand worldwide.",
     features: [
       "High efficiency",
       "Low maintenance requirement",
@@ -146,7 +146,7 @@ const PRODUCT_EN_OVERRIDES_BY_KEY: Record<string, ProductOverride> = {
     subtitle: "Systems",
     description: "Clean Air, Superior Quality Standards!",
     fullDescription:
-      "Vaden Original air brake systems are among the most critical components of vehicle safety. We provide complete system solutions from compressors to brake actuators.",
+      "BRAC Original air brake systems are among the most critical components of vehicle safety. We provide complete system solutions from compressors to brake actuators.",
     features: [
       "Full system integration",
       "Safety certifications",
@@ -176,7 +176,7 @@ const PRODUCT_EN_OVERRIDES_BY_KEY: Record<string, ProductOverride> = {
     subtitle: "Valves",
     description: "Technological Precision, Excellence in Control!",
     fullDescription:
-      "Vaden Original solenoid valves are electromagnetic valves that deliver precise control and reliable performance. They are used in transmission and brake systems.",
+      "BRAC Original solenoid valves are electromagnetic valves that deliver precise control and reliable performance. They are used in transmission and brake systems.",
     features: [
       "Fast response time",
       "Low power consumption",
@@ -205,7 +205,7 @@ const PRODUCT_EN_OVERRIDES_BY_KEY: Record<string, ProductOverride> = {
     subtitle: "Brake Valves",
     description: "Where Performance Meets Quality!",
     fullDescription:
-      "Vaden Original engine and exhaust brake valves optimize vehicle performance while reducing fuel consumption.",
+      "BRAC Original engine and exhaust brake valves optimize vehicle performance while reducing fuel consumption.",
     features: [
       "High temperature resistance",
       "Low emissions",
@@ -227,7 +227,7 @@ const PRODUCT_EN_OVERRIDES_BY_KEY: Record<string, ProductOverride> = {
     subtitle: "Housing",
     description: "Superior Quality, Flawless Performance!",
     fullDescription:
-      "Vaden Original flywheel housing is designed for engine protection and vibration control.",
+      "BRAC Original flywheel housing is designed for engine protection and vibration control.",
     features: [
       "Vibration absorption",
       "High durability",

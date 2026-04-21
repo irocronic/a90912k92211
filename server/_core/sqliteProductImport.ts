@@ -686,7 +686,7 @@ export async function previewSqliteImportBuffer(
     fileName: string;
   }
 ): Promise<SqliteImportSummary> {
-  const tempDir = await mkdtemp(join(tmpdir(), "vaden-sqlite-preview-"));
+  const tempDir = await mkdtemp(join(tmpdir(), "brac-sqlite-preview-"));
   const safeFileName = sanitizeUploadFileName(input.fileName);
   const tempDbPath = join(tempDir, safeFileName);
   const fileBuffer = Buffer.isBuffer(input.file) ? input.file : Buffer.from(input.file);
@@ -839,7 +839,7 @@ async function analyzeSqliteImportBuffer(
   existingByImportKey: Map<string, { id: string }>;
   summary: SqliteImportSummary;
 }> {
-  const tempDir = await mkdtemp(join(tmpdir(), "vaden-sqlite-import-"));
+  const tempDir = await mkdtemp(join(tmpdir(), "brac-sqlite-import-"));
   const safeFileName = sanitizeUploadFileName(input.fileName);
   const tempDbPath = join(tempDir, safeFileName);
   const fileBuffer = Buffer.isBuffer(input.file) ? input.file : Buffer.from(input.file);

@@ -2,7 +2,7 @@ export function getSiteOrigin(): string {
   if (typeof window !== "undefined" && window.location?.origin) {
     return window.location.origin;
   }
-  return "https://vaden.204.168.196.102.sslip.io";
+  return "https://brac.204.168.196.102.sslip.io";
 }
 
 export function toAbsoluteUrl(path: string): string {
@@ -11,4 +11,3 @@ export function toAbsoluteUrl(path: string): string {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   return `${getSiteOrigin()}${normalizedPath}`;
 }
-

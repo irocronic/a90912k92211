@@ -1,5 +1,5 @@
 /*
-  VADEN ORIGINAL - R&D Section Component
+  BRAC ORIGINAL - R&D Section Component
   Design: Industrial Precision - Dark split layout
 */
 

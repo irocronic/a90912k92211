@@ -1,5 +1,5 @@
 /*
-  VADEN ORIGINAL - Product Detail Page
+  BRAC ORIGINAL - Product Detail Page
   Design: Industrial Precision - Full product information with specs and OEM codes
 */
 

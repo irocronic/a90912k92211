@@ -1,5 +1,5 @@
 /*
-  VADEN ORIGINAL - Autocomplete Suggestions
+  BRAC ORIGINAL - Autocomplete Suggestions
   Generate search suggestions from products
 */
 

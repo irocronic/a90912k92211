@@ -533,11 +533,11 @@ export const PAGE_CONTENT_TEMPLATES: PageContentTemplate[] = [
     content: "Video alanı metinleri",
     imageUrl: "https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?w=1920&q=80",
     metadata: {
-      kicker: "Vaden Original Fabrika Tanıtım Filmi",
+      kicker: "BRAC Original Fabrika Tanıtım Filmi",
       headingMain: "Tanıtım",
       headingHighlight: "Filmimizi İzleyin",
-      imageAlt: "Vaden Fabrika Tanıtım Filmi",
-      videoTitle: "Vaden Original Tanıtım Filmi",
+      imageAlt: "BRAC Fabrika Tanıtım Filmi",
+      videoTitle: "BRAC Original Tanıtım Filmi",
       videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1",
     },
   },
@@ -601,11 +601,11 @@ export const PAGE_CONTENT_TEMPLATES: PageContentTemplate[] = [
     title: "Kurumsal Bilgiler",
     content: "Kurumsal sayfa metin ve tab içerikleri",
     metadata: {
-      pageTitle: "Kurumsal | Vaden Original - Ağır Vasıta Yedek Parçaları",
+      pageTitle: "Kurumsal | BRAC - Ağır Vasıta Yedek Parçaları",
       metaDescription:
-        "1968'den bugüne Vaden Original'in başarı hikayesi, yönetim kurulu ve kalite sertifikalarımız.",
+        "1968'den bugüne BRAC'ın başarı hikayesi, yönetim kurulu ve kalite sertifikalarımız.",
       metaKeywords:
-        "vaden kurumsal, havalı fren sistemleri, ağır vasıta yedek parça, ISO 9001, IATF 16949",
+        "brac kurumsal, havalı fren sistemleri, ağır vasıta yedek parça, ISO 9001, IATF 16949",
       heroLabel: "Kurumsal",
       heroHeadingMain: "Kurumsal",
       heroHeadingHighlight: "Bilgiler",
@@ -617,21 +617,21 @@ export const PAGE_CONTENT_TEMPLATES: PageContentTemplate[] = [
         { id: "certifications", label: "Sertifikalar", title: "Sertifikalar" },
       ],
       aboutParagraphs: [
-        "Vaden Original, 1968'den bu yana hava fren sistemleri ve otomotiv yedek parçaları üretiminde Türkiye'nin öncü markasıdır.",
+        "BRAC, 1968'den bu yana hava fren sistemleri ve otomotiv yedek parçaları üretiminde Türkiye'nin öncü markasıdır.",
         "Konya'daki 105.000 m² kapalı üretim alanımızda, 1.500'den fazla çalışanımız ve 600'den fazla CNC makinemizle üretim yapıyoruz.",
         "Müşteri odaklılık, gizlilik ve güvenlik, iş etiği ve kurumsal sorumluluğa verdiğimiz önem iş yapış biçimimizin temelidir.",
       ],
       milestones: [
-        { year: "1968", text: "Vaden Otomotiv kuruldu - Yıldız Enjektör ve Rekor Pulları adıyla" },
+        { year: "1968", text: "BRAC Otomotiv kuruldu - Yıldız Enjektör ve Rekor Pulları adıyla" },
         { year: "1985", text: "İhracata başlandı" },
         { year: "2000", text: "ISO 9001 sertifikası alındı" },
-        { year: "2007", text: "VADEN ORIGINAL markası hayata geçirildi" },
+        { year: "2007", text: "BRAC ORIGINAL markası hayata geçirildi" },
         { year: "2015", text: "Yeni Konya tesisi açıldı" },
         { year: "2018", text: "Türkiye'nin ilk 1000 ihracatçısı ve üretici firması arasına girdi" },
         { year: "2021", text: "İstanbul'da depo ve showroom açıldı, Turquality Programı'na dahil olundu" },
         { year: "2022", text: "Bursa AR-GE ve kauçuk fabrikası devreye alındı" },
         { year: "2024", text: "1 milyonuncu kompresör üretildi" },
-        { year: "2025", text: "Unvan Vaden Otomotiv Sanayi ve Ticaret A.Ş. olarak değiştirildi" },
+        { year: "2025", text: "Unvan BRAC Otomotiv Sanayi ve Ticaret A.Ş. olarak değiştirildi" },
       ],
       boardMembers: [
         { name: "Yönetim Kurulu Başkanı", title: "Başkan" },
@@ -653,16 +653,16 @@ export const PAGE_CONTENT_TEMPLATES: PageContentTemplate[] = [
     title: "Kariyer Fırsatları",
     content: "Kariyer sayfası içerikleri",
     metadata: {
-      pageTitle: "Kariyer | Vaden Otomotiv İş İlanları",
+      pageTitle: "Kariyer | BRAC Otomotiv İş İlanları",
       metaDescription:
-        "Vaden Otomotiv'de kariyerinize yön verin. Açık pozisyonları inceleyin ve ekibimize katılın.",
-      metaKeywords: "vaden kariyer, otomotiv iş ilanları, Konya iş, Bursa iş",
+        "BRAC Otomotiv'de kariyerinize yön verin. Açık pozisyonları inceleyin ve ekibimize katılın.",
+      metaKeywords: "brac kariyer, otomotiv iş ilanları, Konya iş, Bursa iş",
       heroLabel: "İnsan Kaynakları",
       heroHeadingMain: "Kariyer",
       heroHeadingHighlight: "Fırsatları",
       heroDescription:
-        "Vaden Otomotiv'de kariyerinizi geliştirin. Dinamik bir ekibin parçası olun ve sektörün geleceğini şekillendirin.",
-      benefitsTitle: "Neden Vaden'de Çalışmalısınız?",
+        "BRAC Otomotiv'de kariyerinizi geliştirin. Dinamik bir ekibin parçası olun ve sektörün geleceğini şekillendirin.",
+      benefitsTitle: "Neden BRAC'ta Çalışmalısınız?",
       jobsTitle: "Açık Pozisyonlar",
       benefits: [
         { icon: "💼", title: "Rekabetçi Maaş", description: "Sektör standartlarının üzerinde maaş ve yan haklar" },
@@ -708,8 +708,8 @@ export const PAGE_CONTENT_TEMPLATES: PageContentTemplate[] = [
       ],
       ctaTitle: "Sizin İçin Uygun Pozisyon Yok mu?",
       ctaDescription:
-        "CV'nizi gönderin ve gelecekteki fırsatlar hakkında haberdar olun. Vaden Otomotiv'de yetenekli profesyonelleri arıyoruz.",
-      ctaEmail: "insan-kaynakları@vaden.com.tr",
+        "CV'nizi gönderin ve gelecekteki fırsatlar hakkında haberdar olun. BRAC Otomotiv'de yetenekli profesyonelleri arıyoruz.",
+      ctaEmail: "insan-kaynaklari@brac.com.tr",
       ctaButtonText: "CV Gönder",
     },
   },
@@ -719,27 +719,27 @@ export const PAGE_CONTENT_TEMPLATES: PageContentTemplate[] = [
     title: "Politikalar & Şartlar",
     content: "Yasal politika içerikleri",
     metadata: {
-      pageTitle: "Yasal Politikalar | Vaden Original KVKK ve Gizlilik",
+      pageTitle: "Yasal Politikalar | BRAC KVKK ve Gizlilik",
       metaDescription:
-        "Vaden Otomotiv Gizlilik Politikası, KVKK Aydınlatma Metni ve Çerez Politikası hakkında bilgiler.",
+        "BRAC Otomotiv Gizlilik Politikası, KVKK Aydınlatma Metni ve Çerez Politikası hakkında bilgiler.",
       metaKeywords: "gizlilik politikası, KVKK, çerez politikası, veri güvenliği, kişisel veriler",
       heroLabel: "Yasal",
       heroHeadingMain: "Politikalar &",
       heroHeadingHighlight: "Şartlar",
       heroDescription:
-        "Vaden Otomotiv web sitesini kullanırken uygulanacak politikaları ve yasal şartları öğrenin.",
+        "BRAC Otomotiv web sitesini kullanırken uygulanacak politikaları ve yasal şartları öğrenin.",
       policies: [
         {
           id: "privacy",
           title: "Gizlilik Politikası",
           content:
-            "<h3>1. Giriş</h3><p>Vaden Otomotiv San. Tic. A.Ş. (\"Şirket\"), web sitesi ziyaretçilerinin kişisel verilerini korumaya önem vermektedir.</p><h3>2. Toplanan Bilgiler</h3><ul><li>Ad, soyad ve iletişim bilgileri</li><li>E-posta adresi</li><li>Telefon numarası</li></ul>",
+            "<h3>1. Giriş</h3><p>BRAC Otomotiv San. Tic. A.Ş. (\"Şirket\"), web sitesi ziyaretçilerinin kişisel verilerini korumaya önem vermektedir.</p><h3>2. Toplanan Bilgiler</h3><ul><li>Ad, soyad ve iletişim bilgileri</li><li>E-posta adresi</li><li>Telefon numarası</li></ul>",
         },
         {
           id: "kvkk",
           title: "KVKK Aydınlatma Metni",
           content:
-            "<h3>Kişisel Verilerin Korunması Kanunu Aydınlatma Metni</h3><h3>1. Veri Sorumlusu</h3><p>Vaden Otomotiv San. Tic. A.Ş., Konya Organize Sanayi Bölgesi, Konya, Türkiye</p><h3>2. Kişisel Verilerin İşlenme Amaçları</h3><ul><li>Müşteri hizmetleri sağlamak</li><li>Ürün ve hizmetler hakkında bilgi vermek</li></ul>",
+            "<h3>Kişisel Verilerin Korunması Kanunu Aydınlatma Metni</h3><h3>1. Veri Sorumlusu</h3><p>BRAC Otomotiv San. Tic. A.Ş., Konya Organize Sanayi Bölgesi, Konya, Türkiye</p><h3>2. Kişisel Verilerin İşlenme Amaçları</h3><ul><li>Müşteri hizmetleri sağlamak</li><li>Ürün ve hizmetler hakkında bilgi vermek</li></ul>",
         },
         {
           id: "cookies",

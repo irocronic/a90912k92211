@@ -16,7 +16,7 @@ function escapeXml(value: string): string {
 export function getSiteOriginFromRequest(req: Request): string {
   const forwardedProto = req.headers["x-forwarded-proto"];
   const protocol = typeof forwardedProto === "string" ? forwardedProto : req.protocol || "https";
-  const host = req.get("host") || "vaden.204.168.196.102.sslip.io";
+  const host = req.get("host") || "brac.204.168.196.102.sslip.io";
   return `${protocol}://${host}`;
 }
 
@@ -77,4 +77,3 @@ export async function buildSitemapXml(origin: string): Promise<string> {
 ${urlNodes}
 </urlset>`;
 }
-

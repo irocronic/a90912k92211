@@ -1,5 +1,5 @@
 /*
-  VADEN ORIGINAL - About Section Component
+  BRAC ORIGINAL - About Section Component
   Design: Industrial Precision - Asymmetric layout with timeline
 */
 

@@ -1,5 +1,5 @@
 /*
-  VADEN ORIGINAL - Footer Component
+  BRAC ORIGINAL - Footer Component
   Design: Industrial Precision - Dark footer with orange accents
 */
 

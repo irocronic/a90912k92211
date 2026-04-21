@@ -1,5 +1,5 @@
 /*
-  VADEN ORIGINAL - Global Presence Section Component
+  BRAC ORIGINAL - Global Presence Section Component
   Design: Industrial Precision - World map with stats
 */
 

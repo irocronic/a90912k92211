@@ -1,5 +1,5 @@
 /*
-  VADEN ORIGINAL - OEM Code Search Component
+  BRAC ORIGINAL - OEM Code Search Component
   Design: Industrial Precision - Dark search bar with orange accent
 */
 
