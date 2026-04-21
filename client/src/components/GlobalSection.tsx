@@ -35,10 +35,11 @@ export default function GlobalSection() {
   return (
     <section
       id="global"
-      className="py-20 bg-[var(--vaden-surface-10)] relative overflow-hidden"
+      className="scroll-mt-32 lg:scroll-mt-36 py-20 bg-[var(--vaden-surface-10)] relative overflow-hidden"
       ref={ref as React.RefObject<HTMLElement>}
     >
       <div className="container mx-auto px-6 max-w-7xl">
+        <div data-scroll-anchor="true" className="relative top-16 h-0 lg:top-0" />
         <div
           className={`mb-12 transition-all duration-700 ${
             isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"

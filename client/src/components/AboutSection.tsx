@@ -29,10 +29,11 @@ export default function AboutSection() {
   return (
     <section
       id="hakkimizda"
-      className="py-20 bg-[var(--vaden-surface-09)]"
+      className="scroll-mt-32 lg:scroll-mt-36 py-20 bg-[var(--vaden-surface-09)]"
       ref={ref as React.RefObject<HTMLElement>}
     >
       <div className="container mx-auto px-6 max-w-7xl">
+        <div data-scroll-anchor="true" className="relative top-16 h-0 lg:top-0" />
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           <div
             className={`lg:col-span-7 transition-all duration-700 ${

@@ -5,11 +5,13 @@
 */
 
 import { useEffect, useMemo, useState } from "react";
+import type { MouseEvent } from "react";
 import { ChevronDown, Mail, Menu, Phone, Search, X } from "lucide-react";
 import { useI18n } from "@/contexts/I18nContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useLocation } from "wouter";
 import { asRecordArray, asString, useTemplateBackedPageContent } from "@/lib/pageContent";
+import { extractHashFromHref, isInternalHashHref, scrollToHashTarget } from "@/lib/hashScroll";
 import { usePublicSiteSettings } from "@/lib/siteSettings";
 import BrandLogo from "@/components/BrandLogo";
 
@@ -65,7 +67,7 @@ const REAL_PRODUCT_CATEGORIES = [
 const Navbar = () => {
   const { language, setLanguage } = useI18n();
   const { theme, setTheme } = useTheme();
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
   const { metadata } = useTemplateBackedPageContent<NavbarMetadata>("layout.navbar");
   const siteSettings = usePublicSiteSettings();
 
@@ -166,6 +168,19 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const applyHashScroll = () => {
+      if (window.location.pathname !== "/" || !window.location.hash) return;
+      scrollToHashTarget(window.location.hash, { behavior: "auto", retries: 10 });
+    };
+
+    applyHashScroll();
+    window.addEventListener("hashchange", applyHashScroll);
+    return () => window.removeEventListener("hashchange", applyHashScroll);
+  }, [location]);
+
   const handleSearch = () => {
     if (searchQuery.trim()) {
       navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
@@ -174,8 +189,43 @@ const Navbar = () => {
     }
   };
 
+  const handleNavLinkClick = (
+    event: MouseEvent<HTMLAnchorElement>,
+    href: string,
+    options?: { closeMobile?: boolean },
+  ) => {
+    if (options?.closeMobile) {
+      setIsOpen(false);
+      setActiveDropdown(null);
+    }
+
+    if (!isInternalHashHref(href)) return;
+    event.preventDefault();
+
+    const hash = extractHashFromHref(href);
+    if (!hash) return;
+
+    if (typeof window !== "undefined" && window.location.pathname === "/") {
+      scrollToHashTarget(hash, { behavior: "smooth", retries: 6 });
+      if (window.location.hash !== hash) {
+        window.history.replaceState(
+          window.history.state,
+          "",
+          `${window.location.pathname}${window.location.search}${hash}`,
+        );
+      }
+      return;
+    }
+
+    navigate(`/${hash}`);
+    window.setTimeout(() => {
+      scrollToHashTarget(hash, { behavior: "smooth", retries: 10 });
+    }, 120);
+  };
+
   return (
     <nav
+      data-site-navbar="true"
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled
           ? "bg-[var(--vaden-surface-08)] shadow-[0_4px_20px_rgba(0,0,0,0.4)] border-b border-[oklch(0.60_0.18_42)/20]"
@@ -278,6 +328,7 @@ const Navbar = () => {
                 >
                   <a
                     href={normalizeNavHref(item.href)}
+                    onClick={(event) => handleNavLinkClick(event, normalizeNavHref(item.href))}
                     className="px-4 py-2 text-[var(--vaden-text-dim)] hover:text-[oklch(0.60_0.18_42)] transition flex items-center gap-1 rounded-lg hover:bg-[var(--vaden-surface-14)]"
                   >
                     {label}
@@ -300,6 +351,9 @@ const Navbar = () => {
                         <a
                           key={`${label}-${childIndex}`}
                           href={normalizeNavHref(child.href)}
+                          onClick={(event) =>
+                            handleNavLinkClick(event, normalizeNavHref(child.href))
+                          }
                           className="flex items-center gap-2 px-4 py-2.5 text-[var(--vaden-text-dim)] hover:text-[oklch(0.60_0.18_42)] hover:bg-[var(--vaden-surface-14)] transition group/item"
                         >
                           <span className="w-0 group-hover/item:w-2 h-px bg-[oklch(0.60_0.18_42)] transition-all duration-200 inline-block flex-shrink-0"></span>
@@ -380,9 +434,8 @@ const Navbar = () => {
                       <a
                         href={normalizeNavHref(item.href)}
                         className="flex-1 px-4 py-2 text-[var(--vaden-on-surface)] hover:text-orange-500 hover:bg-[var(--vaden-surface-14)] rounded-lg transition"
-                        onClick={() => {
-                          setIsOpen(false);
-                          setActiveDropdown(null);
+                        onClick={(event) => {
+                          handleNavLinkClick(event, normalizeNavHref(item.href), { closeMobile: true });
                         }}
                       >
                         {label}
@@ -399,9 +452,8 @@ const Navbar = () => {
                     <a
                       href={normalizeNavHref(item.href)}
                       className="block w-full text-left px-4 py-2 text-[var(--vaden-on-surface)] hover:text-orange-500 hover:bg-[var(--vaden-surface-14)] rounded-lg transition"
-                      onClick={() => {
-                        setIsOpen(false);
-                        setActiveDropdown(null);
+                      onClick={(event) => {
+                        handleNavLinkClick(event, normalizeNavHref(item.href), { closeMobile: true });
                       }}
                     >
                       {label}
@@ -414,9 +466,10 @@ const Navbar = () => {
                           key={`${key}-child-${childIndex}`}
                           href={normalizeNavHref(child.href)}
                           className="block px-3 py-2 text-sm text-[var(--vaden-on-surface)]/85 hover:text-orange-500 hover:bg-[var(--vaden-surface-14)] rounded-md transition"
-                          onClick={() => {
-                            setIsOpen(false);
-                            setActiveDropdown(null);
+                          onClick={(event) => {
+                            handleNavLinkClick(event, normalizeNavHref(child.href), {
+                              closeMobile: true,
+                            });
                           }}
                         >
                           {getLabel(child)}

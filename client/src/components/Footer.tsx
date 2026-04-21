@@ -81,7 +81,7 @@ export default function Footer() {
   return (
     <footer
       id="iletisim-bilgileri"
-      className="scroll-mt-28 bg-[var(--vaden-surface-08)] border-t border-[var(--vaden-border-soft)]"
+      className="scroll-mt-32 lg:scroll-mt-36 bg-[var(--vaden-surface-08)] border-t border-[var(--vaden-border-soft)]"
     >
       <div className="container mx-auto px-6 max-w-7xl py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">

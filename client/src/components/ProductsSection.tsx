@@ -76,10 +76,17 @@ export default function ProductsSection() {
   );
 
   return (
-    <section id="urunler" className="py-20 bg-[var(--vaden-surface-10)]" ref={ref as React.RefObject<HTMLElement>}>
+    <section
+      id="urunler"
+      className="scroll-mt-32 lg:scroll-mt-36 py-20 bg-[var(--vaden-surface-10)]"
+      ref={ref as React.RefObject<HTMLElement>}
+    >
       <div className="container mx-auto px-6 max-w-7xl">
+        <div data-scroll-anchor="true" className="relative top-16 h-0 lg:top-0" />
         {/* Section header */}
-        <div className={`mb-12 transition-all duration-700 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
+        <div
+          className={`mb-12 transition-all duration-700 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
+        >
           <div className="flex items-center gap-3 mb-3">
             <span className="w-10 h-0.5 bg-[oklch(0.60_0.18_42)]"></span>
             <span className="text-[oklch(0.60_0.18_42)] font-['Barlow_Condensed'] font-bold text-sm tracking-[0.2em] uppercase">

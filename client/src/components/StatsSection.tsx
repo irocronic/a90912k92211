@@ -76,7 +76,7 @@ export default function StatsSection() {
   return (
     <section
       id="neden-brac"
-      className="py-20 bg-[var(--vaden-surface-09)] relative overflow-hidden"
+      className="scroll-mt-32 lg:scroll-mt-36 py-20 bg-[var(--vaden-surface-09)] relative overflow-hidden"
       ref={ref as React.RefObject<HTMLElement>}
     >
       <div className="absolute inset-0 opacity-5">
@@ -90,6 +90,7 @@ export default function StatsSection() {
       </div>
 
       <div className="container mx-auto px-6 max-w-7xl relative z-10">
+        <div data-scroll-anchor="true" className="relative top-16 h-0 lg:top-0" />
         <div
           className={`mb-12 text-center transition-all duration-700 ${
             isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
