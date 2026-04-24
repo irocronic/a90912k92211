@@ -66,7 +66,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--vaden-surface-10)]">
+    <div className="min-h-screen bg-[var(--brac-surface-10)]">
       <Helmet>
         <title>{seo.title}</title>
         <meta name="description" content={seo.description} />

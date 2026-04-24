@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
@@ -87,6 +87,44 @@ export async function getUserByOpenId(openId: string) {
   const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
 
   return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getUserByEmail(email: string) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get user by email: database not available");
+    return undefined;
+  }
+
+  const result = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, email.toLowerCase()))
+    .limit(1);
+
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getManualUserByIdentifier(identifier: string) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get manual user: database not available");
+    return undefined;
+  }
+
+  const normalized = identifier.trim().toLowerCase();
+  const result = await db
+    .select()
+    .from(users)
+    .where(
+      or(
+        eq(users.openId, identifier.trim()),
+        eq(users.email, normalized),
+      ),
+    )
+    .limit(5);
+
+  return result.find((user) => user.loginMethod === "manual");
 }
 
 // TODO: add feature queries here as your schema grows.

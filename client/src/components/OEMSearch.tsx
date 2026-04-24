@@ -52,7 +52,7 @@ export default function OEMSearch() {
   };
 
   return (
-    <div className="bg-[var(--vaden-surface-09)] border-y border-[var(--vaden-border-soft)]">
+    <div className="bg-[var(--brac-surface-09)] border-y border-[var(--brac-border-soft)]">
       <div className="container mx-auto px-6 max-w-7xl py-6">
         <div className="flex flex-col md:flex-row items-center gap-4">
           <div className="flex items-center gap-3 flex-shrink-0">
@@ -61,7 +61,7 @@ export default function OEMSearch() {
               <p className="text-[oklch(0.60_0.18_42)] font-['Barlow_Condensed'] font-bold text-xs tracking-[0.2em] uppercase">
                 {asString(metadata.tag)}
               </p>
-              <p className="text-[var(--vaden-on-surface)] font-['Barlow_Condensed'] font-bold text-lg tracking-wide uppercase">
+              <p className="text-[var(--brac-on-surface)] font-['Barlow_Condensed'] font-bold text-lg tracking-wide uppercase">
                 {asString(metadata.title)}
               </p>
             </div>
@@ -83,7 +83,7 @@ export default function OEMSearch() {
             />
             <button
               onClick={() => handleSearch(query)}
-              className="bg-[oklch(0.60_0.18_42)] hover:bg-[oklch(0.50_0.18_42)] text-[var(--vaden-on-accent)] px-6 py-3.5 font-['Barlow_Condensed'] font-bold tracking-wide uppercase text-sm transition-all flex items-center gap-2 flex-shrink-0"
+              className="bg-[oklch(0.60_0.18_42)] hover:bg-[oklch(0.50_0.18_42)] text-[var(--brac-on-accent)] px-6 py-3.5 font-['Barlow_Condensed'] font-bold tracking-wide uppercase text-sm transition-all flex items-center gap-2 flex-shrink-0"
             >
               {asString(metadata.buttonText, "ARA")}
               <ArrowRight size={16} />

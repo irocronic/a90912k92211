@@ -352,7 +352,7 @@ function ProductShowcaseCard({
   return (
     <Link
       href={`/product/${entry.display.slug}`}
-      className="group flex h-full flex-col overflow-hidden rounded-[28px] border border-[var(--vaden-border)] bg-[var(--vaden-surface-14)] shadow-[0_28px_80px_-52px_rgba(15,23,42,0.45)] transition-all duration-500 hover:-translate-y-1 hover:border-[oklch(0.60_0.18_42)]"
+      className="group flex h-full flex-col overflow-hidden rounded-[28px] border border-[var(--brac-border)] bg-[var(--brac-surface-14)] shadow-[0_28px_80px_-52px_rgba(15,23,42,0.45)] transition-all duration-500 hover:-translate-y-1 hover:border-[oklch(0.60_0.18_42)]"
     >
       <div className="relative h-52 overflow-hidden">
         <img
@@ -362,7 +362,7 @@ function ProductShowcaseCard({
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[rgba(8,15,25,0.92)] via-[rgba(8,15,25,0.35)] to-transparent" />
         <div className="absolute left-4 top-4 flex flex-wrap gap-2">
-          <span className="rounded-full bg-[oklch(0.60_0.18_42)] px-3 py-1 font-['Barlow_Condensed'] text-xs font-bold uppercase tracking-[0.18em] text-[var(--vaden-on-accent)]">
+          <span className="rounded-full bg-[oklch(0.60_0.18_42)] px-3 py-1 font-['Barlow_Condensed'] text-xs font-bold uppercase tracking-[0.18em] text-[var(--brac-on-accent)]">
             {getProductCategoryLabel(entry.display)}
           </span>
           {entry.raw.sourceCode ? (
@@ -374,25 +374,25 @@ function ProductShowcaseCard({
       </div>
 
       <div className="flex flex-1 flex-col p-5">
-        <div className="mb-4 flex flex-wrap gap-2 text-xs text-[var(--vaden-text-muted)]">
-          <span className="rounded-full border border-[var(--vaden-border-soft)] px-3 py-1">
+        <div className="mb-4 flex flex-wrap gap-2 text-xs text-[var(--brac-text-muted)]">
+          <span className="rounded-full border border-[var(--brac-border-soft)] px-3 py-1">
             {copy.brandLabel}: {entry.brand}
           </span>
-          <span className="rounded-full border border-[var(--vaden-border-soft)] px-3 py-1">
+          <span className="rounded-full border border-[var(--brac-border-soft)] px-3 py-1">
             {entry.oemCodeCount} {copy.oemCodesLabel}
           </span>
-          <span className="rounded-full border border-[var(--vaden-border-soft)] px-3 py-1">
+          <span className="rounded-full border border-[var(--brac-border-soft)] px-3 py-1">
             {entry.manufacturerCount} {copy.manufacturersLabel}
           </span>
         </div>
 
-        <h2 className="font-['Barlow_Condensed'] text-3xl font-black uppercase leading-none text-[var(--vaden-on-surface)]">
+        <h2 className="font-['Barlow_Condensed'] text-3xl font-black uppercase leading-none text-[var(--brac-on-surface)]">
           {entry.display.title}
         </h2>
         <p className="mt-2 font-['Barlow_Condensed'] text-xl font-bold uppercase leading-tight text-[oklch(0.60_0.18_42)]">
           {entry.display.subtitle}
         </p>
-        <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-[var(--vaden-text-muted)]">
+        <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-[var(--brac-text-muted)]">
           {entry.display.description}
         </p>
 
@@ -676,7 +676,7 @@ export default function ProductsCatalog() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--vaden-surface-10)]">
+    <div className="min-h-screen bg-[var(--brac-surface-10)]">
       <Helmet>
         <title>{copy.pageTitle}</title>
         <meta name="description" content={copy.pageDescription} />
@@ -689,7 +689,7 @@ export default function ProductsCatalog() {
 
       <Navbar />
 
-      <div className="bg-[linear-gradient(180deg,var(--vaden-surface-09)_0%,var(--vaden-surface-10)_100%)] pt-[80px] lg:pt-[113px]">
+      <div className="bg-[linear-gradient(180deg,var(--brac-surface-09)_0%,var(--brac-surface-10)_100%)] pt-[80px] lg:pt-[113px]">
         <div className="container mx-auto max-w-7xl px-6 py-6">
           <div className="flex items-center gap-2 text-sm">
             <button
@@ -699,7 +699,7 @@ export default function ProductsCatalog() {
               {copy.breadcrumbHome}
             </button>
             <ChevronRight size={16} className="text-[oklch(0.40_0.01_250)]" />
-            <span className="text-[var(--vaden-text-muted)]">{copy.breadcrumbCurrent}</span>
+            <span className="text-[var(--brac-text-muted)]">{copy.breadcrumbCurrent}</span>
           </div>
         </div>
 
@@ -711,77 +711,77 @@ export default function ProductsCatalog() {
                 {copy.heroLabel}
               </span>
             </div>
-            <h1 className="font-['Barlow_Condensed'] text-5xl font-black uppercase leading-none text-[var(--vaden-on-surface)] md:text-6xl">
+            <h1 className="font-['Barlow_Condensed'] text-5xl font-black uppercase leading-none text-[var(--brac-on-surface)] md:text-6xl">
               {copy.heroHeading}
             </h1>
-            <p className="mt-4 max-w-2xl text-lg leading-relaxed text-[var(--vaden-text-muted)]">
+            <p className="mt-4 max-w-2xl text-lg leading-relaxed text-[var(--brac-text-muted)]">
               {copy.heroDescription}
             </p>
 
             <div className="mt-8 grid gap-4 sm:grid-cols-3">
-              <div className="rounded-[24px] border border-[var(--vaden-border)] bg-[var(--vaden-surface-14)] p-5 shadow-[0_24px_60px_-48px_rgba(15,23,42,0.45)]">
+              <div className="rounded-[24px] border border-[var(--brac-border)] bg-[var(--brac-surface-14)] p-5 shadow-[0_24px_60px_-48px_rgba(15,23,42,0.45)]">
                 <div className="mb-3 flex items-center gap-2 text-[oklch(0.60_0.18_42)]">
                   <Boxes size={16} />
                   <span className="font-['Barlow_Condensed'] text-xs font-bold uppercase tracking-[0.18em]">
                     BRAC
                   </span>
                 </div>
-                <div className="font-['Barlow_Condensed'] text-4xl font-black text-[var(--vaden-on-surface)]">
+                <div className="font-['Barlow_Condensed'] text-4xl font-black text-[var(--brac-on-surface)]">
                   {entries.length}
                 </div>
-                <p className="mt-1 text-sm text-[var(--vaden-text-muted)]">
+                <p className="mt-1 text-sm text-[var(--brac-text-muted)]">
                   {copy.productsText}
                 </p>
               </div>
 
-              <div className="rounded-[24px] border border-[var(--vaden-border)] bg-[var(--vaden-surface-14)] p-5 shadow-[0_24px_60px_-48px_rgba(15,23,42,0.45)]">
+              <div className="rounded-[24px] border border-[var(--brac-border)] bg-[var(--brac-surface-14)] p-5 shadow-[0_24px_60px_-48px_rgba(15,23,42,0.45)]">
                 <div className="mb-3 flex items-center gap-2 text-[oklch(0.60_0.18_42)]">
                   <Filter size={16} />
                   <span className="font-['Barlow_Condensed'] text-xs font-bold uppercase tracking-[0.18em]">
                     Filter
                   </span>
                 </div>
-                <div className="font-['Barlow_Condensed'] text-4xl font-black text-[var(--vaden-on-surface)]">
+                <div className="font-['Barlow_Condensed'] text-4xl font-black text-[var(--brac-on-surface)]">
                   {categoryOptions.length}
                 </div>
-                <p className="mt-1 text-sm text-[var(--vaden-text-muted)]">
+                <p className="mt-1 text-sm text-[var(--brac-text-muted)]">
                   {copy.categoriesMetric}
                 </p>
               </div>
 
-              <div className="rounded-[24px] border border-[var(--vaden-border)] bg-[var(--vaden-surface-14)] p-5 shadow-[0_24px_60px_-48px_rgba(15,23,42,0.45)]">
+              <div className="rounded-[24px] border border-[var(--brac-border)] bg-[var(--brac-surface-14)] p-5 shadow-[0_24px_60px_-48px_rgba(15,23,42,0.45)]">
                 <div className="mb-3 flex items-center gap-2 text-[oklch(0.60_0.18_42)]">
                   <Hash size={16} />
                   <span className="font-['Barlow_Condensed'] text-xs font-bold uppercase tracking-[0.18em]">
                     OEM
                   </span>
                 </div>
-                <div className="font-['Barlow_Condensed'] text-4xl font-black text-[var(--vaden-on-surface)]">
+                <div className="font-['Barlow_Condensed'] text-4xl font-black text-[var(--brac-on-surface)]">
                   {totalOemCodes}
                 </div>
-                <p className="mt-1 text-sm text-[var(--vaden-text-muted)]">
+                <p className="mt-1 text-sm text-[var(--brac-text-muted)]">
                   {copy.oemMetric}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="rounded-[32px] border border-[var(--vaden-border)] bg-[linear-gradient(180deg,var(--vaden-surface-14)_0%,var(--vaden-surface-12)_100%)] p-6 shadow-[0_36px_90px_-55px_rgba(15,23,42,0.5)]">
+          <div className="rounded-[32px] border border-[var(--brac-border)] bg-[linear-gradient(180deg,var(--brac-surface-14)_0%,var(--brac-surface-12)_100%)] p-6 shadow-[0_36px_90px_-55px_rgba(15,23,42,0.5)]">
             <div className="mb-5 flex items-start justify-between gap-4">
               <div>
                 <p className="font-['Barlow_Condensed'] text-sm font-bold uppercase tracking-[0.18em] text-[oklch(0.60_0.18_42)]">
                   BRAC OEM
                 </p>
-                <h2 className="mt-2 font-['Barlow_Condensed'] text-4xl font-black uppercase leading-none text-[var(--vaden-on-surface)]">
+                <h2 className="mt-2 font-['Barlow_Condensed'] text-4xl font-black uppercase leading-none text-[var(--brac-on-surface)]">
                   {copy.searchPanelTitle}
                 </h2>
               </div>
-              <div className="rounded-full border border-[var(--vaden-border-soft)] bg-[var(--vaden-surface-10)] px-4 py-2 text-xs text-[var(--vaden-text-muted)]">
+              <div className="rounded-full border border-[var(--brac-border-soft)] bg-[var(--brac-surface-10)] px-4 py-2 text-xs text-[var(--brac-text-muted)]">
                 {brandOptions.length} {copy.brandsMetric}
               </div>
             </div>
 
-            <p className="mb-5 max-w-xl text-sm leading-relaxed text-[var(--vaden-text-muted)]">
+            <p className="mb-5 max-w-xl text-sm leading-relaxed text-[var(--brac-text-muted)]">
               {copy.searchPanelDescription}
             </p>
 
@@ -801,7 +801,7 @@ export default function ProductsCatalog() {
               />
               <button
                 onClick={() => handleCatalogSearch(query)}
-                className="inline-flex min-w-[210px] items-center justify-center gap-2 rounded-[20px] bg-[oklch(0.60_0.18_42)] px-6 py-3.5 font-['Barlow_Condensed'] text-sm font-bold uppercase tracking-[0.16em] text-[var(--vaden-on-accent)] transition-colors hover:bg-[oklch(0.50_0.18_42)]"
+                className="inline-flex min-w-[210px] items-center justify-center gap-2 rounded-[20px] bg-[oklch(0.60_0.18_42)] px-6 py-3.5 font-['Barlow_Condensed'] text-sm font-bold uppercase tracking-[0.16em] text-[var(--brac-on-accent)] transition-colors hover:bg-[oklch(0.50_0.18_42)]"
               >
                 {copy.searchButton}
                 <ArrowRight size={16} />
@@ -815,12 +815,12 @@ export default function ProductsCatalog() {
                     ? navigate(`/search?q=${encodeURIComponent(query.trim())}`)
                     : navigate("/search")
                 }
-                className="inline-flex items-center gap-2 rounded-full border border-[var(--vaden-border)] bg-[var(--vaden-surface-10)] px-4 py-2 text-sm font-semibold text-[var(--vaden-on-surface)] transition-colors hover:border-[oklch(0.60_0.18_42)] hover:text-[oklch(0.60_0.18_42)]"
+                className="inline-flex items-center gap-2 rounded-full border border-[var(--brac-border)] bg-[var(--brac-surface-10)] px-4 py-2 text-sm font-semibold text-[var(--brac-on-surface)] transition-colors hover:border-[oklch(0.60_0.18_42)] hover:text-[oklch(0.60_0.18_42)]"
               >
                 <PackageSearch size={15} />
                 {copy.deepSearchButton}
               </button>
-              <span className="text-xs text-[var(--vaden-text-muted)]">
+              <span className="text-xs text-[var(--brac-text-muted)]">
                 {copy.quickSuggestionsTitle}
               </span>
             </div>
@@ -830,7 +830,7 @@ export default function ProductsCatalog() {
                 <button
                   key={suggestion.id}
                   onClick={() => handleCatalogSearch(suggestion.value)}
-                  className="rounded-full border border-[var(--vaden-border)] bg-[var(--vaden-surface-10)] px-4 py-2 text-sm text-[var(--vaden-on-surface)] transition-all hover:-translate-y-0.5 hover:border-[oklch(0.60_0.18_42)] hover:text-[oklch(0.60_0.18_42)]"
+                  className="rounded-full border border-[var(--brac-border)] bg-[var(--brac-surface-10)] px-4 py-2 text-sm text-[var(--brac-on-surface)] transition-all hover:-translate-y-0.5 hover:border-[oklch(0.60_0.18_42)] hover:text-[oklch(0.60_0.18_42)]"
                 >
                   {suggestion.value}
                 </button>
@@ -842,16 +842,16 @@ export default function ProductsCatalog() {
 
       <div className="container mx-auto max-w-7xl px-6 py-12">
         <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
-          <section className="rounded-[30px] border border-[var(--vaden-border)] bg-[var(--vaden-surface-14)] p-6 shadow-[0_30px_90px_-60px_rgba(15,23,42,0.45)]">
+          <section className="rounded-[30px] border border-[var(--brac-border)] bg-[var(--brac-surface-14)] p-6 shadow-[0_30px_90px_-60px_rgba(15,23,42,0.45)]">
             <div className="mb-5 flex items-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[oklch(0.60_0.18_42)/0.16] text-[oklch(0.60_0.18_42)]">
                 <Boxes size={18} />
               </div>
               <div>
-                <h2 className="font-['Barlow_Condensed'] text-4xl font-black uppercase leading-none text-[var(--vaden-on-surface)]">
+                <h2 className="font-['Barlow_Condensed'] text-4xl font-black uppercase leading-none text-[var(--brac-on-surface)]">
                   {copy.categoryPanelTitle}
                 </h2>
-                <p className="mt-1 text-sm text-[var(--vaden-text-muted)]">
+                <p className="mt-1 text-sm text-[var(--brac-text-muted)]">
                   {copy.categoryPanelDescription}
                 </p>
               </div>
@@ -862,7 +862,7 @@ export default function ProductsCatalog() {
               value={categorySearch}
               onChange={(event) => setCategorySearch(event.target.value)}
               placeholder={copy.categorySearchPlaceholder}
-              className="mb-5 w-full rounded-[20px] border border-[var(--vaden-border)] bg-[var(--vaden-surface-10)] px-5 py-3.5 text-sm text-[var(--vaden-on-surface)] outline-none transition-colors placeholder:text-[var(--vaden-text-placeholder)] focus:border-[oklch(0.60_0.18_42)]"
+              className="mb-5 w-full rounded-[20px] border border-[var(--brac-border)] bg-[var(--brac-surface-10)] px-5 py-3.5 text-sm text-[var(--brac-on-surface)] outline-none transition-colors placeholder:text-[var(--brac-text-placeholder)] focus:border-[oklch(0.60_0.18_42)]"
             />
 
             <div className="grid gap-3 sm:grid-cols-2">
@@ -877,13 +877,13 @@ export default function ProductsCatalog() {
                     className={`rounded-[22px] border px-4 py-4 text-left transition-all ${
                       active
                         ? "border-[oklch(0.60_0.18_42)] bg-[oklch(0.60_0.18_42)]/10"
-                        : "border-[var(--vaden-border)] bg-[var(--vaden-surface-10)] hover:border-[oklch(0.60_0.18_42)]"
+                        : "border-[var(--brac-border)] bg-[var(--brac-surface-10)] hover:border-[oklch(0.60_0.18_42)]"
                     }`}
                   >
-                    <div className="font-['Barlow_Condensed'] text-2xl font-black uppercase leading-none text-[var(--vaden-on-surface)]">
+                    <div className="font-['Barlow_Condensed'] text-2xl font-black uppercase leading-none text-[var(--brac-on-surface)]">
                       {category.label}
                     </div>
-                    <div className="mt-2 text-sm text-[var(--vaden-text-muted)]">
+                    <div className="mt-2 text-sm text-[var(--brac-text-muted)]">
                       {category.count} {copy.productsText}
                     </div>
                   </button>
@@ -893,23 +893,23 @@ export default function ProductsCatalog() {
 
             <button
               onClick={scrollToCatalogResults}
-              className="mt-5 inline-flex min-w-[210px] items-center justify-center gap-2 rounded-[20px] bg-[oklch(0.60_0.18_42)] px-6 py-3.5 font-['Barlow_Condensed'] text-sm font-bold uppercase tracking-[0.16em] text-[var(--vaden-on-accent)] transition-colors hover:bg-[oklch(0.50_0.18_42)]"
+              className="mt-5 inline-flex min-w-[210px] items-center justify-center gap-2 rounded-[20px] bg-[oklch(0.60_0.18_42)] px-6 py-3.5 font-['Barlow_Condensed'] text-sm font-bold uppercase tracking-[0.16em] text-[var(--brac-on-accent)] transition-colors hover:bg-[oklch(0.50_0.18_42)]"
             >
               {copy.searchButton}
               <ArrowRight size={16} />
             </button>
           </section>
 
-          <section className="rounded-[30px] border border-[var(--vaden-border)] bg-[var(--vaden-surface-14)] p-6 shadow-[0_30px_90px_-60px_rgba(15,23,42,0.45)]">
+          <section className="rounded-[30px] border border-[var(--brac-border)] bg-[var(--brac-surface-14)] p-6 shadow-[0_30px_90px_-60px_rgba(15,23,42,0.45)]">
             <div className="mb-5 flex items-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[oklch(0.60_0.18_42)/0.16] text-[oklch(0.60_0.18_42)]">
                 <Factory size={18} />
               </div>
               <div>
-                <h2 className="font-['Barlow_Condensed'] text-4xl font-black uppercase leading-none text-[var(--vaden-on-surface)]">
+                <h2 className="font-['Barlow_Condensed'] text-4xl font-black uppercase leading-none text-[var(--brac-on-surface)]">
                   {copy.brandPanelTitle}
                 </h2>
-                <p className="mt-1 text-sm text-[var(--vaden-text-muted)]">
+                <p className="mt-1 text-sm text-[var(--brac-text-muted)]">
                   {copy.brandPanelDescription}
                 </p>
               </div>
@@ -920,7 +920,7 @@ export default function ProductsCatalog() {
               value={brandSearch}
               onChange={(event) => setBrandSearch(event.target.value)}
               placeholder={copy.brandSearchPlaceholder}
-              className="mb-5 w-full rounded-[20px] border border-[var(--vaden-border)] bg-[var(--vaden-surface-10)] px-5 py-3.5 text-sm text-[var(--vaden-on-surface)] outline-none transition-colors placeholder:text-[var(--vaden-text-placeholder)] focus:border-[oklch(0.60_0.18_42)]"
+              className="mb-5 w-full rounded-[20px] border border-[var(--brac-border)] bg-[var(--brac-surface-10)] px-5 py-3.5 text-sm text-[var(--brac-on-surface)] outline-none transition-colors placeholder:text-[var(--brac-text-placeholder)] focus:border-[oklch(0.60_0.18_42)]"
             />
 
             <div className="grid max-h-[420px] gap-3 overflow-y-auto pr-1 sm:grid-cols-2">
@@ -933,13 +933,13 @@ export default function ProductsCatalog() {
                     className={`flex items-center justify-between rounded-[22px] border px-4 py-4 text-left transition-all ${
                       active
                         ? "border-[oklch(0.60_0.18_42)] bg-[oklch(0.60_0.18_42)]/10"
-                        : "border-[var(--vaden-border)] bg-[var(--vaden-surface-10)] hover:border-[oklch(0.60_0.18_42)]"
+                        : "border-[var(--brac-border)] bg-[var(--brac-surface-10)] hover:border-[oklch(0.60_0.18_42)]"
                     }`}
                   >
-                    <span className="font-semibold text-[var(--vaden-on-surface)]">
+                    <span className="font-semibold text-[var(--brac-on-surface)]">
                       {brand.value}
                     </span>
-                    <span className="rounded-full bg-[var(--vaden-surface-14)] px-3 py-1 text-xs text-[var(--vaden-text-muted)]">
+                    <span className="rounded-full bg-[var(--brac-surface-14)] px-3 py-1 text-xs text-[var(--brac-text-muted)]">
                       {brand.count}
                     </span>
                   </button>
@@ -949,7 +949,7 @@ export default function ProductsCatalog() {
 
             <button
               onClick={scrollToCatalogResults}
-              className="mt-5 inline-flex min-w-[210px] items-center justify-center gap-2 rounded-[20px] bg-[oklch(0.60_0.18_42)] px-6 py-3.5 font-['Barlow_Condensed'] text-sm font-bold uppercase tracking-[0.16em] text-[var(--vaden-on-accent)] transition-colors hover:bg-[oklch(0.50_0.18_42)]"
+              className="mt-5 inline-flex min-w-[210px] items-center justify-center gap-2 rounded-[20px] bg-[oklch(0.60_0.18_42)] px-6 py-3.5 font-['Barlow_Condensed'] text-sm font-bold uppercase tracking-[0.16em] text-[var(--brac-on-accent)] transition-colors hover:bg-[oklch(0.50_0.18_42)]"
             >
               {copy.searchButton}
               <ArrowRight size={16} />
@@ -957,7 +957,7 @@ export default function ProductsCatalog() {
           </section>
         </div>
 
-        <section className="mt-6 rounded-[30px] border border-[var(--vaden-border)] bg-[var(--vaden-surface-14)] p-6 shadow-[0_30px_90px_-60px_rgba(15,23,42,0.45)]">
+        <section className="mt-6 rounded-[30px] border border-[var(--brac-border)] bg-[var(--brac-surface-14)] p-6 shadow-[0_30px_90px_-60px_rgba(15,23,42,0.45)]">
           <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
             <div>
               <p className="font-['Barlow_Condensed'] text-sm font-bold uppercase tracking-[0.18em] text-[oklch(0.60_0.18_42)]">
@@ -967,7 +967,7 @@ export default function ProductsCatalog() {
                 {query.trim() ? (
                   <button
                     onClick={() => setQuery("")}
-                    className="inline-flex items-center gap-2 rounded-full border border-[var(--vaden-border)] bg-[var(--vaden-surface-10)] px-4 py-2 text-sm text-[var(--vaden-on-surface)]"
+                    className="inline-flex items-center gap-2 rounded-full border border-[var(--brac-border)] bg-[var(--brac-surface-10)] px-4 py-2 text-sm text-[var(--brac-on-surface)]"
                   >
                     OEM: {query.trim()}
                     <X size={14} />
@@ -976,7 +976,7 @@ export default function ProductsCatalog() {
                 {selectedCategory ? (
                   <button
                     onClick={() => setSelectedCategory(null)}
-                    className="inline-flex items-center gap-2 rounded-full border border-[var(--vaden-border)] bg-[var(--vaden-surface-10)] px-4 py-2 text-sm text-[var(--vaden-on-surface)]"
+                    className="inline-flex items-center gap-2 rounded-full border border-[var(--brac-border)] bg-[var(--brac-surface-10)] px-4 py-2 text-sm text-[var(--brac-on-surface)]"
                   >
                     {categoryOptions.find((item) => item.value === selectedCategory)?.label ??
                       selectedCategory}
@@ -986,14 +986,14 @@ export default function ProductsCatalog() {
                 {selectedBrand ? (
                   <button
                     onClick={() => setSelectedBrand(null)}
-                    className="inline-flex items-center gap-2 rounded-full border border-[var(--vaden-border)] bg-[var(--vaden-surface-10)] px-4 py-2 text-sm text-[var(--vaden-on-surface)]"
+                    className="inline-flex items-center gap-2 rounded-full border border-[var(--brac-border)] bg-[var(--brac-surface-10)] px-4 py-2 text-sm text-[var(--brac-on-surface)]"
                   >
                     {selectedBrand}
                     <X size={14} />
                   </button>
                 ) : null}
                 {!hasActiveFilters ? (
-                  <span className="text-sm text-[var(--vaden-text-muted)]">
+                  <span className="text-sm text-[var(--brac-text-muted)]">
                     {copy.filtersEmpty}
                   </span>
                 ) : null}
@@ -1016,8 +1016,8 @@ export default function ProductsCatalog() {
                       onClick={() => setSortMode(mode)}
                       className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
                         active
-                          ? "bg-[oklch(0.60_0.18_42)] text-[var(--vaden-on-accent)]"
-                          : "border border-[var(--vaden-border)] bg-[var(--vaden-surface-10)] text-[var(--vaden-on-surface)] hover:border-[oklch(0.60_0.18_42)]"
+                          ? "bg-[oklch(0.60_0.18_42)] text-[var(--brac-on-accent)]"
+                          : "border border-[var(--brac-border)] bg-[var(--brac-surface-10)] text-[var(--brac-on-surface)] hover:border-[oklch(0.60_0.18_42)]"
                       }`}
                     >
                       {label}
@@ -1028,7 +1028,7 @@ export default function ProductsCatalog() {
 
               <button
                 onClick={clearFilters}
-                className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--vaden-text-muted)] transition-colors hover:text-[oklch(0.60_0.18_42)]"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--brac-text-muted)] transition-colors hover:text-[oklch(0.60_0.18_42)]"
               >
                 <X size={14} />
                 {copy.clearFilters}
@@ -1038,16 +1038,16 @@ export default function ProductsCatalog() {
         </section>
 
         <div className="mt-6 grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-          <section className="rounded-[32px] border border-[var(--vaden-border)] bg-[linear-gradient(180deg,var(--vaden-surface-14)_0%,var(--vaden-surface-12)_100%)] p-6 shadow-[0_34px_90px_-60px_rgba(15,23,42,0.5)]">
+          <section className="rounded-[32px] border border-[var(--brac-border)] bg-[linear-gradient(180deg,var(--brac-surface-14)_0%,var(--brac-surface-12)_100%)] p-6 shadow-[0_34px_90px_-60px_rgba(15,23,42,0.5)]">
             <div className="mb-6 flex items-start gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[oklch(0.60_0.18_42)/0.16] text-[oklch(0.60_0.18_42)]">
                 <Sparkles size={18} />
               </div>
               <div>
-                <h2 className="font-['Barlow_Condensed'] text-4xl font-black uppercase leading-none text-[var(--vaden-on-surface)]">
+                <h2 className="font-['Barlow_Condensed'] text-4xl font-black uppercase leading-none text-[var(--brac-on-surface)]">
                   {copy.recommendationTitle}
                 </h2>
-                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--vaden-text-muted)]">
+                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--brac-text-muted)]">
                   {copy.recommendationSubtitle}
                 </p>
               </div>
@@ -1060,16 +1060,16 @@ export default function ProductsCatalog() {
             </div>
           </section>
 
-          <section className="rounded-[32px] border border-[var(--vaden-border)] bg-[linear-gradient(180deg,var(--vaden-surface-12)_0%,var(--vaden-surface-14)_100%)] p-6 text-[var(--vaden-on-surface)] shadow-[0_34px_90px_-60px_rgba(15,23,42,0.35)]">
+          <section className="rounded-[32px] border border-[var(--brac-border)] bg-[linear-gradient(180deg,var(--brac-surface-12)_0%,var(--brac-surface-14)_100%)] p-6 text-[var(--brac-on-surface)] shadow-[0_34px_90px_-60px_rgba(15,23,42,0.35)]">
             <div className="mb-6 flex items-start gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[oklch(0.60_0.18_42)/0.16] text-[oklch(0.60_0.18_42)]">
                 <Clock3 size={18} />
               </div>
               <div>
-                <h2 className="font-['Barlow_Condensed'] text-4xl font-black uppercase leading-none text-[var(--vaden-on-surface)]">
+                <h2 className="font-['Barlow_Condensed'] text-4xl font-black uppercase leading-none text-[var(--brac-on-surface)]">
                   {copy.recentTitle}
                 </h2>
-                <p className="mt-2 max-w-xl text-sm leading-relaxed text-[var(--vaden-text-muted)]">
+                <p className="mt-2 max-w-xl text-sm leading-relaxed text-[var(--brac-text-muted)]">
                   {copy.recentSubtitle}
                 </p>
               </div>
@@ -1080,7 +1080,7 @@ export default function ProductsCatalog() {
                 <Link
                   key={entry.raw.id}
                   href={`/product/${entry.display.slug}`}
-                  className="group flex items-center gap-4 rounded-[24px] border border-[var(--vaden-border)] bg-[var(--vaden-surface-12)] p-4 transition-all hover:border-[oklch(0.60_0.18_42)] hover:bg-[var(--vaden-surface-10)]"
+                  className="group flex items-center gap-4 rounded-[24px] border border-[var(--brac-border)] bg-[var(--brac-surface-12)] p-4 transition-all hover:border-[oklch(0.60_0.18_42)] hover:bg-[var(--brac-surface-10)]"
                 >
                   <img
                     src={entry.display.image}
@@ -1091,16 +1091,16 @@ export default function ProductsCatalog() {
                     <p className="text-xs uppercase tracking-[0.16em] text-[oklch(0.60_0.18_42)]">
                       {entry.brand}
                     </p>
-                    <h3 className="mt-1 font-['Barlow_Condensed'] text-2xl font-black uppercase leading-none text-[var(--vaden-on-surface)]">
+                    <h3 className="mt-1 font-['Barlow_Condensed'] text-2xl font-black uppercase leading-none text-[var(--brac-on-surface)]">
                       {entry.display.title}
                     </h3>
-                    <p className="mt-1 line-clamp-2 text-sm text-[var(--vaden-text-muted)]">
+                    <p className="mt-1 line-clamp-2 text-sm text-[var(--brac-text-muted)]">
                       {entry.display.subtitle}
                     </p>
                   </div>
                   <ArrowRight
                     size={18}
-                    className="shrink-0 text-[var(--vaden-text-muted)] transition-transform group-hover:translate-x-1 group-hover:text-[oklch(0.60_0.18_42)]"
+                    className="shrink-0 text-[var(--brac-text-muted)] transition-transform group-hover:translate-x-1 group-hover:text-[oklch(0.60_0.18_42)]"
                   />
                 </Link>
               ))}
@@ -1114,14 +1114,14 @@ export default function ProductsCatalog() {
               <p className="font-['Barlow_Condensed'] text-sm font-bold uppercase tracking-[0.18em] text-[oklch(0.60_0.18_42)]">
                 BRAC Catalog
               </p>
-              <h2 className="mt-2 font-['Barlow_Condensed'] text-5xl font-black uppercase leading-none text-[var(--vaden-on-surface)]">
+              <h2 className="mt-2 font-['Barlow_Condensed'] text-5xl font-black uppercase leading-none text-[var(--brac-on-surface)]">
                 {copy.catalogTitle}
               </h2>
-              <p className="mt-2 text-sm text-[var(--vaden-text-muted)]">
+              <p className="mt-2 text-sm text-[var(--brac-text-muted)]">
                 {copy.catalogSubtitle}
               </p>
             </div>
-            <div className="rounded-full border border-[var(--vaden-border)] bg-[var(--vaden-surface-14)] px-5 py-3 text-sm text-[var(--vaden-on-surface)] shadow-[0_12px_40px_-32px_rgba(15,23,42,0.45)]">
+            <div className="rounded-full border border-[var(--brac-border)] bg-[var(--brac-surface-14)] px-5 py-3 text-sm text-[var(--brac-on-surface)] shadow-[0_12px_40px_-32px_rgba(15,23,42,0.45)]">
               {sortedEntries.length} {copy.productsText}
             </div>
           </div>
@@ -1131,17 +1131,17 @@ export default function ProductsCatalog() {
               <Loader2 className="h-8 w-8 animate-spin text-[oklch(0.60_0.18_42)]" />
             </div>
           ) : sortedEntries.length === 0 ? (
-            <div className="rounded-[28px] border border-[var(--vaden-border)] bg-[var(--vaden-surface-14)] p-10 text-center shadow-[0_24px_80px_-60px_rgba(15,23,42,0.45)]">
-              <h3 className="font-['Barlow_Condensed'] text-4xl font-black uppercase text-[var(--vaden-on-surface)]">
+            <div className="rounded-[28px] border border-[var(--brac-border)] bg-[var(--brac-surface-14)] p-10 text-center shadow-[0_24px_80px_-60px_rgba(15,23,42,0.45)]">
+              <h3 className="font-['Barlow_Condensed'] text-4xl font-black uppercase text-[var(--brac-on-surface)]">
                 {copy.noResultsTitle}
               </h3>
-              <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-[var(--vaden-text-muted)]">
+              <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-[var(--brac-text-muted)]">
                 {copy.noResultsDescription}
               </p>
               <div className="mt-6 flex flex-wrap justify-center gap-3">
                 <button
                   onClick={clearFilters}
-                  className="rounded-full bg-[oklch(0.60_0.18_42)] px-5 py-3 font-['Barlow_Condensed'] text-sm font-bold uppercase tracking-[0.16em] text-[var(--vaden-on-accent)]"
+                  className="rounded-full bg-[oklch(0.60_0.18_42)] px-5 py-3 font-['Barlow_Condensed'] text-sm font-bold uppercase tracking-[0.16em] text-[var(--brac-on-accent)]"
                 >
                   {copy.clearFilters}
                 </button>
@@ -1151,7 +1151,7 @@ export default function ProductsCatalog() {
                       ? navigate(`/search?q=${encodeURIComponent(query.trim())}`)
                       : navigate("/search")
                   }
-                  className="rounded-full border border-[var(--vaden-border)] px-5 py-3 text-sm font-semibold text-[var(--vaden-on-surface)]"
+                  className="rounded-full border border-[var(--brac-border)] px-5 py-3 text-sm font-semibold text-[var(--brac-on-surface)]"
                 >
                   {copy.deepSearchButton}
                 </button>
@@ -1159,8 +1159,8 @@ export default function ProductsCatalog() {
             </div>
           ) : (
             <>
-              <div className="mb-5 flex flex-col gap-3 rounded-[24px] border border-[var(--vaden-border)] bg-[var(--vaden-surface-14)] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="text-sm text-[var(--vaden-text-muted)]">
+              <div className="mb-5 flex flex-col gap-3 rounded-[24px] border border-[var(--brac-border)] bg-[var(--brac-surface-14)] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="text-sm text-[var(--brac-text-muted)]">
                   {buildPageRangeText(
                     copy.pageRangeText,
                     pageStart,
@@ -1169,7 +1169,7 @@ export default function ProductsCatalog() {
                     numberLocale,
                   )}
                 </div>
-                <div className="text-sm text-[var(--vaden-text-muted)]">
+                <div className="text-sm text-[var(--brac-text-muted)]">
                   {copy.pageLabel} {currentPage} / {totalPages}
                 </div>
               </div>
@@ -1180,11 +1180,11 @@ export default function ProductsCatalog() {
                 ))}
               </div>
 
-              <div className="mt-8 flex flex-col gap-4 rounded-[28px] border border-[var(--vaden-border)] bg-[var(--vaden-surface-14)] px-5 py-5 shadow-[0_24px_80px_-60px_rgba(15,23,42,0.35)] sm:flex-row sm:items-center sm:justify-between">
+              <div className="mt-8 flex flex-col gap-4 rounded-[28px] border border-[var(--brac-border)] bg-[var(--brac-surface-14)] px-5 py-5 shadow-[0_24px_80px_-60px_rgba(15,23,42,0.35)] sm:flex-row sm:items-center sm:justify-between">
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className="inline-flex items-center justify-center rounded-full border border-[var(--vaden-border)] px-5 py-3 text-sm font-semibold text-[var(--vaden-on-surface)] transition-colors hover:border-[oklch(0.60_0.18_42)] hover:text-[oklch(0.60_0.18_42)] disabled:cursor-not-allowed disabled:opacity-45"
+                  className="inline-flex items-center justify-center rounded-full border border-[var(--brac-border)] px-5 py-3 text-sm font-semibold text-[var(--brac-on-surface)] transition-colors hover:border-[oklch(0.60_0.18_42)] hover:text-[oklch(0.60_0.18_42)] disabled:cursor-not-allowed disabled:opacity-45"
                 >
                   {copy.pagePrevious}
                 </button>
@@ -1198,8 +1198,8 @@ export default function ProductsCatalog() {
                         onClick={() => handlePageChange(pageNumber)}
                         className={`h-11 min-w-[2.75rem] rounded-full px-4 text-sm font-semibold transition-colors ${
                           active
-                            ? "bg-[oklch(0.60_0.18_42)] text-[var(--vaden-on-accent)]"
-                            : "border border-[var(--vaden-border)] bg-[var(--vaden-surface-10)] text-[var(--vaden-on-surface)] hover:border-[oklch(0.60_0.18_42)] hover:text-[oklch(0.60_0.18_42)]"
+                            ? "bg-[oklch(0.60_0.18_42)] text-[var(--brac-on-accent)]"
+                            : "border border-[var(--brac-border)] bg-[var(--brac-surface-10)] text-[var(--brac-on-surface)] hover:border-[oklch(0.60_0.18_42)] hover:text-[oklch(0.60_0.18_42)]"
                         }`}
                       >
                         {pageNumber}
@@ -1211,7 +1211,7 @@ export default function ProductsCatalog() {
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className="inline-flex items-center justify-center rounded-full border border-[var(--vaden-border)] px-5 py-3 text-sm font-semibold text-[var(--vaden-on-surface)] transition-colors hover:border-[oklch(0.60_0.18_42)] hover:text-[oklch(0.60_0.18_42)] disabled:cursor-not-allowed disabled:opacity-45"
+                  className="inline-flex items-center justify-center rounded-full border border-[var(--brac-border)] px-5 py-3 text-sm font-semibold text-[var(--brac-on-surface)] transition-colors hover:border-[oklch(0.60_0.18_42)] hover:text-[oklch(0.60_0.18_42)] disabled:cursor-not-allowed disabled:opacity-45"
                 >
                   {copy.pageNext}
                 </button>

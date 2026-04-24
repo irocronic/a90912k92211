@@ -3,7 +3,7 @@
 ## Bölümler (Sections)
 
 ### 1. common
-- appName: "Vaden"
+- appName: "BRAC"
 - appDescription: "Hava Fren Sistemleri ve Otomotiv Parçaları"
 - language: "Dil"
 - theme: "Tema"
@@ -33,7 +33,7 @@
 - theme: "Tema"
 
 ### 3. home
-- heroTitle: "Vaden - Otomotiv Endüstrisinin Lider Üreticisi"
+- heroTitle: "BRAC - Otomotiv Endüstrisinin Lider Üreticisi"
 - heroSubtitle: "Yüksek kaliteli hava fren sistemleri ve otomotiv parçaları"
 - exploreProducts: "Ürünleri Keşfet"
 - aboutTitle: "Hakkımızda"
@@ -73,7 +73,7 @@
 - careers: "Kariyer"
 - contact: "İletişim"
 - followUs: "Bizi Takip Edin"
-- copyright: "© 2026 Vaden. Tüm Hakları Saklıdır."
+- copyright: "© 2026 BRAC. Tüm Hakları Saklıdır."
 - privacyPolicy: "Gizlilik Politikası"
 - termsOfService: "Kullanım Şartları"
 

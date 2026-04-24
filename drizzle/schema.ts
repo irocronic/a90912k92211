@@ -26,6 +26,9 @@ export const users = mysqlTable("users", {
   name: text("name"),
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
+  passwordHash: text("passwordHash"),
+  passwordResetRequired: int("passwordResetRequired").default(0).notNull(),
+  passwordUpdatedAt: timestamp("passwordUpdatedAt"),
   role: mysqlEnum("role", ["user", "content_editor", "super_admin", "admin"])
     .default("user")
     .notNull(),

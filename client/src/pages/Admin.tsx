@@ -37,8 +37,12 @@ export default function Admin() {
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [passwordChangeError, setPasswordChangeError] = useState<string | null>(null);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
   const canManageQuotes = Boolean(
-    user && hasAdminPermission(user.role, "settings:write"),
+    user && !user.passwordResetRequired && hasAdminPermission(user.role, "settings:write"),
   );
   const { data: unreadQuoteCount = 0 } = trpc.admin.quoteSubmissions.unreadCount.useQuery(
     undefined,
@@ -98,6 +102,18 @@ export default function Admin() {
     }
   }, [availableTabs, activeTab]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.matchMedia("(min-width: 768px)").matches) return;
+
+    const activeTrigger = document.getElementById(`admin-tab-trigger-${activeTab}`);
+    activeTrigger?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "center",
+    });
+  }, [activeTab]);
+
   const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -136,6 +152,50 @@ export default function Admin() {
     }
   };
 
+  const handleForcedPasswordChange = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setPasswordChangeError(null);
+
+    if (newPassword !== confirmNewPassword) {
+      setPasswordChangeError("Yeni sifre ve tekrar sifresi ayni olmalidir.");
+      return;
+    }
+
+    setIsChangingPassword(true);
+    try {
+      const response = await fetch("/api/admin/password/change", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          newPassword,
+        }),
+      });
+
+      const result = await response
+        .json()
+        .catch(() => ({ error: "Sifre guncellenemedi." }));
+
+      if (!response.ok) {
+        setPasswordChangeError(
+          typeof result.error === "string" ? result.error : "Sifre guncellenemedi.",
+        );
+        return;
+      }
+
+      setNewPassword("");
+      setConfirmNewPassword("");
+      await refresh();
+      navigate("/admin");
+    } catch (error) {
+      setPasswordChangeError("Sifre guncellenemedi.");
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
+
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen">Yükleniyor...</div>;
   }
@@ -147,18 +207,19 @@ export default function Admin() {
           <CardHeader>
             <CardTitle>Admin Girişi</CardTitle>
             <CardDescription>
-              Admin paneline erişmek için kullanıcı adı ve şifre girin.
+              Admin paneline erişmek için kullanıcı adı / e-posta ve şifre girin.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="admin-username">Kullanıcı adı</Label>
+                <Label htmlFor="admin-username">Kullanıcı adı / E-posta</Label>
                 <Input
                   id="admin-username"
                   value={username}
                   onChange={event => setUsername(event.target.value)}
                   autoComplete="username"
+                  placeholder="admin veya kullanici@firma.com"
                   required
                 />
               </div>
@@ -198,6 +259,58 @@ export default function Admin() {
     );
   }
 
+  if (user.passwordResetRequired) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 bg-[oklch(0.10_0.01_250)]">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>Yeni Şifre Belirleyin</CardTitle>
+            <CardDescription>
+              Geçici şifre ile giriş yaptınız. Devam etmek için yeni bir şifre oluşturmanız gerekiyor.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleForcedPasswordChange} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="new-password">Yeni Şifre</Label>
+                <Input
+                  id="new-password"
+                  type="password"
+                  value={newPassword}
+                  onChange={(event) => setNewPassword(event.target.value)}
+                  autoComplete="new-password"
+                  minLength={8}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirm-new-password">Yeni Şifre Tekrar</Label>
+                <Input
+                  id="confirm-new-password"
+                  type="password"
+                  value={confirmNewPassword}
+                  onChange={(event) => setConfirmNewPassword(event.target.value)}
+                  autoComplete="new-password"
+                  minLength={8}
+                  required
+                />
+              </div>
+
+              {passwordChangeError ? (
+                <p className="text-sm text-destructive">{passwordChangeError}</p>
+              ) : null}
+
+              <Button type="submit" className="w-full" disabled={isChangingPassword}>
+                {isChangingPassword ? "Sifre guncelleniyor..." : "Sifreyi Guncelle"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -207,18 +320,29 @@ export default function Admin() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList
-            className="grid w-full"
-            style={{
-              gridTemplateColumns: `repeat(${Math.max(1, availableTabs.length)}, minmax(0, 1fr))`,
-            }}
-          >
-            {availableTabs.map((tab) => (
-              <TabsTrigger key={tab.key} value={tab.key}>
-                {tab.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+          <div className="relative">
+            <div className="pointer-events-none absolute inset-y-1 left-0 z-10 w-6 bg-gradient-to-r from-background to-transparent md:hidden" />
+            <div className="pointer-events-none absolute inset-y-1 right-0 z-10 w-6 bg-gradient-to-l from-background to-transparent md:hidden" />
+            <div className="overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+              <TabsList
+                className="h-auto w-max min-w-full justify-start gap-1 rounded-xl p-1 md:grid md:w-full md:justify-center"
+                style={{
+                  gridTemplateColumns: `repeat(${Math.max(1, availableTabs.length)}, minmax(0, 1fr))`,
+                }}
+              >
+                {availableTabs.map((tab) => (
+                  <TabsTrigger
+                    key={tab.key}
+                    id={`admin-tab-trigger-${tab.key}`}
+                    value={tab.key}
+                    className="h-auto min-h-10 flex-none px-3 py-2 text-[13px] md:flex-1 md:px-2 md:text-sm"
+                  >
+                    {tab.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </div>
+          </div>
 
           {hasTab("products") ? (
             <TabsContent value="products" className="space-y-4">

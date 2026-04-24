@@ -1,7 +1,7 @@
-# Vaden Original Web Sitesi Klonu - Tasarım Fikirleri
+# BRAC Web Sitesi Tasarım Fikirleri
 
 ## Genel Bakış
-Vaden Original, 56 yıllık deneyime sahip, hava fren sistemleri ve otomotiv yedek parçaları üreten endüstriyel bir Türk firmasıdır. Site kurumsal, güvenilir ve global bir imaj yansıtmalıdır.
+BRAC, ağır vasıta yedek parça ve global tedarik odaklı kurumsal bir markadır. Site kurumsal, güvenilir ve global bir imaj yansıtmalıdır.
 
 ---
 
@@ -16,7 +16,7 @@ Vaden Original, 56 yıllık deneyime sahip, hava fren sistemleri ve otomotiv yed
   3. Veri odaklı görsel hiyerarşi (sayılar, istatistikler öne çıkar)
   4. Güçlü tipografi ile kurumsal otorite
 
-- **Color Philosophy**: Koyu lacivert/siyah zemin üzerine turuncu aksanlar. Turuncu, Vaden'in marka rengi ve enerjiyi, güveni temsil eder. Siyah ise endüstriyel güç ve kaliteyi simgeler.
+- **Color Philosophy**: Koyu lacivert/siyah zemin üzerine turuncu aksanlar. Turuncu, BRAC'ın marka rengi ve enerjiyi, güveni temsil eder. Siyah ise endüstriyel güç ve kaliteyi simgeler.
 
 - **Layout Paradigm**: Asimetrik grid yapısı. Sol tarafta büyük başlıklar, sağda ürün görselleri. Diagonal kesimler ve eğimli bölümler geçişler için kullanılır.
 
@@ -96,10 +96,10 @@ Vaden Original, 56 yıllık deneyime sahip, hava fren sistemleri ve otomotiv yed
 
 ## Seçilen Yaklaşım: Tasarım 1 - Industrial Precision
 
-**Gerekçe**: Vaden'in marka kimliğiyle en uyumlu yaklaşım. Turuncu-siyah renk paleti Vaden'in gerçek marka renkleriyle örtüşüyor. Asimetrik layout ve güçlü tipografi, endüstriyel bir üretici firmanın kurumsal imajını en iyi yansıtıyor.
+**Gerekçe**: BRAC'ın marka kimliğiyle en uyumlu yaklaşım. Turuncu-siyah renk paleti BRAC'ın gerçek marka renkleriyle örtüşüyor. Asimetrik layout ve güçlü tipografi, endüstriyel bir üretici firmanın kurumsal imajını en iyi yansıtıyor.
 
 **Renk Paleti**:
-- Birincil: `#E8650A` (Vaden Turuncu)
+- Birincil: `#E8650A` (BRAC Turuncu)
 - Koyu arka plan: `#0F1117`
 - Orta ton: `#1E2230`
 - Açık gri: `#8B9099`

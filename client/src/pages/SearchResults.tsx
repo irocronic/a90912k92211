@@ -205,14 +205,14 @@ export default function SearchResults() {
     : emptyQueryDescription;
 
   return (
-    <div className="min-h-screen bg-[var(--vaden-surface-10)]">
+    <div className="min-h-screen bg-[var(--brac-surface-10)]">
       <Helmet>
         <title>{seoTitle}</title>
         <meta name="description" content={seoDescription} />
         <meta name="robots" content="noindex,follow" />
         <link rel="canonical" href={canonicalUrl} />
       </Helmet>
-      <div className="bg-[var(--vaden-surface-12)] border-b border-[var(--vaden-border-soft)]">
+      <div className="bg-[var(--brac-surface-12)] border-b border-[var(--brac-border-soft)]">
         <div className="container mx-auto px-6 max-w-7xl py-4">
           <div className="flex items-center gap-2 text-sm">
             <button
@@ -222,7 +222,7 @@ export default function SearchResults() {
               {asString(metadata.breadcrumbHome, "Ana Sayfa")}
             </button>
             <ChevronRight size={16} className="text-[oklch(0.40_0.01_250)]" />
-            <span className="text-[var(--vaden-text-muted)]">
+            <span className="text-[var(--brac-text-muted)]">
               {asString(metadata.breadcrumbCurrent, "Arama Sonuçları")}
             </span>
           </div>
@@ -231,10 +231,10 @@ export default function SearchResults() {
 
       <div className="container mx-auto px-6 max-w-7xl py-12">
         <div className="mb-8">
-          <h1 className="font-['Barlow_Condensed'] font-black text-[var(--vaden-on-surface)] text-5xl uppercase tracking-wide mb-2">
+          <h1 className="font-['Barlow_Condensed'] font-black text-[var(--brac-on-surface)] text-5xl uppercase tracking-wide mb-2">
             {asString(metadata.pageTitle, "Arama Sonuçları")}
           </h1>
-          <p className="text-[var(--vaden-text-muted)] text-lg font-['Inter']">
+          <p className="text-[var(--brac-text-muted)] text-lg font-['Inter']">
             {injectQuery(
               asString(metadata.queryResultPrefix, "\"{query}\" için"),
               searchQuery,
@@ -247,12 +247,12 @@ export default function SearchResults() {
         </div>
 
         {!searchEnabled ? (
-          <div className="bg-[var(--vaden-surface-14)] border border-[var(--vaden-border)] p-12 text-center">
+          <div className="bg-[var(--brac-surface-14)] border border-[var(--brac-border)] p-12 text-center">
             <AlertCircle size={48} className="mx-auto text-[oklch(0.60_0.18_42)] mb-4" />
-            <h2 className="font-['Barlow_Condensed'] font-bold text-[var(--vaden-on-surface)] text-2xl uppercase mb-2">
+            <h2 className="font-['Barlow_Condensed'] font-bold text-[var(--brac-on-surface)] text-2xl uppercase mb-2">
               {asString(metadata.noResultsTitle, "Arama Terimi Gerekli")}
             </h2>
-            <p className="text-[var(--vaden-text-muted)] mb-6 font-['Inter']">
+            <p className="text-[var(--brac-text-muted)] mb-6 font-['Inter']">
               {emptyQueryDescription}
             </p>
           </div>
@@ -261,25 +261,25 @@ export default function SearchResults() {
             <Loader2 className="w-8 h-8 animate-spin text-[oklch(0.60_0.18_42)]" />
           </div>
         ) : searchError ? (
-          <div className="bg-[var(--vaden-surface-14)] border border-[var(--vaden-border)] p-12 text-center">
+          <div className="bg-[var(--brac-surface-14)] border border-[var(--brac-border)] p-12 text-center">
             <AlertCircle size={48} className="mx-auto text-[oklch(0.60_0.18_42)] mb-4" />
-            <h2 className="font-['Barlow_Condensed'] font-bold text-[var(--vaden-on-surface)] text-2xl uppercase mb-2">
+            <h2 className="font-['Barlow_Condensed'] font-bold text-[var(--brac-on-surface)] text-2xl uppercase mb-2">
               Arama Servisine Ulaşılamadı
             </h2>
-            <p className="text-[var(--vaden-text-muted)] mb-3 font-['Inter']">
+            <p className="text-[var(--brac-text-muted)] mb-3 font-['Inter']">
               Arama isteği şu an tamamlanamadı. Lütfen sayfayı yenileyip tekrar deneyin.
             </p>
-            <p className="text-xs text-[var(--vaden-text-placeholder)] font-mono break-all">
+            <p className="text-xs text-[var(--brac-text-placeholder)] font-mono break-all">
               {searchError.message}
             </p>
           </div>
         ) : results.length === 0 ? (
-          <div className="bg-[var(--vaden-surface-14)] border border-[var(--vaden-border)] p-12 text-center">
+          <div className="bg-[var(--brac-surface-14)] border border-[var(--brac-border)] p-12 text-center">
             <AlertCircle size={48} className="mx-auto text-[oklch(0.60_0.18_42)] mb-4" />
-            <h2 className="font-['Barlow_Condensed'] font-bold text-[var(--vaden-on-surface)] text-2xl uppercase mb-2">
+            <h2 className="font-['Barlow_Condensed'] font-bold text-[var(--brac-on-surface)] text-2xl uppercase mb-2">
               {asString(metadata.noResultsTitle, "Sonuç Bulunamadı")}
             </h2>
-            <p className="text-[var(--vaden-text-muted)] mb-6 font-['Inter']">
+            <p className="text-[var(--brac-text-muted)] mb-6 font-['Inter']">
               {injectQuery(
                 asString(
                   metadata.noResultsPrefix,
@@ -297,7 +297,7 @@ export default function SearchResults() {
             </p>
             <button
               onClick={() => navigate("/")}
-              className="bg-[oklch(0.60_0.18_42)] hover:bg-[oklch(0.50_0.18_42)] text-[var(--vaden-on-accent)] px-6 py-3 font-['Barlow_Condensed'] font-bold tracking-wide uppercase transition-colors"
+              className="bg-[oklch(0.60_0.18_42)] hover:bg-[oklch(0.50_0.18_42)] text-[var(--brac-on-accent)] px-6 py-3 font-['Barlow_Condensed'] font-bold tracking-wide uppercase transition-colors"
             >
               {asString(metadata.noResultsBackHome, "Ana Sayfaya Dön")}
             </button>
@@ -305,8 +305,8 @@ export default function SearchResults() {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             <div className="lg:col-span-1">
-              <div className="bg-[var(--vaden-surface-14)] border border-[var(--vaden-border)] p-6 sticky top-20 space-y-6">
-                <h3 className="font-['Barlow_Condensed'] font-bold text-[var(--vaden-on-surface)] text-lg uppercase tracking-wide">
+              <div className="bg-[var(--brac-surface-14)] border border-[var(--brac-border)] p-6 sticky top-20 space-y-6">
+                <h3 className="font-['Barlow_Condensed'] font-bold text-[var(--brac-on-surface)] text-lg uppercase tracking-wide">
                   {asString(metadata.filtersTitle, "Filtreler")}
                 </h3>
 
@@ -322,8 +322,8 @@ export default function SearchResults() {
                       }}
                       className={`block w-full text-left px-3 py-2 text-sm transition-colors ${
                         selectedCategory === null
-                          ? "bg-[oklch(0.60_0.18_42)] text-[var(--vaden-on-accent)] font-bold"
-                          : "text-[var(--vaden-text-muted)] hover:text-[oklch(0.60_0.18_42)]"
+                          ? "bg-[oklch(0.60_0.18_42)] text-[var(--brac-on-accent)] font-bold"
+                          : "text-[var(--brac-text-muted)] hover:text-[oklch(0.60_0.18_42)]"
                       }`}
                     >
                       {asString(metadata.allCategoriesText, "Tümü")}
@@ -337,8 +337,8 @@ export default function SearchResults() {
                         }}
                         className={`block w-full text-left px-3 py-2 text-sm transition-colors ${
                           selectedCategory === category.value
-                            ? "bg-[oklch(0.60_0.18_42)] text-[var(--vaden-on-accent)] font-bold"
-                            : "text-[var(--vaden-text-muted)] hover:text-[oklch(0.60_0.18_42)]"
+                            ? "bg-[oklch(0.60_0.18_42)] text-[var(--brac-on-accent)] font-bold"
+                            : "text-[var(--brac-text-muted)] hover:text-[oklch(0.60_0.18_42)]"
                         }`}
                       >
                         {categoryLabelMap.get(category.value) || category.value} ({category.count})
@@ -357,8 +357,8 @@ export default function SearchResults() {
                         onClick={() => setSelectedSubcategory(null)}
                         className={`block w-full text-left px-3 py-2 text-sm transition-colors ${
                           selectedSubcategory === null
-                            ? "bg-[oklch(0.60_0.18_42)] text-[var(--vaden-on-accent)] font-bold"
-                            : "text-[var(--vaden-text-muted)] hover:text-[oklch(0.60_0.18_42)]"
+                            ? "bg-[oklch(0.60_0.18_42)] text-[var(--brac-on-accent)] font-bold"
+                            : "text-[var(--brac-text-muted)] hover:text-[oklch(0.60_0.18_42)]"
                         }`}
                       >
                         {asString(metadata.allSubcategoriesText, "Tümü")}
@@ -372,8 +372,8 @@ export default function SearchResults() {
                           }}
                           className={`block w-full text-left px-3 py-2 text-sm transition-colors ${
                             selectedSubcategory === subcategory.value
-                              ? "bg-[oklch(0.60_0.18_42)] text-[var(--vaden-on-accent)] font-bold"
-                              : "text-[var(--vaden-text-muted)] hover:text-[oklch(0.60_0.18_42)]"
+                              ? "bg-[oklch(0.60_0.18_42)] text-[var(--brac-on-accent)] font-bold"
+                              : "text-[var(--brac-text-muted)] hover:text-[oklch(0.60_0.18_42)]"
                           }`}
                         >
                           {subcategoryLabelMap.get(
@@ -395,8 +395,8 @@ export default function SearchResults() {
                         onClick={() => setSelectedManufacturer(null)}
                         className={`block w-full text-left px-3 py-2 text-sm transition-colors ${
                           selectedManufacturer === null
-                            ? "bg-[oklch(0.60_0.18_42)] text-[var(--vaden-on-accent)] font-bold"
-                            : "text-[var(--vaden-text-muted)] hover:text-[oklch(0.60_0.18_42)]"
+                            ? "bg-[oklch(0.60_0.18_42)] text-[var(--brac-on-accent)] font-bold"
+                            : "text-[var(--brac-text-muted)] hover:text-[oklch(0.60_0.18_42)]"
                         }`}
                       >
                         {asString(metadata.allManufacturersText, "Tümü")}
@@ -407,8 +407,8 @@ export default function SearchResults() {
                           onClick={() => setSelectedManufacturer(manufacturer.value)}
                           className={`block w-full text-left px-3 py-2 text-sm transition-colors ${
                             selectedManufacturer === manufacturer.value
-                              ? "bg-[oklch(0.60_0.18_42)] text-[var(--vaden-on-accent)] font-bold"
-                              : "text-[var(--vaden-text-muted)] hover:text-[oklch(0.60_0.18_42)]"
+                              ? "bg-[oklch(0.60_0.18_42)] text-[var(--brac-on-accent)] font-bold"
+                              : "text-[var(--brac-text-muted)] hover:text-[oklch(0.60_0.18_42)]"
                           }`}
                         >
                           {manufacturer.value} ({manufacturer.count})
@@ -425,7 +425,7 @@ export default function SearchResults() {
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value as "relevance" | "name")}
-                    className="w-full bg-[var(--vaden-surface-10)] border border-[var(--vaden-border-strong)] text-[var(--vaden-on-surface)] px-3 py-2 text-sm focus:border-[oklch(0.60_0.18_42)] outline-none transition-colors"
+                    className="w-full bg-[var(--brac-surface-10)] border border-[var(--brac-border-strong)] text-[var(--brac-on-surface)] px-3 py-2 text-sm focus:border-[oklch(0.60_0.18_42)] outline-none transition-colors"
                   >
                     <option value="relevance">{asString(metadata.sortRelevance, "İlgililik")}</option>
                     <option value="name">{asString(metadata.sortName, "Ad (A-Z)")}</option>
@@ -439,10 +439,10 @@ export default function SearchResults() {
                 <Link
                   key={`${result.product.id}-${index}`}
                   href={`/product/${result.product.slug}`}
-                  className="group bg-[var(--vaden-surface-14)] border border-[var(--vaden-border)] hover:border-[oklch(0.60_0.18_42)] p-6 transition-all duration-300 block opacity-100"
+                  className="group bg-[var(--brac-surface-14)] border border-[var(--brac-border)] hover:border-[oklch(0.60_0.18_42)] p-6 transition-all duration-300 block opacity-100"
                 >
                   <div className="flex gap-6">
-                    <div className="w-32 h-32 flex-shrink-0 bg-[var(--vaden-surface-10)] border border-[var(--vaden-border-soft)] overflow-hidden">
+                    <div className="w-32 h-32 flex-shrink-0 bg-[var(--brac-surface-10)] border border-[var(--brac-border-soft)] overflow-hidden">
                       {result.product.image ? (
                         <img
                           src={result.product.image}
@@ -450,7 +450,7 @@ export default function SearchResults() {
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                         />
                       ) : (
-                        <div className="flex h-full w-full items-center justify-center text-center text-xs font-['Barlow_Condensed'] uppercase tracking-wide text-[var(--vaden-text-muted)]">
+                        <div className="flex h-full w-full items-center justify-center text-center text-xs font-['Barlow_Condensed'] uppercase tracking-wide text-[var(--brac-text-muted)]">
                           Gorsel Yok
                         </div>
                       )}
@@ -459,10 +459,10 @@ export default function SearchResults() {
                     <div className="flex-1">
                       <div className="flex items-start justify-between mb-2">
                         <div>
-                          <span className="inline-block bg-[oklch(0.60_0.18_42)] text-[var(--vaden-on-accent)] px-2 py-1 text-xs font-['Barlow_Condensed'] font-bold uppercase tracking-wide mb-2">
+                          <span className="inline-block bg-[oklch(0.60_0.18_42)] text-[var(--brac-on-accent)] px-2 py-1 text-xs font-['Barlow_Condensed'] font-bold uppercase tracking-wide mb-2">
                             {getProductCategoryLabel(result.product)}
                           </span>
-                          <h3 className="font-['Barlow_Condensed'] font-black text-[var(--vaden-on-surface)] text-xl uppercase tracking-wide">
+                          <h3 className="font-['Barlow_Condensed'] font-black text-[var(--brac-on-surface)] text-xl uppercase tracking-wide">
                             {result.product.title}
                           </h3>
                           <p className="text-[oklch(0.60_0.18_42)] font-['Barlow_Condensed'] font-bold text-lg uppercase">
@@ -483,7 +483,7 @@ export default function SearchResults() {
                         </div>
                       </div>
 
-                      <p className="text-[var(--vaden-text-muted)] text-sm font-['Inter'] mb-3 line-clamp-2">
+                      <p className="text-[var(--brac-text-muted)] text-sm font-['Inter'] mb-3 line-clamp-2">
                         {result.product.description}
                       </p>
 

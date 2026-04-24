@@ -78,7 +78,7 @@ export default function ProductsSection() {
   return (
     <section
       id="urunler"
-      className="scroll-mt-32 lg:scroll-mt-36 py-20 bg-[var(--vaden-surface-10)]"
+      className="scroll-mt-32 lg:scroll-mt-36 py-20 bg-[var(--brac-surface-10)]"
       ref={ref as React.RefObject<HTMLElement>}
     >
       <div className="container mx-auto px-6 max-w-7xl">
@@ -94,7 +94,7 @@ export default function ProductsSection() {
             </span>
           </div>
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-            <h2 className="font-['Barlow_Condensed'] font-black text-[var(--vaden-on-surface)] text-5xl md:text-6xl leading-none uppercase">
+            <h2 className="font-['Barlow_Condensed'] font-black text-[var(--brac-on-surface)] text-5xl md:text-6xl leading-none uppercase">
               {asString(metadata.heading)}
             </h2>
             <Link
@@ -118,7 +118,7 @@ export default function ProductsSection() {
             <Link
               key={product.id}
               href={`/product/${product.slug}`}
-              className={`group relative overflow-hidden bg-[var(--vaden-surface-14)] border border-[var(--vaden-border)] hover:border-[oklch(0.60_0.18_42)] transition-all duration-500 block ${
+              className={`group relative overflow-hidden bg-[var(--brac-surface-14)] border border-[var(--brac-border)] hover:border-[oklch(0.60_0.18_42)] transition-all duration-500 block ${
                 isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
               }`}
               style={{ transitionDelay: `${index * 0.1}s` }}
@@ -134,7 +134,7 @@ export default function ProductsSection() {
                 
                 {/* Category tag */}
                 <div className="absolute top-3 left-3">
-                  <span className="bg-[oklch(0.60_0.18_42)] text-[var(--vaden-on-accent)] font-['Barlow_Condensed'] font-bold text-xs px-2 py-1 tracking-wide">
+                  <span className="bg-[oklch(0.60_0.18_42)] text-[var(--brac-on-accent)] font-['Barlow_Condensed'] font-bold text-xs px-2 py-1 tracking-wide">
                     {getProductCategoryLabel(product)}
                   </span>
                 </div>
@@ -142,13 +142,13 @@ export default function ProductsSection() {
 
               {/* Content */}
               <div className="p-5">
-                <h3 className="font-['Barlow_Condensed'] font-black text-[var(--vaden-on-surface)] text-2xl leading-tight uppercase">
+                <h3 className="font-['Barlow_Condensed'] font-black text-[var(--brac-on-surface)] text-2xl leading-tight uppercase">
                   {product.title}
                 </h3>
                 <h4 className="font-['Barlow_Condensed'] font-bold text-[oklch(0.60_0.18_42)] text-xl leading-tight uppercase mb-2">
                   {product.subtitle}
                 </h4>
-                <p className="text-[var(--vaden-text-muted)] text-sm font-['Inter'] leading-relaxed mb-4">
+                <p className="text-[var(--brac-text-muted)] text-sm font-['Inter'] leading-relaxed mb-4">
                   {product.description}
                 </p>
                 <div className="flex items-center gap-2 text-[oklch(0.60_0.18_42)] font-['Barlow_Condensed'] font-bold text-sm tracking-wide uppercase group-hover:gap-4 transition-all">
@@ -163,7 +163,7 @@ export default function ProductsSection() {
         </div>
 
         {displayProducts.length > featuredProducts.length ? (
-          <div className="mt-6 rounded-md border border-[var(--vaden-border)] bg-[var(--vaden-surface-12)] px-4 py-3 text-sm text-[var(--vaden-text-muted)]">
+          <div className="mt-6 rounded-md border border-[var(--brac-border)] bg-[var(--brac-surface-12)] px-4 py-3 text-sm text-[var(--brac-text-muted)]">
             {language === "en"
               ? `Only ${featuredProducts.length} products are highlighted on the home page. Use OEM search to explore the full catalog of ${displayProducts.length} products.`
               : language === "ar"

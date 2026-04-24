@@ -942,8 +942,7 @@ export const contentRouter = router({
             success: true,
             mailSent: false,
             submissionId: submission.id,
-            message:
-              "Talebiniz kaydedildi. Mail servisi henüz yapılandırılmadığı için bildirimi şu an gönderemedik.",
+            message: "Talebiniz kaydedildi.",
           } as const;
         }
 
@@ -972,7 +971,7 @@ export const contentRouter = router({
             success: true,
             mailSent: true,
             submissionId: submission.id,
-            message: "Talebiniz alındı ve ilgili ekibe iletildi.",
+            message: "Talebiniz kaydedildi.",
           } as const;
         } catch (error) {
           const message =
@@ -992,8 +991,7 @@ export const contentRouter = router({
             success: true,
             mailSent: false,
             submissionId: submission.id,
-            message:
-              "Talebiniz kaydedildi ancak mail bildirimi şu an gönderilemedi. Yönetici panelinden kayıt görüntülenebilir.",
+            message: "Talebiniz kaydedildi.",
           } as const;
         }
       }),

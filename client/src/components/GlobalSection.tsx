@@ -35,7 +35,7 @@ export default function GlobalSection() {
   return (
     <section
       id="global"
-      className="scroll-mt-32 lg:scroll-mt-36 py-20 bg-[var(--vaden-surface-10)] relative overflow-hidden"
+      className="scroll-mt-32 lg:scroll-mt-36 py-20 bg-[var(--brac-surface-10)] relative overflow-hidden"
       ref={ref as React.RefObject<HTMLElement>}
     >
       <div className="container mx-auto px-6 max-w-7xl">
@@ -51,12 +51,12 @@ export default function GlobalSection() {
               {asString(metadata.label)}
             </span>
           </div>
-          <h2 className="font-['Barlow_Condensed'] font-black text-[var(--vaden-on-surface)] text-5xl md:text-6xl leading-none uppercase">
+          <h2 className="font-['Barlow_Condensed'] font-black text-[var(--brac-on-surface)] text-5xl md:text-6xl leading-none uppercase">
             {asString(metadata.headingMain)}
             <br />
             <span className="text-[oklch(0.60_0.18_42)]">{asString(metadata.headingHighlight)}</span>
           </h2>
-          <p className="text-[var(--vaden-text-muted)] font-['Inter'] text-base mt-4 max-w-2xl leading-relaxed">
+          <p className="text-[var(--brac-text-muted)] font-['Inter'] text-base mt-4 max-w-2xl leading-relaxed">
             {asString(metadata.description)}
           </p>
         </div>
@@ -87,7 +87,7 @@ export default function GlobalSection() {
               return (
                 <div
                   key={`${stat.label}-${index}`}
-                  className={`flex items-start gap-4 p-4 bg-[var(--vaden-surface-14)] border border-[var(--vaden-border)] hover:border-[oklch(0.60_0.18_42)] transition-all duration-300 ${
+                  className={`flex items-start gap-4 p-4 bg-[var(--brac-surface-14)] border border-[var(--brac-border)] hover:border-[oklch(0.60_0.18_42)] transition-all duration-300 ${
                     isVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-8"
                   }`}
                   style={{ transitionDelay: `${0.3 + index * 0.1}s` }}
@@ -100,7 +100,7 @@ export default function GlobalSection() {
                       <span className="font-['Barlow_Condensed'] font-black text-[oklch(0.60_0.18_42)] text-2xl leading-none">
                         {asString(stat.value)}
                       </span>
-                      <span className="font-['Barlow_Condensed'] font-bold text-[var(--vaden-on-surface)] text-sm uppercase tracking-wide">
+                      <span className="font-['Barlow_Condensed'] font-bold text-[var(--brac-on-surface)] text-sm uppercase tracking-wide">
                         {asString(stat.label)}
                       </span>
                     </div>

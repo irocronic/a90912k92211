@@ -32,7 +32,7 @@ export default function SustainabilitySection() {
   return (
     <section
       id="surdurulebilirlik"
-      className="py-20 bg-[var(--vaden-surface-10)] relative overflow-hidden"
+      className="py-20 bg-[var(--brac-surface-10)] relative overflow-hidden"
       ref={ref as React.RefObject<HTMLElement>}
     >
       <div className="absolute inset-0 bg-gradient-to-br from-[oklch(0.25_0.08_160)/5] to-transparent"></div>
@@ -49,7 +49,7 @@ export default function SustainabilitySection() {
               {asString(metadata.label)}
             </span>
           </div>
-          <h2 className="font-['Barlow_Condensed'] font-black text-[var(--vaden-on-surface)] text-5xl md:text-6xl leading-none uppercase">
+          <h2 className="font-['Barlow_Condensed'] font-black text-[var(--brac-on-surface)] text-5xl md:text-6xl leading-none uppercase">
             {asString(metadata.headingMain)}
             <br />
             <span className="text-[oklch(0.55_0.14_160)]">{asString(metadata.headingHighlight)}</span>
@@ -62,7 +62,7 @@ export default function SustainabilitySection() {
             return (
               <div
                 key={`${item.title}-${index}`}
-                className={`bg-[var(--vaden-surface-14)] border border-[var(--vaden-border)] hover:border-[oklch(0.55_0.14_160)] p-6 group transition-all duration-300 ${
+                className={`bg-[var(--brac-surface-14)] border border-[var(--brac-border)] hover:border-[oklch(0.55_0.14_160)] p-6 group transition-all duration-300 ${
                   isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
                 }`}
                 style={{ transitionDelay: `${index * 0.1}s` }}
@@ -73,7 +73,7 @@ export default function SustainabilitySection() {
                 <div className="font-['Barlow_Condensed'] font-black text-[oklch(0.55_0.14_160)] text-3xl leading-none mb-1">
                   {asString(item.value)}
                 </div>
-                <h3 className="font-['Barlow_Condensed'] font-bold text-[var(--vaden-on-surface)] text-lg uppercase tracking-wide mb-2">
+                <h3 className="font-['Barlow_Condensed'] font-bold text-[var(--brac-on-surface)] text-lg uppercase tracking-wide mb-2">
                   {asString(item.title)}
                 </h3>
                 <p className="text-[oklch(0.50_0.01_250)] text-sm font-['Inter'] leading-relaxed">

@@ -161,7 +161,7 @@ export default function HeroVideoSection() {
   return (
     <section
       ref={sectionRef}
-      className="relative overflow-hidden border-t border-[var(--vaden-border-soft)] py-20 lg:py-28"
+      className="relative overflow-hidden border-t border-[var(--brac-border-soft)] py-20 lg:py-28"
       style={{ background: "var(--hero-video-section-bg)" }}
     >
       <div className="hero-video-grid absolute inset-0 opacity-40" />
@@ -170,9 +170,9 @@ export default function HeroVideoSection() {
 
       <div className="container relative z-10 grid items-center gap-8 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:gap-14">
         <div className="order-2 max-w-2xl lg:order-1">
-          <div className="mb-5 inline-flex items-center gap-3 rounded-full border border-[var(--vaden-border)] bg-[var(--hero-video-chip-bg)] px-4 py-2 text-[var(--vaden-on-surface)] backdrop-blur">
+          <div className="mb-5 inline-flex items-center gap-3 rounded-full border border-[var(--brac-border)] bg-[var(--hero-video-chip-bg)] px-4 py-2 text-[var(--brac-on-surface)] backdrop-blur">
             <BrandLogo className="h-7 w-auto" alt="BRAC logo" />
-            <span className="text-xs font-semibold uppercase tracking-[0.25em] text-[var(--vaden-text-dim)]">
+            <span className="text-xs font-semibold uppercase tracking-[0.25em] text-[var(--brac-text-dim)]">
               {ui.overline}
             </span>
           </div>
@@ -185,7 +185,7 @@ export default function HeroVideoSection() {
           </div>
 
           <h1
-            className="font-['Barlow_Condensed'] leading-none text-[var(--vaden-on-surface)]"
+            className="font-['Barlow_Condensed'] leading-none text-[var(--brac-on-surface)]"
             style={{ fontSize: "clamp(3.4rem, 9vw, 7rem)" }}
           >
             {primarySlide.title}
@@ -197,7 +197,7 @@ export default function HeroVideoSection() {
             {primarySlide.subtitle}
           </h2>
 
-          <p className="max-w-xl text-base leading-7 text-[var(--vaden-text-dim)] md:text-lg">
+          <p className="max-w-xl text-base leading-7 text-[var(--brac-text-dim)] md:text-lg">
             {ui.supporting}
           </p>
 
@@ -211,7 +211,7 @@ export default function HeroVideoSection() {
             </a>
             <a
               href={asString(metadata.secondaryCtaHref, "#hakkimizda")}
-              className="inline-flex items-center gap-2 rounded-full border border-[var(--vaden-border)] bg-[var(--hero-video-chip-bg)] px-7 py-3 font-['Barlow_Condensed'] text-lg font-bold uppercase tracking-[0.08em] text-[var(--vaden-on-surface)] transition-all hover:border-[oklch(0.6_0.18_42)] hover:text-[oklch(0.6_0.18_42)]"
+              className="inline-flex items-center gap-2 rounded-full border border-[var(--brac-border)] bg-[var(--hero-video-chip-bg)] px-7 py-3 font-['Barlow_Condensed'] text-lg font-bold uppercase tracking-[0.08em] text-[var(--brac-on-surface)] transition-all hover:border-[oklch(0.6_0.18_42)] hover:text-[oklch(0.6_0.18_42)]"
             >
               {ui.secondaryAction}
             </a>
@@ -219,16 +219,16 @@ export default function HeroVideoSection() {
         </div>
 
         <div className="order-1 relative lg:order-2 lg:justify-self-end">
-          <div className="hero-video-float pointer-events-none absolute -left-8 top-8 hidden rounded-2xl border border-[var(--hero-video-chip-border)] bg-[var(--hero-video-floating-bg)] px-4 py-3 text-sm text-[var(--vaden-on-surface)] shadow-[var(--hero-video-soft-shadow)] backdrop-blur lg:flex lg:items-center lg:gap-3">
+          <div className="hero-video-float pointer-events-none absolute -left-8 top-8 hidden rounded-2xl border border-[var(--hero-video-chip-border)] bg-[var(--hero-video-floating-bg)] px-4 py-3 text-sm text-[var(--brac-on-surface)] shadow-[var(--hero-video-soft-shadow)] backdrop-blur lg:flex lg:items-center lg:gap-3">
             <span
               className={`h-2.5 w-2.5 rounded-full ${
-                isPlaying ? "bg-[oklch(0.6_0.18_42)]" : "bg-[var(--vaden-text-placeholder)]"
+                isPlaying ? "bg-[oklch(0.6_0.18_42)]" : "bg-[var(--brac-text-placeholder)]"
               }`}
             />
             <span>{isPlaying ? ui.statusPlaying : ui.floatingCard}</span>
           </div>
 
-          <div className="hero-video-shell relative overflow-hidden rounded-[32px] border border-[var(--vaden-border)] bg-[var(--hero-video-frame-bg)] shadow-[var(--hero-video-shadow)]">
+          <div className="hero-video-shell relative overflow-hidden rounded-[32px] border border-[var(--brac-border)] bg-[var(--hero-video-frame-bg)] shadow-[var(--hero-video-shadow)]">
             <video
               ref={videoRef}
               className="aspect-[16/10] w-full min-h-[280px] object-cover md:min-h-[420px]"
@@ -255,7 +255,7 @@ export default function HeroVideoSection() {
                 className={`inline-flex h-11 w-11 items-center justify-center rounded-full border backdrop-blur transition-all ${
                   isPlaying
                     ? "border-[oklch(0.6_0.18_42)] bg-[oklch(0.6_0.18_42)] text-white shadow-[0_10px_24px_oklch(0.6_0.18_42/0.28)]"
-                    : "border-[var(--hero-video-chip-border)] bg-[var(--hero-video-chip-bg)] text-[var(--vaden-on-surface)] hover:border-[oklch(0.6_0.18_42)] hover:text-[oklch(0.6_0.18_42)]"
+                    : "border-[var(--hero-video-chip-border)] bg-[var(--hero-video-chip-bg)] text-[var(--brac-on-surface)] hover:border-[oklch(0.6_0.18_42)] hover:text-[oklch(0.6_0.18_42)]"
                 }`}
               >
                 {isPlaying ? <Pause size={16} /> : <Play size={16} />}
@@ -267,7 +267,7 @@ export default function HeroVideoSection() {
                 aria-label={ui.muted}
                 className={`inline-flex h-11 w-11 items-center justify-center rounded-full border backdrop-blur transition-all ${
                   isMuted
-                    ? "border-[var(--hero-video-chip-border)] bg-[var(--hero-video-chip-bg)] text-[var(--vaden-on-surface)] hover:border-[oklch(0.6_0.18_42)] hover:text-[oklch(0.6_0.18_42)]"
+                    ? "border-[var(--hero-video-chip-border)] bg-[var(--hero-video-chip-bg)] text-[var(--brac-on-surface)] hover:border-[oklch(0.6_0.18_42)] hover:text-[oklch(0.6_0.18_42)]"
                     : "border-[oklch(0.6_0.18_42)] bg-[oklch(0.6_0.18_42)] text-white shadow-[0_10px_24px_oklch(0.6_0.18_42/0.28)]"
                 }`}
               >
@@ -276,7 +276,7 @@ export default function HeroVideoSection() {
             </div>
 
             <div className="absolute inset-x-0 bottom-0 z-10 p-4 md:p-6">
-              <div className="inline-flex items-center gap-3 rounded-full border border-[var(--hero-video-chip-border)] bg-[var(--hero-video-badge-bg)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--vaden-on-surface)] backdrop-blur">
+              <div className="inline-flex items-center gap-3 rounded-full border border-[var(--hero-video-chip-border)] bg-[var(--hero-video-badge-bg)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-[var(--brac-on-surface)] backdrop-blur">
                 <span className="h-2.5 w-2.5 rounded-full bg-[oklch(0.6_0.18_42)]" />
                 <span>BRAC</span>
               </div>

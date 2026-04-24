@@ -76,7 +76,7 @@ export default function StatsSection() {
   return (
     <section
       id="neden-brac"
-      className="scroll-mt-32 lg:scroll-mt-36 py-20 bg-[var(--vaden-surface-09)] relative overflow-hidden"
+      className="scroll-mt-32 lg:scroll-mt-36 py-20 bg-[var(--brac-surface-09)] relative overflow-hidden"
       ref={ref as React.RefObject<HTMLElement>}
     >
       <div className="absolute inset-0 opacity-5">
@@ -103,16 +103,16 @@ export default function StatsSection() {
             </span>
             <span className="w-10 h-0.5 bg-[oklch(0.60_0.18_42)]"></span>
           </div>
-          <h2 className="font-['Barlow_Condensed'] font-black text-[var(--vaden-on-surface)] text-5xl md:text-6xl leading-none uppercase">
+          <h2 className="font-['Barlow_Condensed'] font-black text-[var(--brac-on-surface)] text-5xl md:text-6xl leading-none uppercase">
             {asString(metadata.heading)}
           </h2>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-px bg-[var(--vaden-surface-border)]">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-px bg-[var(--brac-surface-border)]">
           {stats.map((stat, index) => (
             <div
               key={`${asString(stat.label)}-${index}`}
-              className={`bg-[var(--vaden-surface-12)] p-6 text-center group hover:bg-[oklch(0.16_0.01_250)] transition-all duration-300 ${
+              className={`bg-[var(--brac-surface-12)] p-6 text-center group hover:bg-[oklch(0.16_0.01_250)] transition-all duration-300 ${
                 isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
               }`}
               style={{ transitionDelay: `${index * 0.1}s` }}
@@ -126,7 +126,7 @@ export default function StatsSection() {
                   duration={2000 + index * 200}
                 />
               </div>
-              <div className="font-['Barlow_Condensed'] font-bold text-[var(--vaden-on-surface)] text-sm uppercase tracking-wide mb-1">
+              <div className="font-['Barlow_Condensed'] font-bold text-[var(--brac-on-surface)] text-sm uppercase tracking-wide mb-1">
                 {asString(stat.label)}
               </div>
               <div className="text-[oklch(0.45_0.01_250)] text-xs font-['Inter']">

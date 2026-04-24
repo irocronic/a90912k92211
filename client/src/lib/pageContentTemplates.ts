@@ -124,7 +124,11 @@ export const PAGE_CONTENT_TEMPLATES: PageContentTemplate[] = [
       newsletterPlaceholder: "",
       newsletterButton: "",
       copyrightText: "© BRAC Spare Parts 2026. Tüm hakları saklıdır.",
-      policyLinks: [],
+      policyLinks: [
+        { label: "Gizlilik Politikası", href: "/politikalar?tab=privacy" },
+        { label: "KVKK Aydınlatma Metni", href: "/politikalar?tab=kvkk" },
+        { label: "Çerez Politikası", href: "/politikalar?tab=cookies" },
+      ],
     },
   },
   {
@@ -484,7 +488,7 @@ export const PAGE_CONTENT_TEMPLATES: PageContentTemplate[] = [
     metadata: {
       label: "Teklif Talebi",
       heading: "24 Saatte Teklif Alın",
-      successMessage: "Mesajınız alındı! En kısa sürede size dönüş yapacağız.",
+      successMessage: "Talebiniz kaydedildi. En kısa sürede size dönüş yapacağız.",
       whatsappText: "WhatsApp ile Yazın",
       whatsappUrl: "https://wa.me/905344456070",
       contactInfo: [
@@ -516,6 +520,8 @@ export const PAGE_CONTENT_TEMPLATES: PageContentTemplate[] = [
         subject: "Konu *",
         message: "Mesaj *",
         submit: "Mesaj Gönder",
+        consent:
+          "Kişisel verilerimin teklif ve iletişim talebimin değerlendirilmesi amacıyla işlenmesini kabul ediyor; <a href=\"/politikalar?tab=kvkk\">KVKK Aydınlatma Metni</a> ve <a href=\"/politikalar?tab=privacy\">Gizlilik Politikası</a>'nı okuduğumu beyan ediyorum.",
       },
       placeholders: {
         name: "Adınız ve soyadınız",
@@ -721,38 +727,39 @@ export const PAGE_CONTENT_TEMPLATES: PageContentTemplate[] = [
     metadata: {
       pageTitle: "Yasal Politikalar | BRAC KVKK ve Gizlilik",
       metaDescription:
-        "BRAC Otomotiv Gizlilik Politikası, KVKK Aydınlatma Metni ve Çerez Politikası hakkında bilgiler.",
-      metaKeywords: "gizlilik politikası, KVKK, çerez politikası, veri güvenliği, kişisel veriler",
+        "BRAC Gizlilik Politikası, KVKK Aydınlatma Metni ve Çerez Politikası hakkında detaylı bilgi alın.",
+      metaKeywords:
+        "gizlilik politikası, kvkk aydınlatma metni, çerez politikası, kişisel veriler, veri güvenliği, brac",
       heroLabel: "Yasal",
       heroHeadingMain: "Politikalar &",
       heroHeadingHighlight: "Şartlar",
       heroDescription:
-        "BRAC Otomotiv web sitesini kullanırken uygulanacak politikaları ve yasal şartları öğrenin.",
+        "İletişim formu, web sitesi kullanımı ve kişisel veri işleme süreçlerimizle ilgili güncel politikalarımızı inceleyin.",
       policies: [
         {
           id: "privacy",
           title: "Gizlilik Politikası",
           content:
-            "<h3>1. Giriş</h3><p>BRAC Otomotiv San. Tic. A.Ş. (\"Şirket\"), web sitesi ziyaretçilerinin kişisel verilerini korumaya önem vermektedir.</p><h3>2. Toplanan Bilgiler</h3><ul><li>Ad, soyad ve iletişim bilgileri</li><li>E-posta adresi</li><li>Telefon numarası</li></ul>",
+            "<h3>1. Amaç ve Kapsam</h3><p>Bu Gizlilik Politikası, BRAC web sitesini ziyaret eden kullanıcıların ve iletişim formu üzerinden teklif veya bilgi talebi ileten kişilerin kişisel verilerinin hangi esaslarla işlendiğini açıklamak amacıyla hazırlanmıştır.</p><h3>2. Toplanan Veriler</h3><ul><li>Ad soyad</li><li>E-posta adresi</li><li>Telefon numarası</li><li>Talep konusu ve mesaj içeriği</li><li>İşlem güvenliği kapsamında IP, zaman damgası ve temel teknik kayıtlar</li></ul><h3>3. İşleme Amaçları</h3><ul><li>Teklif ve bilgi taleplerini yanıtlamak</li><li>Müşteri ilişkileri süreçlerini yürütmek</li><li>İhracat, satış ve operasyon süreçlerine dönüş sağlamak</li><li>Hizmet kalitesini ve bilgi güvenliğini geliştirmek</li><li>Yasal yükümlülükleri yerine getirmek</li></ul><h3>4. Aktarım</h3><p>Kişisel veriler, yalnızca hizmetin sunulması için gerekli olduğu ölçüde; e-posta servis sağlayıcıları, hosting altyapıları, BT destek sağlayıcıları ve ilgili yasal makamlarla paylaşılabilir.</p><h3>5. Saklama Süresi</h3><p>Veriler, işleme amacı ortadan kalkıncaya kadar veya ilgili mevzuatta öngörülen süre boyunca saklanır. Teklif ve iletişim kayıtları, operasyonel ve hukuki gereklilikler doğrultusunda gözden geçirilerek güncellenir veya silinir.</p><h3>6. Haklarınız</h3><p>İlgili kişi olarak; verilerinize erişme, düzeltme, silme, işleme faaliyetini sınırlama ve kanuni şartlar oluştuğunda itiraz etme haklarına sahipsiniz. Taleplerinizi footer alanında yer alan iletişim kanalları üzerinden iletebilirsiniz.</p>",
         },
         {
           id: "kvkk",
           title: "KVKK Aydınlatma Metni",
           content:
-            "<h3>Kişisel Verilerin Korunması Kanunu Aydınlatma Metni</h3><h3>1. Veri Sorumlusu</h3><p>BRAC Otomotiv San. Tic. A.Ş., Konya Organize Sanayi Bölgesi, Konya, Türkiye</p><h3>2. Kişisel Verilerin İşlenme Amaçları</h3><ul><li>Müşteri hizmetleri sağlamak</li><li>Ürün ve hizmetler hakkında bilgi vermek</li></ul>",
+            "<h3>1. Veri Sorumlusu</h3><p>6698 sayılı Kişisel Verilerin Korunması Kanunu kapsamında veri sorumlusu BRAC'tır. Web sitesi üzerinden ilettiğiniz kişisel veriler, işbu aydınlatma metni kapsamında işlenmektedir.</p><h3>2. İşlenen Kişisel Veriler</h3><ul><li>Kimlik ve iletişim bilgileri</li><li>Firma ve talep bilgileri</li><li>Mesaj içerikleri ve teklif talep detayları</li><li>İşlem güvenliği verileri</li></ul><h3>3. İşleme Amaçları</h3><ul><li>Talep ve teklif süreçlerinin yürütülmesi</li><li>Müşteri memnuniyeti ve iletişim faaliyetlerinin yönetimi</li><li>Satış, lojistik ve operasyon planlamasının desteklenmesi</li><li>Bilgi güvenliği süreçlerinin yürütülmesi</li><li>Mevzuattan doğan yükümlülüklerin yerine getirilmesi</li></ul><h3>4. Hukuki Sebep</h3><p>Kişisel verileriniz; bir sözleşmenin kurulması veya ifasıyla doğrudan ilgili olması, meşru menfaat, açık rıza gerektiren haller ve hukuki yükümlülüklerin yerine getirilmesi hukuki sebeplerine dayanılarak işlenebilir.</p><h3>5. Toplama Yöntemi</h3><p>Verileriniz, web formu, e-posta, telefon ve dijital iletişim araçları üzerinden elektronik ortamda toplanır.</p><h3>6. İlgili Kişi Hakları</h3><p>KVKK'nın 11. maddesi kapsamındaki taleplerinizi BRAC iletişim kanalları üzerinden iletebilirsiniz. Başvurularınız mevzuattaki süreler içinde değerlendirilir.</p>",
         },
         {
           id: "cookies",
           title: "Çerez Politikası",
           content:
-            "<h3>1. Çerezler Nedir?</h3><p>Çerezler, web sitesi ziyaretçilerinin tarayıcılarında saklanan küçük metin dosyalarıdır.</p><h3>2. Kullandığımız Çerez Türleri</h3><ul><li><strong>Gerekli Çerezler:</strong> Web sitesinin düzgün çalışması için gereklidir</li><li><strong>Analitik Çerezler:</strong> Web sitesi ziyaretçi davranışlarını analiz etmek için kullanılır</li></ul>",
+            "<h3>1. Çerez Nedir?</h3><p>Çerezler, ziyaret ettiğiniz web siteleri tarafından tarayıcınıza kaydedilen küçük veri dosyalarıdır. Site deneyimini iyileştirmek, oturum sürekliliği sağlamak ve analitik ölçüm yapmak amacıyla kullanılabilir.</p><h3>2. Kullandığımız Çerezler</h3><ul><li><strong>Zorunlu Çerezler:</strong> Dil tercihi, güvenlik ve temel sayfa işlevleri için kullanılır.</li><li><strong>Analitik Çerezler:</strong> Sitenin hangi sayfalarının daha çok kullanıldığını anlamamıza yardımcı olur. Bu çerezler ancak onayınızla etkinleşir.</li></ul><h3>3. Çerez Tercihleri</h3><p>Siteyi ilk ziyaretinizde çerez bildirimi üzerinden tercih yapabilirsiniz. Yalnızca zorunlu çerezleri seçerseniz analitik ölçümleme devre dışı kalır.</p><h3>4. Çerezleri Nasıl Yönetebilirsiniz?</h3><p>Tarayıcı ayarlarınız üzerinden çerezleri silebilir, engelleyebilir veya belirli türlerdeki çerezleri sınırlandırabilirsiniz. Ancak zorunlu çerezlerin devre dışı bırakılması bazı site işlevlerini etkileyebilir.</p>",
         },
       ],
       contactTitle: "Sorularınız mı var?",
       contactDescription:
         "Politikalar hakkında herhangi bir sorunuz varsa, lütfen bizimle iletişime geçin.",
       contactButtonText: "İletişim Sayfasına Git",
-      contactButtonHref: "#iletisim",
+      contactButtonHref: "/#iletisim-bilgileri",
     },
   },
 ];

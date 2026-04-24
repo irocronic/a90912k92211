@@ -131,7 +131,7 @@ export default function SearchAutocomplete({
   return (
     <div ref={containerRef} className="relative flex-1">
       {/* Input */}
-      <div className="flex items-center bg-[var(--vaden-surface-14)] border border-[var(--vaden-border-strong)] focus-within:border-[oklch(0.60_0.18_42)] transition-colors">
+      <div className="flex items-center bg-[var(--brac-surface-14)] border border-[var(--brac-border-strong)] focus-within:border-[oklch(0.60_0.18_42)] transition-colors">
         <Search size={18} className="ml-4 text-[oklch(0.45_0.01_250)] flex-shrink-0" />
         <input
           ref={inputRef}
@@ -141,14 +141,14 @@ export default function SearchAutocomplete({
           onKeyDown={handleKeyDown}
           onFocus={() => value.trim() && setIsOpen(true)}
           placeholder={placeholder}
-          className="flex-1 bg-transparent px-4 py-3.5 text-[var(--vaden-on-surface)] placeholder-[var(--vaden-text-placeholder)] text-sm outline-none font-['Inter']"
+          className="flex-1 bg-transparent px-4 py-3.5 text-[var(--brac-on-surface)] placeholder-[var(--brac-text-placeholder)] text-sm outline-none font-['Inter']"
           autoComplete="off"
         />
       </div>
 
       {/* Dropdown */}
       {isOpen && suggestions.length > 0 && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-[var(--vaden-surface-14)] border border-[var(--vaden-border-strong)] shadow-lg z-50 max-h-96 overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 mt-1 bg-[var(--brac-surface-14)] border border-[var(--brac-border-strong)] shadow-lg z-50 max-h-96 overflow-y-auto">
           {/* Group by type */}
           {(() => {
             const grouped = {
@@ -164,7 +164,7 @@ export default function SearchAutocomplete({
             if (grouped.oem.length > 0) {
               groups.push(
                 <div key="oem-group">
-                  <div className="px-4 py-2 text-xs font-['Barlow_Condensed'] font-bold text-[oklch(0.60_0.18_42)] uppercase tracking-wide border-b border-[var(--vaden-border-soft)]">
+                  <div className="px-4 py-2 text-xs font-['Barlow_Condensed'] font-bold text-[oklch(0.60_0.18_42)] uppercase tracking-wide border-b border-[var(--brac-border-soft)]">
                     {labels?.oem || "OEM Kodları"}
                   </div>
                   {grouped.oem.map((suggestion, idx) => {
@@ -177,7 +177,7 @@ export default function SearchAutocomplete({
                         className={`w-full px-4 py-3 text-left text-sm transition-colors flex items-center gap-3 ${
                           itemIndex === selectedIndex
                             ? "bg-[oklch(0.60_0.18_42)] text-white"
-                            : "text-[var(--vaden-text-muted)] hover:bg-[var(--vaden-surface-border)]"
+                            : "text-[var(--brac-text-muted)] hover:bg-[var(--brac-surface-border)]"
                         }`}
                       >
                         <Search size={14} className="flex-shrink-0" />
@@ -200,7 +200,7 @@ export default function SearchAutocomplete({
             if (grouped.product.length > 0) {
               groups.push(
                 <div key="product-group">
-                  <div className="px-4 py-2 text-xs font-['Barlow_Condensed'] font-bold text-[oklch(0.60_0.18_42)] uppercase tracking-wide border-b border-[var(--vaden-border-soft)]">
+                  <div className="px-4 py-2 text-xs font-['Barlow_Condensed'] font-bold text-[oklch(0.60_0.18_42)] uppercase tracking-wide border-b border-[var(--brac-border-soft)]">
                     {labels?.product || "Ürünler"}
                   </div>
                   {grouped.product.map((suggestion, idx) => {
@@ -213,7 +213,7 @@ export default function SearchAutocomplete({
                         className={`w-full px-4 py-3 text-left text-sm transition-colors flex items-center gap-3 ${
                           itemIndex === selectedIndex
                             ? "bg-[oklch(0.60_0.18_42)] text-white"
-                            : "text-[var(--vaden-text-muted)] hover:bg-[var(--vaden-surface-border)]"
+                            : "text-[var(--brac-text-muted)] hover:bg-[var(--brac-surface-border)]"
                         }`}
                       >
                         <Package size={14} className="flex-shrink-0" />
@@ -229,7 +229,7 @@ export default function SearchAutocomplete({
             if (grouped.category.length > 0) {
               groups.push(
                 <div key="category-group">
-                  <div className="px-4 py-2 text-xs font-['Barlow_Condensed'] font-bold text-[oklch(0.60_0.18_42)] uppercase tracking-wide border-b border-[var(--vaden-border-soft)]">
+                  <div className="px-4 py-2 text-xs font-['Barlow_Condensed'] font-bold text-[oklch(0.60_0.18_42)] uppercase tracking-wide border-b border-[var(--brac-border-soft)]">
                     {labels?.category || "Kategoriler"}
                   </div>
                   {grouped.category.map((suggestion, idx) => {
@@ -242,7 +242,7 @@ export default function SearchAutocomplete({
                         className={`w-full px-4 py-3 text-left text-sm transition-colors flex items-center gap-3 ${
                           itemIndex === selectedIndex
                             ? "bg-[oklch(0.60_0.18_42)] text-white"
-                            : "text-[var(--vaden-text-muted)] hover:bg-[var(--vaden-surface-border)]"
+                            : "text-[var(--brac-text-muted)] hover:bg-[var(--brac-surface-border)]"
                         }`}
                       >
                         <TrendingUp size={14} className="flex-shrink-0" />

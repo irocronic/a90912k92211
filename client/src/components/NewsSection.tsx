@@ -78,7 +78,7 @@ export default function NewsSection() {
   return (
     <section
       id="haberler"
-      className="py-20 bg-[var(--vaden-surface-10)]"
+      className="py-20 bg-[var(--brac-surface-10)]"
       ref={ref as React.RefObject<HTMLElement>}
     >
       <div className="container mx-auto px-6 max-w-7xl">
@@ -91,7 +91,7 @@ export default function NewsSection() {
                 {asString(metadata.label)}
               </span>
             </div>
-            <h2 className="font-['Barlow_Condensed'] font-black text-[var(--vaden-on-surface)] text-5xl md:text-6xl leading-none uppercase">
+            <h2 className="font-['Barlow_Condensed'] font-black text-[var(--brac-on-surface)] text-5xl md:text-6xl leading-none uppercase">
               {asString(metadata.headingMain)}
               <br />
               <span className="text-[oklch(0.60_0.18_42)]">{asString(metadata.headingHighlight)}</span>
@@ -111,7 +111,7 @@ export default function NewsSection() {
             <a
               key={item.id}
               href={item.href}
-              className={`group bg-[var(--vaden-surface-14)] border border-[var(--vaden-border)] hover:border-[oklch(0.60_0.18_42)] overflow-hidden block transition-all duration-300 ${
+              className={`group bg-[var(--brac-surface-14)] border border-[var(--brac-border)] hover:border-[oklch(0.60_0.18_42)] overflow-hidden block transition-all duration-300 ${
                 isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
               }`}
               style={{ transitionDelay: `${index * 0.1}s` }}
@@ -125,7 +125,7 @@ export default function NewsSection() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[oklch(0.10_0.01_250)] to-transparent"></div>
                 <div className="absolute top-3 left-3">
-                  <span className="bg-[oklch(0.60_0.18_42)] text-[var(--vaden-on-accent)] font-['Barlow_Condensed'] font-bold text-xs px-2 py-1 tracking-wide">
+                  <span className="bg-[oklch(0.60_0.18_42)] text-[var(--brac-on-accent)] font-['Barlow_Condensed'] font-bold text-xs px-2 py-1 tracking-wide">
                     {item.category}
                   </span>
                 </div>
@@ -137,7 +137,7 @@ export default function NewsSection() {
                   <Calendar size={12} />
                   {item.date}
                 </div>
-                <h3 className="font-['Barlow_Condensed'] font-bold text-[var(--vaden-on-surface)] text-lg leading-tight uppercase mb-2 group-hover:text-[oklch(0.60_0.18_42)] transition-colors">
+                <h3 className="font-['Barlow_Condensed'] font-bold text-[var(--brac-on-surface)] text-lg leading-tight uppercase mb-2 group-hover:text-[oklch(0.60_0.18_42)] transition-colors">
                   {item.title}
                 </h3>
                 <p className="text-[oklch(0.45_0.01_250)] text-xs font-['Inter'] leading-relaxed line-clamp-3">

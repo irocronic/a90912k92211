@@ -81,7 +81,7 @@ export default function Footer() {
   return (
     <footer
       id="iletisim-bilgileri"
-      className="scroll-mt-32 lg:scroll-mt-36 bg-[var(--vaden-surface-08)] border-t border-[var(--vaden-border-soft)]"
+      className="scroll-mt-32 lg:scroll-mt-36 bg-[var(--brac-surface-08)] border-t border-[var(--brac-border-soft)]"
     >
       <div className="container mx-auto px-6 max-w-7xl py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
@@ -89,7 +89,7 @@ export default function Footer() {
             <div className="flex items-center mb-6">
               <BrandLogo className="h-16 w-auto" />
             </div>
-            <p className="text-[var(--vaden-text-muted)] text-sm leading-relaxed font-['Inter'] mb-6">
+            <p className="text-[var(--brac-text-muted)] text-sm leading-relaxed font-['Inter'] mb-6">
               {displayDescription}
             </p>
             {socialLinks.length > 0 ? (
@@ -103,7 +103,7 @@ export default function Footer() {
                       href={asString(item.href, "#")}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-8 h-8 flex items-center justify-center border border-[var(--vaden-border-strong)] text-[var(--vaden-text-muted)] hover:border-[oklch(0.60_0.18_42)] hover:text-[oklch(0.60_0.18_42)] transition-all"
+                      className="w-8 h-8 flex items-center justify-center border border-[var(--brac-border-strong)] text-[var(--brac-text-muted)] hover:border-[oklch(0.60_0.18_42)] hover:text-[oklch(0.60_0.18_42)] transition-all"
                       aria-label={asString(item.icon)}
                     >
                       <Icon size={14} />
@@ -115,7 +115,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="font-['Barlow_Condensed'] font-bold text-[var(--vaden-on-surface)] text-lg tracking-wide uppercase mb-4 flex items-center gap-2">
+            <h4 className="font-['Barlow_Condensed'] font-bold text-[var(--brac-on-surface)] text-lg tracking-wide uppercase mb-4 flex items-center gap-2">
               <span className="w-6 h-0.5 bg-[oklch(0.60_0.18_42)] inline-block"></span>
               {asString(metadata.sectionProductsTitle, "Ürünler")}
             </h4>
@@ -124,7 +124,7 @@ export default function Footer() {
                 <li key={`${item.label}-${index}`}>
                   <a
                     href={asString(item.href, "#")}
-                    className="text-[var(--vaden-text-muted)] hover:text-[oklch(0.60_0.18_42)] text-sm transition-colors font-['Inter'] flex items-center gap-2 group"
+                    className="text-[var(--brac-text-muted)] hover:text-[oklch(0.60_0.18_42)] text-sm transition-colors font-['Inter'] flex items-center gap-2 group"
                   >
                     <span className="w-0 group-hover:w-3 h-px bg-[oklch(0.60_0.18_42)] transition-all duration-300 inline-block"></span>
                     {asString(item.label)}
@@ -135,7 +135,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="font-['Barlow_Condensed'] font-bold text-[var(--vaden-on-surface)] text-lg tracking-wide uppercase mb-4 flex items-center gap-2">
+            <h4 className="font-['Barlow_Condensed'] font-bold text-[var(--brac-on-surface)] text-lg tracking-wide uppercase mb-4 flex items-center gap-2">
               <span className="w-6 h-0.5 bg-[oklch(0.60_0.18_42)] inline-block"></span>
               {asString(metadata.sectionCorporateTitle, "Kurumsal")}
             </h4>
@@ -144,7 +144,7 @@ export default function Footer() {
                 <li key={`${item.label}-${index}`}>
                   <a
                     href={asString(item.href, "#")}
-                    className="text-[var(--vaden-text-muted)] hover:text-[oklch(0.60_0.18_42)] text-sm transition-colors font-['Inter'] flex items-center gap-2 group"
+                    className="text-[var(--brac-text-muted)] hover:text-[oklch(0.60_0.18_42)] text-sm transition-colors font-['Inter'] flex items-center gap-2 group"
                   >
                     <span className="w-0 group-hover:w-3 h-px bg-[oklch(0.60_0.18_42)] transition-all duration-300 inline-block"></span>
                     {asString(item.label)}
@@ -155,14 +155,14 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="font-['Barlow_Condensed'] font-bold text-[var(--vaden-on-surface)] text-lg tracking-wide uppercase mb-4 flex items-center gap-2">
+            <h4 className="font-['Barlow_Condensed'] font-bold text-[var(--brac-on-surface)] text-lg tracking-wide uppercase mb-4 flex items-center gap-2">
               <span className="w-6 h-0.5 bg-[oklch(0.60_0.18_42)] inline-block"></span>
               {displayContactTitle}
             </h4>
             <div className="space-y-4">
               <div className="flex items-start gap-3">
                 <MapPin size={16} className="text-[oklch(0.60_0.18_42)] mt-0.5 flex-shrink-0" />
-                <p className="text-[var(--vaden-text-muted)] text-sm font-['Inter'] leading-relaxed">
+                <p className="text-[var(--brac-text-muted)] text-sm font-['Inter'] leading-relaxed">
                   {addressLines.map((line, index) => (
                     <span key={`${line}-${index}`}>
                       {line}
@@ -176,7 +176,7 @@ export default function Footer() {
                   <Phone size={16} className="text-[oklch(0.60_0.18_42)] flex-shrink-0" />
                   <a
                     href={`tel:${displayPhone.replace(/\s+/g, "")}`}
-                    className="text-[var(--vaden-text-muted)] hover:text-[oklch(0.60_0.18_42)] text-sm font-['Inter'] transition-colors"
+                    className="text-[var(--brac-text-muted)] hover:text-[oklch(0.60_0.18_42)] text-sm font-['Inter'] transition-colors"
                   >
                     {displayPhone}
                   </a>
@@ -187,7 +187,7 @@ export default function Footer() {
                   <Mail size={16} className="text-[oklch(0.60_0.18_42)] flex-shrink-0" />
                   <a
                     href={`mailto:${displayEmail}`}
-                    className="text-[var(--vaden-text-muted)] hover:text-[oklch(0.60_0.18_42)] text-sm font-['Inter'] transition-colors"
+                    className="text-[var(--brac-text-muted)] hover:text-[oklch(0.60_0.18_42)] text-sm font-['Inter'] transition-colors"
                   >
                     {displayEmail}
                   </a>
@@ -197,16 +197,16 @@ export default function Footer() {
 
             {asString(metadata.newsletterTitle) ? (
               <div className="mt-6">
-                <p className="text-[var(--vaden-text-muted)] text-xs font-['Inter'] mb-3">
+                <p className="text-[var(--brac-text-muted)] text-xs font-['Inter'] mb-3">
                   {asString(metadata.newsletterTitle)}
                 </p>
                 <div className="flex">
                   <input
                     type="email"
                     placeholder={asString(metadata.newsletterPlaceholder)}
-                    className="flex-1 bg-[var(--vaden-surface-14)] border border-[var(--vaden-border-strong)] px-3 py-2 text-sm text-[var(--vaden-text-dim)] placeholder-[var(--vaden-text-placeholder)] outline-none focus:border-[oklch(0.60_0.18_42)] transition-colors font-['Inter']"
+                    className="flex-1 bg-[var(--brac-surface-14)] border border-[var(--brac-border-strong)] px-3 py-2 text-sm text-[var(--brac-text-dim)] placeholder-[var(--brac-text-placeholder)] outline-none focus:border-[oklch(0.60_0.18_42)] transition-colors font-['Inter']"
                   />
-                  <button className="bg-[oklch(0.60_0.18_42)] hover:bg-[oklch(0.50_0.18_42)] text-[var(--vaden-on-accent)] px-4 py-2 text-sm font-['Barlow_Condensed'] font-bold tracking-wide transition-colors">
+                  <button className="bg-[oklch(0.60_0.18_42)] hover:bg-[oklch(0.50_0.18_42)] text-[var(--brac-on-accent)] px-4 py-2 text-sm font-['Barlow_Condensed'] font-bold tracking-wide transition-colors">
                     {asString(metadata.newsletterButton, "ABONE OL")}
                   </button>
                 </div>

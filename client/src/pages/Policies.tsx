@@ -45,12 +45,13 @@ export default function Policies() {
   const [expandedPolicy, setExpandedPolicy] = useState(initialPolicy);
 
   useEffect(() => {
+    if (expandedPolicy === "") return;
     if (policies.some((policy) => policy.id === expandedPolicy)) return;
     setExpandedPolicy(policies[0]?.id || "");
   }, [expandedPolicy, policies]);
 
   return (
-    <div className="min-h-screen bg-[var(--vaden-surface-10)]">
+    <div className="min-h-screen bg-[var(--brac-surface-10)]">
       <Helmet>
         <title>{asString(metadata.pageTitle)}</title>
         <meta name="description" content={asString(metadata.metaDescription)} />
@@ -58,7 +59,7 @@ export default function Policies() {
       </Helmet>
       <Navbar />
 
-      <div className="pt-[80px] lg:pt-[113px] bg-gradient-to-b from-[var(--vaden-surface-09)] to-[var(--vaden-surface-10)]">
+      <div className="pt-[80px] lg:pt-[113px] bg-gradient-to-b from-[var(--brac-surface-09)] to-[var(--brac-surface-10)]">
         <div className="container mx-auto px-6 max-w-7xl py-20">
           <div className="max-w-3xl">
             <div className="flex items-center gap-3 mb-4">
@@ -67,12 +68,12 @@ export default function Policies() {
                 {asString(metadata.heroLabel)}
               </span>
             </div>
-            <h1 className="font-['Barlow_Condensed'] font-black text-[var(--vaden-on-surface)] text-5xl md:text-6xl leading-none uppercase mb-4">
+            <h1 className="font-['Barlow_Condensed'] font-black text-[var(--brac-on-surface)] text-5xl md:text-6xl leading-none uppercase mb-4">
               {asString(metadata.heroHeadingMain)}
               <br />
               <span className="text-[oklch(0.60_0.18_42)]">{asString(metadata.heroHeadingHighlight)}</span>
             </h1>
-            <p className="text-[var(--vaden-text-muted)] text-lg font-['Inter'] leading-relaxed">
+            <p className="text-[var(--brac-text-muted)] text-lg font-['Inter'] leading-relaxed">
               {asString(metadata.heroDescription)}
             </p>
           </div>
@@ -82,12 +83,12 @@ export default function Policies() {
       <div className="container mx-auto px-6 max-w-4xl py-20">
         <div className="space-y-4">
           {policies.map((policy) => (
-            <div key={policy.id} className="border border-[var(--vaden-border)] bg-[var(--vaden-surface-14)]">
+            <div key={policy.id} className="border border-[var(--brac-border)] bg-[var(--brac-surface-14)]">
               <button
                 onClick={() => setExpandedPolicy(expandedPolicy === policy.id ? "" : policy.id)}
-                className="w-full flex items-center justify-between p-6 hover:bg-[var(--vaden-surface-12)] transition-colors"
+                className="w-full flex items-center justify-between p-6 hover:bg-[var(--brac-surface-12)] transition-colors"
               >
-                <h2 className="font-['Barlow_Condensed'] font-bold text-[var(--vaden-on-surface)] text-xl uppercase tracking-wide">
+                <h2 className="font-['Barlow_Condensed'] font-bold text-[var(--brac-on-surface)] text-xl uppercase tracking-wide">
                   {asString(policy.title)}
                 </h2>
                 <ChevronDown
@@ -99,14 +100,14 @@ export default function Policies() {
               </button>
 
               {expandedPolicy === policy.id && (
-                <div className="border-t border-[var(--vaden-border)] p-6">
+                <div className="border-t border-[var(--brac-border)] p-6">
                   <div
-                    className="prose prose-invert max-w-none text-[var(--vaden-text-muted)] font-['Inter'] text-sm leading-relaxed"
+                    className="prose prose-invert max-w-none text-[var(--brac-text-muted)] font-['Inter'] text-sm leading-relaxed"
                     dangerouslySetInnerHTML={{
                       __html: sanitizeHtml(asString(policy.content))
                         .replace(
                           /<h3>/g,
-                          '<h3 class="font-bold text-[var(--vaden-on-surface)] mt-6 mb-3 uppercase">',
+                          '<h3 class="font-bold text-[var(--brac-on-surface)] mt-6 mb-3 uppercase">',
                         )
                         .replace(/<p>/g, '<p class="mb-3">')
                         .replace(/<ul>/g, '<ul class="list-disc list-inside mb-3 space-y-2">')
@@ -119,16 +120,16 @@ export default function Policies() {
           ))}
         </div>
 
-        <div className="mt-20 bg-[var(--vaden-surface-14)] border border-[var(--vaden-border)] p-8 text-center">
-          <h3 className="font-['Barlow_Condensed'] font-bold text-[var(--vaden-on-surface)] text-xl mb-3 uppercase">
+        <div className="mt-20 bg-[var(--brac-surface-14)] border border-[var(--brac-border)] p-8 text-center">
+          <h3 className="font-['Barlow_Condensed'] font-bold text-[var(--brac-on-surface)] text-xl mb-3 uppercase">
             {asString(metadata.contactTitle)}
           </h3>
-          <p className="text-[var(--vaden-text-muted)] font-['Inter'] mb-4">
+          <p className="text-[var(--brac-text-muted)] font-['Inter'] mb-4">
             {asString(metadata.contactDescription)}
           </p>
           <a
             href={asString(metadata.contactButtonHref, "#iletisim")}
-            className="inline-flex items-center gap-2 bg-[oklch(0.60_0.18_42)] hover:bg-[oklch(0.50_0.18_42)] text-[var(--vaden-on-accent)] font-['Barlow_Condensed'] font-bold text-sm px-6 py-3 tracking-wide uppercase transition-all"
+            className="inline-flex items-center gap-2 bg-[oklch(0.60_0.18_42)] hover:bg-[oklch(0.50_0.18_42)] text-[var(--brac-on-accent)] font-['Barlow_Condensed'] font-bold text-sm px-6 py-3 tracking-wide uppercase transition-all"
           >
             {asString(metadata.contactButtonText)}
           </a>

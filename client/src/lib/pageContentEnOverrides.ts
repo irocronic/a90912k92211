@@ -33,7 +33,11 @@ export const EN_PAGE_CONTENT_OVERRIDES: Record<string, PageContentOverride> = {
       newsletterPlaceholder: "",
       newsletterButton: "",
       copyrightText: "© BRAC Spare Parts. All rights reserved / 2026",
-      policyLinks: [],
+      policyLinks: [
+        { label: "Privacy Policy", href: "/politikalar?tab=privacy" },
+        { label: "PDPL Clarification Text", href: "/politikalar?tab=kvkk" },
+        { label: "Cookie Policy", href: "/politikalar?tab=cookies" },
+      ],
     },
   },
 
@@ -361,7 +365,7 @@ export const EN_PAGE_CONTENT_OVERRIDES: Record<string, PageContentOverride> = {
     metadata: {
       label: "Request a Quote",
       heading: "Get Your Quote in 24 Hours",
-      successMessage: "Your message has been received! We will get back to you as soon as possible.",
+      successMessage: "Your request has been recorded. We will get back to you as soon as possible.",
       whatsappText: "WhatsApp Us",
       whatsappUrl: "https://wa.me/905344456070",
       contactInfo: [
@@ -393,6 +397,8 @@ export const EN_PAGE_CONTENT_OVERRIDES: Record<string, PageContentOverride> = {
         subject: "Subject *",
         message: "Message *",
         submit: "Send Message",
+        consent:
+          'I declare that I have read the <a href="/politikalar?tab=kvkk" class="underline underline-offset-2">PDPL Clarification Text</a> and the <a href="/politikalar?tab=privacy" class="underline underline-offset-2">Privacy Policy</a> regarding the processing of my personal data and that I expressly consent to being contacted about my request.',
       },
       placeholders: {
         name: "Your full name",
@@ -585,39 +591,41 @@ export const EN_PAGE_CONTENT_OVERRIDES: Record<string, PageContentOverride> = {
     title: "Policies & Terms",
     content: "Legal policy content",
     metadata: {
-      pageTitle: "Legal Policies | BRAC PDPL and Privacy",
+      pageTitle: "Legal Policies | BRAC Spare Parts",
       metaDescription:
-        "Information about BRAC Automotive Privacy Policy, PDPL Clarification Text and Cookie Policy.",
-      metaKeywords: "privacy policy, PDPL, cookie policy, data security, personal data",
+        "Review BRAC Spare Parts Privacy Policy, PDPL Clarification Text and Cookie Policy for website, quote requests and commercial communication processes.",
+      metaKeywords:
+        "privacy policy, PDPL clarification text, cookie policy, personal data, quote form, BRAC Spare Parts",
       heroLabel: "Legal",
       heroHeadingMain: "Policies &",
       heroHeadingHighlight: "Terms",
       heroDescription:
-        "Learn about the policies and legal terms that apply when using the BRAC Automotive website.",
+        "Review the legal texts that govern quote requests, contact processes, personal data handling and cookie use on the BRAC Spare Parts website.",
       policies: [
         {
           id: "privacy",
           title: "Privacy Policy",
           content:
-            "<h3>1. Introduction</h3><p>BRAC Automotive Industry & Trade Inc. (\"Company\") attaches importance to protecting the personal data of website visitors.</p><h3>2. Information Collected</h3><ul><li>Name, surname and contact information</li><li>E-mail address</li><li>Phone number</li></ul>",
+            "<h3>1. Scope and Purpose</h3><p>This Privacy Policy explains how BRAC Spare Parts processes personal data collected through its website, quote request forms, contact channels and business communication processes. Our goal is to provide transparent information regarding what data is collected, why it is processed and how it is protected.</p><h3>2. Data We May Collect</h3><ul><li>Identity and contact information such as name, surname, company name, phone number and e-mail address</li><li>Request and transaction data such as subject lines, quote details, OEM codes, product information and message content</li><li>Technical usage data such as IP address, browser information, approximate device data and limited analytics information</li></ul><h3>3. Purposes of Processing</h3><p>Your personal data may be processed to respond to quote requests, communicate about products or supply solutions, improve service quality, maintain website security and fulfill legal or operational obligations.</p><h3>4. Legal Basis</h3><p>Data processing may rely on the necessity to perform pre-contractual processes, the legitimate interests of our company, compliance with legal obligations or your explicit consent where required.</p><h3>5. Data Transfers</h3><p>Your data may be shared, to the extent necessary, with hosting, infrastructure, analytics, communication or legal support providers acting on our instructions and under confidentiality obligations. We do not sell personal data to third parties.</p><h3>6. Retention and Security</h3><p>We retain personal data only for as long as required for the processing purpose or legal retention periods. Reasonable technical and organizational safeguards are implemented to protect personal data against unauthorized access, disclosure, loss or misuse.</p><h3>7. Your Rights</h3><p>You may contact us to request information regarding your personal data, ask for correction of inaccurate information, object to certain processing activities or request deletion where legally permissible.</p>",
         },
         {
           id: "kvkk",
           title: "PDPL Clarification Text",
           content:
-            "<h3>Personal Data Protection Law Clarification Text</h3><h3>1. Data Controller</h3><p>BRAC Automotive Industry & Trade Inc., Konya Organized Industrial Zone, Konya, Turkiye</p><h3>2. Purposes of Processing Personal Data</h3><ul><li>Providing customer services</li><li>Providing information about products and services</li></ul>",
+            "<h3>1. Data Controller</h3><p>Within the scope of website and commercial communication activities, BRAC Spare Parts acts as the data controller for the personal data collected through the website, quote forms and direct communication channels.</p><h3>2. Categories of Personal Data</h3><p>The categories of personal data that may be processed include identity information, contact data, company data, request content, quote details and limited website usage data.</p><h3>3. Purposes of Processing</h3><ul><li>Evaluating quote and product requests</li><li>Contacting relevant persons regarding supply planning, sales and export operations</li><li>Managing customer relationship and after-sales communication records</li><li>Improving website operation, security and service continuity</li><li>Fulfilling legal obligations and preserving evidential records where necessary</li></ul><h3>4. Collection Methods</h3><p>Personal data may be collected electronically through the website, quote forms, cookies subject to preference, e-mail correspondence, phone communication and operational records created during business interaction.</p><h3>5. Transfers and Storage</h3><p>Where required for the above purposes, personal data may be stored on secure infrastructure and shared with service providers or legally authorized institutions under a need-to-know basis.</p><h3>6. Rights of the Data Subject</h3><p>You may submit requests concerning access, correction, update or deletion of your personal data, as well as other rights provided by the applicable personal data protection legislation.</p>",
         },
         {
           id: "cookies",
           title: "Cookie Policy",
           content:
-            "<h3>1. What are Cookies?</h3><p>Cookies are small text files stored in the browsers of website visitors.</p><h3>2. Types of Cookies We Use</h3><ul><li><strong>Necessary Cookies:</strong> Required for proper functioning of the website</li><li><strong>Analytics Cookies:</strong> Used to analyze website visitor behavior</li></ul>",
+            "<h3>1. What Are Cookies?</h3><p>Cookies are small text files stored on your device to help websites work properly, remember preferences and measure service performance.</p><h3>2. Types of Cookies We Use</h3><ul><li><strong>Strictly Necessary Cookies:</strong> required for language preferences, security and core site functions</li><li><strong>Analytics Cookies:</strong> used only after consent to understand site performance and improve the user experience</li></ul><h3>3. Consent Management</h3><p>When you first visit the website, you are presented with a cookie notice. You may accept analytics cookies or continue with only strictly necessary cookies. Your choice is stored so it can be respected on future visits.</p><h3>4. Managing Cookies</h3><p>You can change your browser settings to block or delete cookies. However, disabling strictly necessary cookies may affect site functionality.</p><h3>5. Additional Information</h3><p>If you would like more information regarding our cookie practices or privacy commitments, please contact us through the communication channels published on this website.</p>",
         },
       ],
       contactTitle: "Do you have questions?",
       contactDescription:
-        "If you have any questions about our policies, please contact us.",
-      contactButtonText: "Go to Contact Page",
+        "If you need clarification regarding privacy, cookies or personal data processing, you may contact us through our website communication channels.",
+      contactButtonText: "Contact Us",
+      contactButtonHref: "/#iletisim-bilgileri",
     },
   },
 };

@@ -29,7 +29,7 @@ export default function AboutSection() {
   return (
     <section
       id="hakkimizda"
-      className="scroll-mt-32 lg:scroll-mt-36 py-20 bg-[var(--vaden-surface-09)]"
+      className="scroll-mt-32 lg:scroll-mt-36 py-20 bg-[var(--brac-surface-09)]"
       ref={ref as React.RefObject<HTMLElement>}
     >
       <div className="container mx-auto px-6 max-w-7xl">
@@ -46,7 +46,7 @@ export default function AboutSection() {
                 {asString(metadata.label)}
               </span>
             </div>
-            <h2 className="font-['Barlow_Condensed'] font-black text-[var(--vaden-on-surface)] text-5xl md:text-6xl leading-none uppercase mb-6">
+            <h2 className="font-['Barlow_Condensed'] font-black text-[var(--brac-on-surface)] text-5xl md:text-6xl leading-none uppercase mb-6">
               {asString(metadata.headingMain)}
               <br />
               <span className="text-[oklch(0.60_0.18_42)]">{asString(metadata.headingHighlight)}</span>
@@ -54,11 +54,11 @@ export default function AboutSection() {
             <p className="text-[oklch(0.60_0.01_250)] font-['Inter'] text-base leading-relaxed mb-4">
               {asString(metadata.paragraph1)}
             </p>
-            <p className="text-[var(--vaden-text-muted)] font-['Inter'] text-base leading-relaxed mb-8">
+            <p className="text-[var(--brac-text-muted)] font-['Inter'] text-base leading-relaxed mb-8">
               {asString(metadata.paragraph2)}
             </p>
 
-            <div className="relative pl-6 border-l border-[var(--vaden-border-strong)]">
+            <div className="relative pl-6 border-l border-[var(--brac-border-strong)]">
               {milestones.map((milestone, index) => (
                 <div
                   key={`${milestone.year}-${index}`}
@@ -82,7 +82,7 @@ export default function AboutSection() {
 
             <a
               href={asString(metadata.ctaHref, "#kurumsal")}
-              className="inline-flex items-center gap-2 mt-8 bg-[oklch(0.60_0.18_42)] hover:bg-[oklch(0.50_0.18_42)] text-[var(--vaden-on-accent)] font-['Barlow_Condensed'] font-bold text-sm px-6 py-3 tracking-wide uppercase transition-all"
+              className="inline-flex items-center gap-2 mt-8 bg-[oklch(0.60_0.18_42)] hover:bg-[oklch(0.50_0.18_42)] text-[var(--brac-on-accent)] font-['Barlow_Condensed'] font-bold text-sm px-6 py-3 tracking-wide uppercase transition-all"
             >
               {asString(metadata.ctaText, "Daha Fazla Bilgi")} <ArrowRight size={16} />
             </a>
@@ -96,7 +96,7 @@ export default function AboutSection() {
             <div className="relative mb-6">
               <img
                 src={imageUrl}
-                alt={asString(metadata.imageAlt, "Vaden Üretim")}
+                alt={asString(metadata.imageAlt, "BRAC Üretim")}
                 className="w-full h-64 object-cover"
               />
               <div className="absolute top-0 right-0 w-12 h-12 border-t-4 border-r-4 border-[oklch(0.60_0.18_42)]"></div>
@@ -107,12 +107,12 @@ export default function AboutSection() {
               {quickStats.map((stat, index) => (
                 <div
                   key={`${stat.label}-${index}`}
-                  className="bg-[var(--vaden-surface-14)] border border-[var(--vaden-border)] p-4 text-center hover:border-[oklch(0.60_0.18_42)] transition-colors"
+                  className="bg-[var(--brac-surface-14)] border border-[var(--brac-border)] p-4 text-center hover:border-[oklch(0.60_0.18_42)] transition-colors"
                 >
                   <div className="font-['Barlow_Condensed'] font-black text-[oklch(0.60_0.18_42)] text-2xl leading-none mb-1">
                     {asString(stat.value)}
                   </div>
-                  <div className="text-[var(--vaden-text-muted)] text-xs font-['Inter'] uppercase tracking-wide">
+                  <div className="text-[var(--brac-text-muted)] text-xs font-['Inter'] uppercase tracking-wide">
                     {asString(stat.label)}
                   </div>
                 </div>

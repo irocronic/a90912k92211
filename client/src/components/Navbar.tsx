@@ -228,11 +228,11 @@ const Navbar = () => {
       data-site-navbar="true"
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled
-          ? "bg-[var(--vaden-surface-08)] shadow-[0_4px_20px_rgba(0,0,0,0.4)] border-b border-[oklch(0.60_0.18_42)/20]"
+          ? "bg-[var(--brac-surface-08)] shadow-[0_4px_20px_rgba(0,0,0,0.4)] border-b border-[oklch(0.60_0.18_42)/20]"
           : "bg-gradient-to-b from-[oklch(0.05_0.01_250)/90] via-[oklch(0.05_0.01_250)/60] to-transparent"
       }`}
     >
-      <div className="hidden lg:flex items-center justify-between px-6 py-2 bg-[var(--vaden-surface-08)] text-[var(--vaden-text-muted)] text-sm border-b border-[var(--vaden-border-soft)]">
+      <div className="hidden lg:flex items-center justify-between px-6 py-2 bg-[var(--brac-surface-08)] text-[var(--brac-text-muted)] text-sm border-b border-[var(--brac-border-soft)]">
         <div className="flex items-center gap-6">
           {contactItems.map((item) => {
             const Icon = item.icon;
@@ -255,7 +255,7 @@ const Navbar = () => {
               className={`px-2 py-1 rounded transition ${
                 language === "tr"
                   ? "bg-orange-600 text-white"
-                  : "text-[var(--vaden-text-muted)] hover:text-orange-500"
+                  : "text-[var(--brac-text-muted)] hover:text-orange-500"
               }`}
             >
               TR
@@ -265,7 +265,7 @@ const Navbar = () => {
               className={`px-2 py-1 rounded transition ${
                 language === "en"
                   ? "bg-orange-600 text-white"
-                  : "text-[var(--vaden-text-muted)] hover:text-orange-500"
+                  : "text-[var(--brac-text-muted)] hover:text-orange-500"
               }`}
             >
               EN
@@ -275,20 +275,20 @@ const Navbar = () => {
               className={`px-2 py-1 rounded transition ${
                 language === "ar"
                   ? "bg-orange-600 text-white"
-                  : "text-[var(--vaden-text-muted)] hover:text-orange-500"
+                  : "text-[var(--brac-text-muted)] hover:text-orange-500"
               }`}
             >
               AR
             </button>
           </div>
 
-          <div className="flex gap-2 border-l border-[var(--vaden-border)] pl-4">
+          <div className="flex gap-2 border-l border-[var(--brac-border)] pl-4">
             <button
               onClick={() => setTheme("light")}
               className={`px-2 py-1 rounded transition ${
                 theme === "light"
                   ? "bg-orange-600 text-white"
-                  : "text-[var(--vaden-text-muted)] hover:text-orange-500"
+                  : "text-[var(--brac-text-muted)] hover:text-orange-500"
               }`}
               title={asString(metadata.lightModeTitle, "Light Mode")}
             >
@@ -299,7 +299,7 @@ const Navbar = () => {
               className={`px-2 py-1 rounded transition ${
                 theme === "dark"
                   ? "bg-orange-600 text-white"
-                  : "text-[var(--vaden-text-muted)] hover:text-orange-500"
+                  : "text-[var(--brac-text-muted)] hover:text-orange-500"
               }`}
               title={asString(metadata.darkModeTitle, "Dark Mode")}
             >
@@ -329,7 +329,7 @@ const Navbar = () => {
                   <a
                     href={normalizeNavHref(item.href)}
                     onClick={(event) => handleNavLinkClick(event, normalizeNavHref(item.href))}
-                    className="px-4 py-2 text-[var(--vaden-text-dim)] hover:text-[oklch(0.60_0.18_42)] transition flex items-center gap-1 rounded-lg hover:bg-[var(--vaden-surface-14)]"
+                    className="px-4 py-2 text-[var(--brac-text-dim)] hover:text-[oklch(0.60_0.18_42)] transition flex items-center gap-1 rounded-lg hover:bg-[var(--brac-surface-14)]"
                   >
                     {label}
                     {children.length > 0 && (
@@ -345,7 +345,7 @@ const Navbar = () => {
                   {children.length > 0 && activeDropdown === label && (
                     <div className="absolute left-0 top-full z-50 w-56 pt-1">
                       <div className="absolute inset-x-0 top-0 h-3" />
-                      <div className="bg-[var(--vaden-surface-10)] border border-[oklch(0.60_0.18_42)/30] shadow-2xl py-2">
+                      <div className="bg-[var(--brac-surface-10)] border border-[oklch(0.60_0.18_42)/30] shadow-2xl py-2">
                       <div className="absolute top-0 left-4 w-8 h-0.5 bg-[oklch(0.60_0.18_42)]"></div>
                       {children.map((child, childIndex) => (
                         <a
@@ -354,7 +354,7 @@ const Navbar = () => {
                           onClick={(event) =>
                             handleNavLinkClick(event, normalizeNavHref(child.href))
                           }
-                          className="flex items-center gap-2 px-4 py-2.5 text-[var(--vaden-text-dim)] hover:text-[oklch(0.60_0.18_42)] hover:bg-[var(--vaden-surface-14)] transition group/item"
+                          className="flex items-center gap-2 px-4 py-2.5 text-[var(--brac-text-dim)] hover:text-[oklch(0.60_0.18_42)] hover:bg-[var(--brac-surface-14)] transition group/item"
                         >
                           <span className="w-0 group-hover/item:w-2 h-px bg-[oklch(0.60_0.18_42)] transition-all duration-200 inline-block flex-shrink-0"></span>
                           <span className="text-sm font-['Inter']">{getLabel(child)}</span>
@@ -383,13 +383,13 @@ const Navbar = () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                  className="px-3 py-2 bg-[var(--vaden-surface-14)] border border-orange-600 rounded-lg text-[var(--vaden-on-surface)] placeholder-[var(--vaden-text-placeholder)] focus:outline-none focus:ring-2 focus:ring-orange-600 w-48"
+                  className="px-3 py-2 bg-[var(--brac-surface-14)] border border-orange-600 rounded-lg text-[var(--brac-on-surface)] placeholder-[var(--brac-text-placeholder)] focus:outline-none focus:ring-2 focus:ring-orange-600 w-48"
                   autoFocus
                 />
               ) : (
                 <button
                   onClick={() => setSearchOpen(true)}
-                  className="p-2 text-[var(--vaden-text-dim)] hover:text-orange-500 transition"
+                  className="p-2 text-[var(--brac-text-dim)] hover:text-orange-500 transition"
                 >
                   <Search size={20} />
                 </button>
@@ -398,7 +398,7 @@ const Navbar = () => {
 
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="lg:hidden p-2 text-[var(--vaden-text-dim)] hover:text-orange-500 transition"
+              className="lg:hidden p-2 text-[var(--brac-text-dim)] hover:text-orange-500 transition"
             >
               {isOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
@@ -406,7 +406,7 @@ const Navbar = () => {
         </div>
 
         {isOpen && (
-          <div className="lg:hidden mt-4 p-2 space-y-2 rounded-xl border border-[var(--vaden-border-soft)] bg-[var(--vaden-surface-10)] shadow-[0_12px_36px_rgba(0,0,0,0.28)] backdrop-blur-xl">
+          <div className="lg:hidden mt-4 p-2 space-y-2 rounded-xl border border-[var(--brac-border-soft)] bg-[var(--brac-surface-10)] shadow-[0_12px_36px_rgba(0,0,0,0.28)] backdrop-blur-xl">
             <div className="flex items-center gap-2 px-2 pb-2">
               {(["tr", "en", "ar"] as const).map((lang) => (
                 <button
@@ -415,7 +415,7 @@ const Navbar = () => {
                   className={`rounded-md px-3 py-1.5 text-xs font-bold uppercase transition ${
                     language === lang
                       ? "bg-orange-600 text-white"
-                      : "bg-[var(--vaden-surface-14)] text-[var(--vaden-text-muted)]"
+                      : "bg-[var(--brac-surface-14)] text-[var(--brac-text-muted)]"
                   }`}
                 >
                   {lang}
@@ -433,7 +433,7 @@ const Navbar = () => {
                     <div className="flex items-center gap-2">
                       <a
                         href={normalizeNavHref(item.href)}
-                        className="flex-1 px-4 py-2 text-[var(--vaden-on-surface)] hover:text-orange-500 hover:bg-[var(--vaden-surface-14)] rounded-lg transition"
+                        className="flex-1 px-4 py-2 text-[var(--brac-on-surface)] hover:text-orange-500 hover:bg-[var(--brac-surface-14)] rounded-lg transition"
                         onClick={(event) => {
                           handleNavLinkClick(event, normalizeNavHref(item.href), { closeMobile: true });
                         }}
@@ -442,7 +442,7 @@ const Navbar = () => {
                       </a>
                       <button
                         onClick={() => setActiveDropdown(open ? null : key)}
-                        className="px-3 py-2 text-[var(--vaden-on-surface)] hover:text-orange-500 hover:bg-[var(--vaden-surface-14)] rounded-lg transition"
+                        className="px-3 py-2 text-[var(--brac-on-surface)] hover:text-orange-500 hover:bg-[var(--brac-surface-14)] rounded-lg transition"
                         aria-label={`${label} alt menusu`}
                       >
                         <ChevronDown size={16} className={`transition ${open ? "rotate-180" : ""}`} />
@@ -451,7 +451,7 @@ const Navbar = () => {
                   ) : (
                     <a
                       href={normalizeNavHref(item.href)}
-                      className="block w-full text-left px-4 py-2 text-[var(--vaden-on-surface)] hover:text-orange-500 hover:bg-[var(--vaden-surface-14)] rounded-lg transition"
+                      className="block w-full text-left px-4 py-2 text-[var(--brac-on-surface)] hover:text-orange-500 hover:bg-[var(--brac-surface-14)] rounded-lg transition"
                       onClick={(event) => {
                         handleNavLinkClick(event, normalizeNavHref(item.href), { closeMobile: true });
                       }}
@@ -460,12 +460,12 @@ const Navbar = () => {
                     </a>
                   )}
                   {children.length > 0 && open && (
-                    <div className="ml-3 mr-1 mt-1 mb-2 p-1.5 rounded-lg border border-[var(--vaden-border-soft)] bg-[var(--vaden-surface-12)] space-y-1">
+                    <div className="ml-3 mr-1 mt-1 mb-2 p-1.5 rounded-lg border border-[var(--brac-border-soft)] bg-[var(--brac-surface-12)] space-y-1">
                       {children.map((child, childIndex) => (
                         <a
                           key={`${key}-child-${childIndex}`}
                           href={normalizeNavHref(child.href)}
-                          className="block px-3 py-2 text-sm text-[var(--vaden-on-surface)]/85 hover:text-orange-500 hover:bg-[var(--vaden-surface-14)] rounded-md transition"
+                          className="block px-3 py-2 text-sm text-[var(--brac-on-surface)]/85 hover:text-orange-500 hover:bg-[var(--brac-surface-14)] rounded-md transition"
                           onClick={(event) => {
                             handleNavLinkClick(event, normalizeNavHref(child.href), {
                               closeMobile: true,

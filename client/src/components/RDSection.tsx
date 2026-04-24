@@ -39,7 +39,7 @@ export default function RDSection() {
   return (
     <section
       id="arge"
-      className="py-20 bg-[var(--vaden-surface-09)]"
+      className="py-20 bg-[var(--brac-surface-09)]"
       ref={ref as React.RefObject<HTMLElement>}
     >
       <div className="container mx-auto px-6 max-w-7xl">
@@ -63,10 +63,10 @@ export default function RDSection() {
                 <div className="font-['Barlow_Condensed'] font-black text-[oklch(0.60_0.18_42)] text-2xl leading-none mb-1">
                   {asString(metadata.badgeRank)}
                 </div>
-                <div className="font-['Barlow_Condensed'] font-bold text-[var(--vaden-on-surface)] text-sm uppercase tracking-wide">
+                <div className="font-['Barlow_Condensed'] font-bold text-[var(--brac-on-surface)] text-sm uppercase tracking-wide">
                   {asString(metadata.badgeTitle)}
                 </div>
-                <div className="text-[var(--vaden-text-muted)] text-xs font-['Inter'] mt-1">
+                <div className="text-[var(--brac-text-muted)] text-xs font-['Inter'] mt-1">
                   {asString(metadata.badgeDescription)}
                 </div>
               </div>
@@ -84,12 +84,12 @@ export default function RDSection() {
                 {asString(metadata.label)}
               </span>
             </div>
-            <h2 className="font-['Barlow_Condensed'] font-black text-[var(--vaden-on-surface)] text-5xl md:text-6xl leading-none uppercase mb-4">
+            <h2 className="font-['Barlow_Condensed'] font-black text-[var(--brac-on-surface)] text-5xl md:text-6xl leading-none uppercase mb-4">
               {asString(metadata.headingMain)}
               <br />
               <span className="text-[oklch(0.60_0.18_42)]">{asString(metadata.headingHighlight)}</span>
             </h2>
-            <p className="text-[var(--vaden-text-muted)] font-['Inter'] text-base leading-relaxed mb-8">
+            <p className="text-[var(--brac-text-muted)] font-['Inter'] text-base leading-relaxed mb-8">
               {asString(metadata.description)}
             </p>
 
@@ -111,7 +111,7 @@ export default function RDSection() {
                       <Icon size={16} className="text-[oklch(0.60_0.18_42)]" />
                     </div>
                     <div>
-                      <h4 className="font-['Barlow_Condensed'] font-bold text-[var(--vaden-on-surface)] text-base uppercase tracking-wide mb-1">
+                      <h4 className="font-['Barlow_Condensed'] font-bold text-[var(--brac-on-surface)] text-base uppercase tracking-wide mb-1">
                         {asString(feature.title)}
                       </h4>
                       <p className="text-[oklch(0.45_0.01_250)] text-xs font-['Inter'] leading-relaxed">
@@ -125,7 +125,7 @@ export default function RDSection() {
 
             <a
               href={asString(metadata.ctaHref, "#arge")}
-              className="inline-flex items-center gap-2 bg-[oklch(0.60_0.18_42)] hover:bg-[oklch(0.50_0.18_42)] text-[var(--vaden-on-accent)] font-['Barlow_Condensed'] font-bold text-sm px-6 py-3 tracking-wide uppercase transition-all hover:shadow-[0_0_20px_oklch(0.60_0.18_42/0.3)]"
+              className="inline-flex items-center gap-2 bg-[oklch(0.60_0.18_42)] hover:bg-[oklch(0.50_0.18_42)] text-[var(--brac-on-accent)] font-['Barlow_Condensed'] font-bold text-sm px-6 py-3 tracking-wide uppercase transition-all hover:shadow-[0_0_20px_oklch(0.60_0.18_42/0.3)]"
             >
               {asString(metadata.ctaText)} <ArrowRight size={16} />
             </a>

@@ -71,6 +71,13 @@
       "when": 1776713879000,
       "tag": "0009_product_import_jobs",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1776742200000,
+      "tag": "0010_manual_user_passwords",
+      "breakpoints": true
     }
   ]
 }

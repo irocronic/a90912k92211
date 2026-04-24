@@ -104,6 +104,13 @@ export const adminProcedure = protectedProcedure.use(async (opts) => {
     });
   }
 
+  if (ctx.user.passwordResetRequired) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Devam etmek için önce şifrenizi değiştirmeniz gerekiyor.",
+    });
+  }
+
   const result = await next();
 
   if (type === "mutation") {

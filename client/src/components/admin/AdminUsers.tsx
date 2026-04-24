@@ -48,6 +48,7 @@ export default function AdminUsers() {
     { refetchOnWindowFocus: false },
   );
   const createUserMutation = trpc.admin.users.create.useMutation();
+  const resetPasswordMutation = trpc.admin.users.resetPassword.useMutation();
   const setRoleMutation = trpc.admin.users.setRole.useMutation();
 
   const [search, setSearch] = useState("");
@@ -66,6 +67,11 @@ export default function AdminUsers() {
   });
   const [draftRoles, setDraftRoles] = useState<Record<number, AssignableRole>>({});
   const [savingUserId, setSavingUserId] = useState<number | null>(null);
+  const [passwordNotice, setPasswordNotice] = useState<{
+    label: string;
+    password: string;
+    description: string;
+  } | null>(null);
 
   const filteredUsers = useMemo(() => {
     const normalizedSearch = normalizeText(search);
@@ -112,7 +118,7 @@ export default function AdminUsers() {
     }
 
     try {
-      await createUserMutation.mutateAsync(payload);
+      const result = await createUserMutation.mutateAsync(payload);
       toast.success("Yeni kullanıcı oluşturuldu.");
       setNewUserForm({
         openId: "",
@@ -121,10 +127,43 @@ export default function AdminUsers() {
         loginMethod: "manual",
         role: "user",
       });
+      if (result?.temporaryPassword && result.user) {
+        const label =
+          result.user.name || result.user.email || result.user.openId || "Manual kullanıcı";
+        setPasswordNotice({
+          label,
+          password: result.temporaryPassword,
+          description:
+            "Bu geçici şifreyi şimdi paylaşın. Kullanıcı ilk girişte yeni şifresini belirlemek zorunda kalır.",
+        });
+      } else {
+        setPasswordNotice(null);
+      }
       await refetch();
     } catch (error: unknown) {
       const message =
         error instanceof Error ? error.message : "Kullanıcı oluşturulamadı";
+      toast.error(message);
+    }
+  };
+
+  const handleResetPassword = async (
+    userId: number,
+    displayName: string,
+  ) => {
+    try {
+      const result = await resetPasswordMutation.mutateAsync({ userId });
+      setPasswordNotice({
+        label: displayName,
+        password: result.temporaryPassword,
+        description:
+          "Yeni geçici şifre üretildi. Kullanıcı bir sonraki girişte şifresini değiştirmek zorunda kalır.",
+      });
+      toast.success("Geçici şifre yenilendi.");
+      await refetch();
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "Şifre sıfırlama başarısız";
       toast.error(message);
     }
   };
@@ -169,6 +208,20 @@ export default function AdminUsers() {
           onSubmit={handleCreateUser}
           className="rounded-md border border-border/60 bg-muted/20 p-4 space-y-4"
         >
+          {passwordNotice ? (
+            <div className="rounded-md border border-orange-500/40 bg-orange-500/10 p-4">
+              <p className="text-sm font-semibold">
+                {passwordNotice.label} icin gecici sifre:
+              </p>
+              <div className="mt-2 rounded bg-background px-3 py-2 font-mono text-base font-bold tracking-wide">
+                {passwordNotice.password}
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                {passwordNotice.description}
+              </p>
+            </div>
+          ) : null}
+
           <div className="space-y-1">
             <Label htmlFor="new-user-openid">openId *</Label>
             <Input
@@ -222,6 +275,9 @@ export default function AdminUsers() {
                   }))
                 }
               />
+              <p className="text-xs text-muted-foreground">
+                `manual` kullanicilarda sistem otomatik gecici sifre uretir.
+              </p>
             </div>
             <div className="space-y-1">
               <Label htmlFor="new-user-role">Rol</Label>
@@ -279,6 +335,7 @@ export default function AdminUsers() {
                   <th className="px-3 py-2">Kullanıcı</th>
                   <th className="px-3 py-2">E-posta</th>
                   <th className="px-3 py-2">Mevcut Rol</th>
+                  <th className="px-3 py-2">Giris</th>
                   <th className="px-3 py-2">Yeni Rol</th>
                   <th className="px-3 py-2">Son Giriş</th>
                   <th className="px-3 py-2">Aksiyon</th>
@@ -305,6 +362,22 @@ export default function AdminUsers() {
                           {user.role}
                         </Badge>
                       </td>
+                      <td className="px-3 py-2 whitespace-nowrap">
+                        <div className="space-y-1">
+                          <Badge variant="outline">{user.loginMethod || "-"}</Badge>
+                          {user.loginMethod === "manual" ? (
+                            <div>
+                              <Badge
+                                variant={user.passwordResetRequired ? "destructive" : "secondary"}
+                              >
+                                {user.passwordResetRequired
+                                  ? "Sifre Degisimi Gerekli"
+                                  : "Parola Hazir"}
+                              </Badge>
+                            </div>
+                          ) : null}
+                        </div>
+                      </td>
                       <td className="px-3 py-2">
                         <select
                           value={currentRole}
@@ -327,24 +400,37 @@ export default function AdminUsers() {
                         {formatDateTime(user.lastSignedIn)}
                       </td>
                       <td className="px-3 py-2">
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          disabled={!hasRoleChanged || savingUserId === user.id}
-                          onClick={() =>
-                            handleSaveRole(user.id, currentRole, displayName)
-                          }
-                        >
-                          {savingUserId === user.id ? (
-                            <>
-                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                              Kaydediliyor...
-                            </>
-                          ) : (
-                            "Kaydet"
-                          )}
-                        </Button>
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            disabled={!hasRoleChanged || savingUserId === user.id}
+                            onClick={() =>
+                              handleSaveRole(user.id, currentRole, displayName)
+                            }
+                          >
+                            {savingUserId === user.id ? (
+                              <>
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                Kaydediliyor...
+                              </>
+                            ) : (
+                              "Kaydet"
+                            )}
+                          </Button>
+                          {user.loginMethod === "manual" ? (
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="secondary"
+                              disabled={resetPasswordMutation.isPending}
+                              onClick={() => handleResetPassword(user.id, displayName)}
+                            >
+                              {resetPasswordMutation.isPending ? "Yenileniyor..." : "Sifre Sifirla"}
+                            </Button>
+                          ) : null}
+                        </div>
                       </td>
                     </tr>
                   );

@@ -4,32 +4,13 @@ import { httpBatchLink } from "@trpc/client";
 import { createRoot } from "react-dom/client";
 import superjson from "superjson";
 import App from "./App";
+import { initializeAnalytics } from "./lib/analytics";
+import { hasAcceptedAnalytics } from "./lib/cookieConsent";
 import "./index.css";
 
-const initializeAnalytics = () => {
-  if (typeof window === "undefined" || typeof document === "undefined") return;
-
-  const endpoint = import.meta.env.VITE_ANALYTICS_ENDPOINT;
-  const websiteId = import.meta.env.VITE_ANALYTICS_WEBSITE_ID;
-
-  if (!endpoint || !websiteId) return;
-
-  const normalizedEndpoint = endpoint.replace(/\/+$/, "");
-  const scriptSrc = `${normalizedEndpoint}/umami`;
-  const existingScript = document.querySelector(
-    `script[src="${scriptSrc}"][data-website-id="${websiteId}"]`
-  );
-
-  if (existingScript) return;
-
-  const script = document.createElement("script");
-  script.defer = true;
-  script.src = scriptSrc;
-  script.setAttribute("data-website-id", websiteId);
-  document.head.appendChild(script);
-};
-
-initializeAnalytics();
+if (hasAcceptedAnalytics()) {
+  initializeAnalytics();
+}
 
 const queryClient = new QueryClient();
 

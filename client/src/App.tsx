@@ -4,6 +4,7 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import { HelmetProvider } from "react-helmet-async";
 import ErrorBoundary from "./components/ErrorBoundary";
+import CookieConsentBanner from "./components/CookieConsentBanner";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { I18nProvider } from "./contexts/I18nContext";
 
@@ -44,6 +45,7 @@ function App() {
             <TooltipProvider>
               <Toaster />
               <Router />
+              <CookieConsentBanner />
             </TooltipProvider>
           </I18nProvider>
         </ThemeProvider>

@@ -38,7 +38,7 @@ export default function FacilitiesSection() {
   return (
     <section
       id="uretim"
-      className="py-20 bg-[var(--vaden-surface-10)]"
+      className="py-20 bg-[var(--brac-surface-10)]"
       ref={ref as React.RefObject<HTMLElement>}
     >
       <div className="container mx-auto px-6 max-w-7xl">
@@ -71,7 +71,7 @@ export default function FacilitiesSection() {
                   key={`${tab}-${index}`}
                   className={`font-['Barlow_Condensed'] font-bold text-sm px-5 py-2.5 tracking-wide uppercase transition-all ${
                     index === 0
-                      ? "bg-[oklch(0.60_0.18_42)] text-[var(--vaden-on-accent)]"
+                      ? "bg-[oklch(0.60_0.18_42)] text-[var(--brac-on-accent)]"
                       : "border border-[oklch(0.30_0.01_250)] text-[oklch(0.60_0.01_250)] hover:border-[oklch(0.60_0.18_42)] hover:text-[oklch(0.60_0.18_42)]"
                   }`}
                 >
@@ -86,7 +86,7 @@ export default function FacilitiesSection() {
                 return (
                   <div
                     key={`${stat.label}-${index}`}
-                    className="bg-[var(--vaden-surface-14)] border border-[var(--vaden-border)] p-4 flex items-center gap-3 hover:border-[oklch(0.60_0.18_42)] transition-colors"
+                    className="bg-[var(--brac-surface-14)] border border-[var(--brac-border)] p-4 flex items-center gap-3 hover:border-[oklch(0.60_0.18_42)] transition-colors"
                   >
                     <div className="w-10 h-10 bg-[oklch(0.60_0.18_42)/10] flex items-center justify-center flex-shrink-0">
                       <Icon size={18} className="text-[oklch(0.60_0.18_42)]" />
@@ -106,7 +106,7 @@ export default function FacilitiesSection() {
 
             <a
               href={asString(metadata.ctaHref, "#uretim")}
-              className="inline-flex items-center gap-2 bg-transparent border border-[oklch(0.60_0.18_42)] text-[oklch(0.60_0.18_42)] hover:bg-[oklch(0.60_0.18_42)] hover:text-[var(--vaden-on-accent)] font-['Barlow_Condensed'] font-bold text-sm px-6 py-3 tracking-wide uppercase transition-all"
+              className="inline-flex items-center gap-2 bg-transparent border border-[oklch(0.60_0.18_42)] text-[oklch(0.60_0.18_42)] hover:bg-[oklch(0.60_0.18_42)] hover:text-[var(--brac-on-accent)] font-['Barlow_Condensed'] font-bold text-sm px-6 py-3 tracking-wide uppercase transition-all"
             >
               {asString(metadata.ctaText, "Daha Fazla Bilgi")} <ArrowRight size={16} />
             </a>
@@ -130,10 +130,10 @@ export default function FacilitiesSection() {
                 <div className="font-['Barlow_Condensed'] font-black text-[oklch(0.60_0.18_42)] text-3xl leading-none">
                   {asString(metadata.badgeValue, "56")}
                 </div>
-                <div className="font-['Barlow_Condensed'] font-bold text-[var(--vaden-on-surface)] text-sm uppercase tracking-wide">
+                <div className="font-['Barlow_Condensed'] font-bold text-[var(--brac-on-surface)] text-sm uppercase tracking-wide">
                   {asString(metadata.badgeLine1)}
                 </div>
-                <div className="font-['Barlow_Condensed'] font-bold text-[var(--vaden-on-surface)] text-sm uppercase tracking-wide">
+                <div className="font-['Barlow_Condensed'] font-bold text-[var(--brac-on-surface)] text-sm uppercase tracking-wide">
                   {asString(metadata.badgeLine2)}
                 </div>
               </div>

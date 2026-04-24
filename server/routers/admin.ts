@@ -41,6 +41,7 @@ import {
   normalizeTurkishText,
 } from "../_core/sqliteProductImport";
 import { createSqliteImportJob } from "../_core/sqliteImportJobs";
+import { generateTemporaryPassword, hashPassword } from "../_core/passwords";
 
 type ProductOemInput = Array<{ manufacturer: string; codes: string[] }>;
 
@@ -412,6 +413,8 @@ export const adminRouter = router({
           email: users.email,
           role: users.role,
           loginMethod: users.loginMethod,
+          passwordResetRequired: users.passwordResetRequired,
+          passwordUpdatedAt: users.passwordUpdatedAt,
           createdAt: users.createdAt,
           updatedAt: users.updatedAt,
           lastSignedIn: users.lastSignedIn,
@@ -441,6 +444,13 @@ export const adminRouter = router({
         }
 
         const now = new Date();
+        const normalizedLoginMethod =
+          input.loginMethod && input.loginMethod.length > 0
+            ? input.loginMethod.toLowerCase()
+            : "manual";
+        const isManualUser = normalizedLoginMethod === "manual";
+        const temporaryPassword = isManualUser ? generateTemporaryPassword() : null;
+        const passwordHash = temporaryPassword ? await hashPassword(temporaryPassword) : null;
 
         try {
           await db.insert(users).values({
@@ -450,10 +460,10 @@ export const adminRouter = router({
               input.email && input.email.length > 0
                 ? input.email.toLowerCase()
                 : null,
-            loginMethod:
-              input.loginMethod && input.loginMethod.length > 0
-                ? input.loginMethod
-                : "manual",
+            loginMethod: normalizedLoginMethod,
+            passwordHash,
+            passwordResetRequired: isManualUser ? 1 : 0,
+            passwordUpdatedAt: isManualUser ? now : null,
             role: input.role,
             createdAt: now,
             updatedAt: now,
@@ -478,6 +488,8 @@ export const adminRouter = router({
             email: users.email,
             role: users.role,
             loginMethod: users.loginMethod,
+            passwordResetRequired: users.passwordResetRequired,
+            passwordUpdatedAt: users.passwordUpdatedAt,
             createdAt: users.createdAt,
             updatedAt: users.updatedAt,
             lastSignedIn: users.lastSignedIn,
@@ -486,7 +498,73 @@ export const adminRouter = router({
           .where(eq(users.openId, input.openId))
           .limit(1);
 
-        return createdRows[0] ?? null;
+        return {
+          user: createdRows[0] ?? null,
+          temporaryPassword,
+        };
+      }),
+
+    resetPassword: superAdminProcedure
+      .input(
+        z.object({
+          userId: z.number().int().positive(),
+        }),
+      )
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        const userRows = await db
+          .select({
+            id: users.id,
+            openId: users.openId,
+            name: users.name,
+            email: users.email,
+            role: users.role,
+            loginMethod: users.loginMethod,
+            passwordResetRequired: users.passwordResetRequired,
+            passwordUpdatedAt: users.passwordUpdatedAt,
+            createdAt: users.createdAt,
+            updatedAt: users.updatedAt,
+            lastSignedIn: users.lastSignedIn,
+          })
+          .from(users)
+          .where(eq(users.id, input.userId))
+          .limit(1);
+
+        const targetUser = userRows[0];
+        if (!targetUser) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Kullanıcı bulunamadı.",
+          });
+        }
+
+        if (targetUser.loginMethod !== "manual") {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Şifre sıfırlama yalnızca manual kullanıcılar için kullanılabilir.",
+          });
+        }
+
+        const temporaryPassword = generateTemporaryPassword();
+        const passwordHash = await hashPassword(temporaryPassword);
+        const now = new Date();
+
+        await db
+          .update(users)
+          .set({
+            passwordHash,
+            passwordResetRequired: 1,
+            passwordUpdatedAt: now,
+            updatedAt: now,
+          })
+          .where(eq(users.id, targetUser.id));
+
+        return {
+          userId: targetUser.id,
+          temporaryPassword,
+        };
       }),
 
     setRole: superAdminProcedure

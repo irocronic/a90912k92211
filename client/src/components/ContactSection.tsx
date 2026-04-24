@@ -3,12 +3,14 @@
   Design: Industrial Precision - Dark form with orange accents
 */
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Clock, Mail, MapPin, Phone, Send } from "lucide-react";
 import { useIntersectionObserver } from "@/hooks/useIntersectionObserver";
 import { toast } from "sonner";
 import { asRecordArray, asString, useTemplateBackedPageContent } from "@/lib/pageContent";
 import { trpc } from "@/lib/trpc";
+import { useI18n } from "@/contexts/I18nContext";
+import { sanitizeHtml } from "@shared/htmlSanitizer";
 
 type ContactMetadata = {
   label: string;
@@ -24,6 +26,7 @@ type ContactMetadata = {
     subject: string;
     message: string;
     submit: string;
+    consent: string;
   };
   placeholders: {
     name: string;
@@ -75,8 +78,50 @@ function getReadableErrorMessage(error: unknown): string {
   return "Mesajınız gönderilemedi. Lütfen daha sonra tekrar deneyin.";
 }
 
+function getValidationMessage(
+  language: "tr" | "en" | "ar",
+  field: "name" | "email" | "subject" | "message",
+  validity: ValidityState,
+) {
+  const messages = {
+    tr: {
+      required: "Lütfen bu alanı doldurun.",
+      email: "Lütfen e-posta adresine bir @ işareti ekleyin.",
+      name: "Ad soyad en az 2 karakter olmalıdır.",
+      subject: "Konu en az 2 karakter olmalıdır.",
+      message: "Mesaj en az 10 karakter olmalıdır.",
+    },
+    en: {
+      required: "Please fill out this field.",
+      email: "Please include an @ sign in the email address.",
+      name: "Full name must be at least 2 characters.",
+      subject: "Subject must be at least 2 characters.",
+      message: "Message must be at least 10 characters.",
+    },
+    ar: {
+      required: "يرجى تعبئة هذا الحقل.",
+      email: "يرجى تضمين علامة @ في عنوان البريد الإلكتروني.",
+      name: "يجب أن يتكون الاسم من حرفين على الأقل.",
+      subject: "يجب أن يتكون الموضوع من حرفين على الأقل.",
+      message: "يجب أن تتكون الرسالة من 10 أحرف على الأقل.",
+    },
+  } as const;
+
+  const copy = messages[language];
+
+  if (validity.valueMissing) return copy.required;
+  if (field === "email" && (validity.typeMismatch || validity.patternMismatch)) {
+    return copy.email;
+  }
+  if (field === "name" && validity.tooShort) return copy.name;
+  if (field === "subject" && validity.tooShort) return copy.subject;
+  if (field === "message" && validity.tooShort) return copy.message;
+  return "";
+}
+
 export default function ContactSection() {
   const { ref, isVisible } = useIntersectionObserver({ threshold: 0.1 });
+  const { language } = useI18n();
   const { metadata } = useTemplateBackedPageContent<ContactMetadata>("home.contact");
   const contactInfo = asRecordArray<{ icon: string; title: string; lines: string[] }>(
     metadata.contactInfo,
@@ -91,10 +136,25 @@ export default function ContactSection() {
     message: "",
     website: "",
   });
+  const [consentAccepted, setConsentAccepted] = useState(false);
   const submitQuoteMutation = trpc.content.quote.submit.useMutation();
+  const consentLabelHtml = useMemo(
+    () => sanitizeHtml(asString(metadata.labels?.consent)),
+    [metadata.labels?.consent],
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!consentAccepted) {
+      const messageByLanguage = {
+        tr: "Devam etmeden önce KVKK Aydınlatma Metni ve Gizlilik Politikası onayını vermelisiniz.",
+        en: "You must confirm the PDPL Clarification Text and Privacy Policy before continuing.",
+        ar: "يجب عليك تأكيد بيان توضيح حماية البيانات وسياسة الخصوصية قبل المتابعة.",
+      } as const;
+      toast.error(messageByLanguage[language]);
+      return;
+    }
 
     try {
       const result = await submitQuoteMutation.mutateAsync({
@@ -107,7 +167,7 @@ export default function ContactSection() {
         website: formData.website,
       });
       toast.success(
-        result.message || asString(metadata.successMessage, "Mesajınız alındı!"),
+        asString(metadata.successMessage, "Talebiniz kaydedildi. En kısa sürede size dönüş yapacağız."),
       );
       setFormData({
         name: "",
@@ -123,10 +183,23 @@ export default function ContactSection() {
     }
   };
 
+  const handleFieldInvalid = (
+    event: React.InvalidEvent<HTMLInputElement | HTMLTextAreaElement>,
+    field: "name" | "email" | "subject" | "message",
+  ) => {
+    event.currentTarget.setCustomValidity(
+      getValidationMessage(language, field, event.currentTarget.validity),
+    );
+  };
+
+  const clearFieldValidity = (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    event.currentTarget.setCustomValidity("");
+  };
+
   return (
     <section
       id="teklif"
-      className="scroll-mt-32 lg:scroll-mt-36 py-20 bg-[var(--vaden-surface-09)]"
+      className="scroll-mt-32 lg:scroll-mt-36 py-20 bg-[var(--brac-surface-09)]"
       ref={ref as React.RefObject<HTMLElement>}
     >
       <div
@@ -146,7 +219,7 @@ export default function ContactSection() {
               {asString(metadata.label)}
             </span>
           </div>
-          <h2 className="font-['Barlow_Condensed'] font-black text-[var(--vaden-on-surface)] text-5xl md:text-6xl leading-none uppercase">
+          <h2 className="font-['Barlow_Condensed'] font-black text-[var(--brac-on-surface)] text-5xl md:text-6xl leading-none uppercase">
             {asString(metadata.heading)}
           </h2>
         </div>
@@ -164,7 +237,7 @@ export default function ContactSection() {
                 return (
                   <div
                     key={`${info.title}-${index}`}
-                    className={`flex items-start gap-4 p-4 bg-[var(--vaden-surface-14)] border border-[var(--vaden-border)] hover:border-[oklch(0.60_0.18_42)] transition-all duration-300 ${
+                    className={`flex items-start gap-4 p-4 bg-[var(--brac-surface-14)] border border-[var(--brac-border)] hover:border-[oklch(0.60_0.18_42)] transition-all duration-300 ${
                       isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
                     }`}
                     style={{ transitionDelay: `${0.2 + index * 0.1}s` }}
@@ -173,11 +246,11 @@ export default function ContactSection() {
                       <Icon size={18} className="text-[oklch(0.60_0.18_42)]" />
                     </div>
                     <div>
-                      <h4 className="font-['Barlow_Condensed'] font-bold text-[var(--vaden-on-surface)] text-base uppercase tracking-wide mb-1">
+                      <h4 className="font-['Barlow_Condensed'] font-bold text-[var(--brac-on-surface)] text-base uppercase tracking-wide mb-1">
                         {asString(info.title)}
                       </h4>
                       {lines.map((line, lineIndex) => (
-                        <p key={`${line}-${lineIndex}`} className="text-[var(--vaden-text-muted)] text-sm font-['Inter']">
+                        <p key={`${line}-${lineIndex}`} className="text-[var(--brac-text-muted)] text-sm font-['Inter']">
                           {line}
                         </p>
                       ))}
@@ -212,10 +285,13 @@ export default function ContactSection() {
                   <input
                     type="text"
                     required
+                    minLength={2}
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    onInvalid={(e) => handleFieldInvalid(e, "name")}
+                    onInput={clearFieldValidity}
                     disabled={submitQuoteMutation.isPending}
-                    className="w-full bg-[var(--vaden-surface-14)] border border-[var(--vaden-border-strong)] focus:border-[oklch(0.60_0.18_42)] px-4 py-3 text-[var(--vaden-on-surface)] placeholder-[var(--vaden-text-placeholder)] text-sm outline-none transition-colors font-['Inter']"
+                    className="w-full bg-[var(--brac-surface-14)] border border-[var(--brac-border-strong)] focus:border-[oklch(0.60_0.18_42)] px-4 py-3 text-[var(--brac-on-surface)] placeholder-[var(--brac-text-placeholder)] text-sm outline-none transition-colors font-['Inter']"
                     placeholder={asString(metadata.placeholders?.name)}
                   />
                 </div>
@@ -228,8 +304,10 @@ export default function ContactSection() {
                     required
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    onInvalid={(e) => handleFieldInvalid(e, "email")}
+                    onInput={clearFieldValidity}
                     disabled={submitQuoteMutation.isPending}
-                    className="w-full bg-[var(--vaden-surface-14)] border border-[var(--vaden-border-strong)] focus:border-[oklch(0.60_0.18_42)] px-4 py-3 text-[var(--vaden-on-surface)] placeholder-[var(--vaden-text-placeholder)] text-sm outline-none transition-colors font-['Inter']"
+                    className="w-full bg-[var(--brac-surface-14)] border border-[var(--brac-border-strong)] focus:border-[oklch(0.60_0.18_42)] px-4 py-3 text-[var(--brac-on-surface)] placeholder-[var(--brac-text-placeholder)] text-sm outline-none transition-colors font-['Inter']"
                     placeholder={asString(metadata.placeholders?.email)}
                   />
                 </div>
@@ -245,7 +323,7 @@ export default function ContactSection() {
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     disabled={submitQuoteMutation.isPending}
-                    className="w-full bg-[var(--vaden-surface-14)] border border-[var(--vaden-border-strong)] focus:border-[oklch(0.60_0.18_42)] px-4 py-3 text-[var(--vaden-on-surface)] placeholder-[var(--vaden-text-placeholder)] text-sm outline-none transition-colors font-['Inter']"
+                    className="w-full bg-[var(--brac-surface-14)] border border-[var(--brac-border-strong)] focus:border-[oklch(0.60_0.18_42)] px-4 py-3 text-[var(--brac-on-surface)] placeholder-[var(--brac-text-placeholder)] text-sm outline-none transition-colors font-['Inter']"
                     placeholder={asString(metadata.placeholders?.phone)}
                   />
                 </div>
@@ -256,10 +334,13 @@ export default function ContactSection() {
                   <input
                     type="text"
                     required
+                    minLength={2}
                     value={formData.subject}
                     onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                    onInvalid={(e) => handleFieldInvalid(e, "subject")}
+                    onInput={clearFieldValidity}
                     disabled={submitQuoteMutation.isPending}
-                    className="w-full bg-[var(--vaden-surface-14)] border border-[var(--vaden-border-strong)] focus:border-[oklch(0.60_0.18_42)] px-4 py-3 text-[var(--vaden-on-surface)] placeholder-[var(--vaden-text-placeholder)] text-sm outline-none transition-colors font-['Inter']"
+                    className="w-full bg-[var(--brac-surface-14)] border border-[var(--brac-border-strong)] focus:border-[oklch(0.60_0.18_42)] px-4 py-3 text-[var(--brac-on-surface)] placeholder-[var(--brac-text-placeholder)] text-sm outline-none transition-colors font-['Inter']"
                     placeholder={asString(metadata.placeholders?.subject)}
                   />
                 </div>
@@ -271,37 +352,56 @@ export default function ContactSection() {
                 </label>
                 <textarea
                   required
+                  minLength={10}
                   rows={5}
                   value={formData.message}
                   onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                  onInvalid={(e) => handleFieldInvalid(e, "message")}
+                  onInput={clearFieldValidity}
                   disabled={submitQuoteMutation.isPending}
-                  className="w-full bg-[var(--vaden-surface-14)] border border-[var(--vaden-border-strong)] focus:border-[oklch(0.60_0.18_42)] px-4 py-3 text-[var(--vaden-on-surface)] placeholder-[var(--vaden-text-placeholder)] text-sm outline-none transition-colors font-['Inter'] resize-none"
+                  className="w-full bg-[var(--brac-surface-14)] border border-[var(--brac-border-strong)] focus:border-[oklch(0.60_0.18_42)] px-4 py-3 text-[var(--brac-on-surface)] placeholder-[var(--brac-text-placeholder)] text-sm outline-none transition-colors font-['Inter'] resize-none"
                   placeholder={asString(metadata.placeholders?.message)}
                 />
               </div>
 
-              <button
-                type="submit"
-                disabled={submitQuoteMutation.isPending}
-                className="inline-flex items-center gap-2 bg-[oklch(0.60_0.18_42)] hover:bg-[oklch(0.50_0.18_42)] text-[var(--vaden-on-accent)] font-['Barlow_Condensed'] font-bold text-sm px-8 py-3.5 tracking-wide uppercase transition-all hover:shadow-[0_0_20px_oklch(0.60_0.18_42/0.3)]"
-              >
-                {submitQuoteMutation.isPending
-                  ? "Gönderiliyor..."
-                  : asString(metadata.labels?.submit, "Mesaj Gönder")}{" "}
-                <Send size={16} />
-              </button>
+              <label className="flex items-start gap-3 rounded-xl border border-[var(--brac-border)] bg-[var(--brac-surface-14)] p-4">
+                <input
+                  type="checkbox"
+                  checked={consentAccepted}
+                  onChange={(e) => setConsentAccepted(e.target.checked)}
+                  disabled={submitQuoteMutation.isPending}
+                  className="mt-1 h-4 w-4 accent-[oklch(0.60_0.18_42)]"
+                />
+                <span
+                  className="text-sm leading-6 text-[var(--brac-text-muted)] [&_a]:font-medium [&_a]:text-[oklch(0.60_0.18_42)] [&_a]:underline [&_a]:underline-offset-4"
+                  dangerouslySetInnerHTML={{ __html: consentLabelHtml }}
+                />
+              </label>
 
-              {asString(metadata.whatsappUrl) ? (
-                <a
-                  href={asString(metadata.whatsappUrl)}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-2 border border-[var(--vaden-border-strong)] bg-[var(--vaden-surface-14)] px-8 py-3.5 font-['Barlow_Condensed'] text-sm font-bold uppercase tracking-wide text-[var(--vaden-on-surface)] transition-all hover:border-[oklch(0.60_0.18_42)] hover:text-[oklch(0.60_0.18_42)]"
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <button
+                  type="submit"
+                  disabled={submitQuoteMutation.isPending}
+                  className="inline-flex items-center gap-2 bg-[oklch(0.60_0.18_42)] hover:bg-[oklch(0.50_0.18_42)] text-[var(--brac-on-accent)] font-['Barlow_Condensed'] font-bold text-sm px-8 py-3.5 tracking-wide uppercase transition-all hover:shadow-[0_0_20px_oklch(0.60_0.18_42/0.3)]"
                 >
-                  {asString(metadata.whatsappText, "WhatsApp")}
-                  <WhatsAppIcon />
-                </a>
-              ) : null}
+                  {submitQuoteMutation.isPending
+                    ? "Gönderiliyor..."
+                    : asString(metadata.labels?.submit, "Mesaj Gönder")}{" "}
+                  <Send size={16} />
+                </button>
+
+                {asString(metadata.whatsappUrl) ? (
+                  <a
+                    href={asString(metadata.whatsappUrl)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 border border-[var(--brac-border-strong)] bg-[var(--brac-surface-14)] px-8 py-3.5 font-['Barlow_Condensed'] text-sm font-bold uppercase tracking-wide text-[var(--brac-on-surface)] transition-all hover:border-[oklch(0.60_0.18_42)] hover:text-[oklch(0.60_0.18_42)]"
+                  >
+                    {asString(metadata.whatsappText, "WhatsApp")}
+                    <WhatsAppIcon />
+                  </a>
+                ) : null}
+              </div>
             </form>
           </div>
         </div>

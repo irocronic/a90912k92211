@@ -47,7 +47,7 @@ export default function AwardsSection() {
   return (
     <section
       id="oduller"
-      className="py-20 bg-[var(--vaden-surface-09)] relative overflow-hidden"
+      className="py-20 bg-[var(--brac-surface-09)] relative overflow-hidden"
       ref={ref as React.RefObject<HTMLElement>}
     >
       <div className="absolute top-0 right-0 w-96 h-96 bg-[oklch(0.60_0.18_42)/3] rounded-full blur-3xl"></div>
@@ -64,7 +64,7 @@ export default function AwardsSection() {
               {asString(metadata.label)}
             </span>
           </div>
-          <h2 className="font-['Barlow_Condensed'] font-black text-[var(--vaden-on-surface)] text-5xl md:text-6xl leading-none uppercase">
+          <h2 className="font-['Barlow_Condensed'] font-black text-[var(--brac-on-surface)] text-5xl md:text-6xl leading-none uppercase">
             {asString(metadata.headingMain)}
             <br />
             <span className="text-[oklch(0.60_0.18_42)]">{asString(metadata.headingHighlight)}</span>
@@ -77,7 +77,7 @@ export default function AwardsSection() {
             return (
               <div
                 key={`${award.id}-${index}`}
-                className={`bg-[var(--vaden-surface-12)] border border-[var(--vaden-border)] hover:border-[oklch(0.60_0.18_42)] p-6 group transition-all duration-300 ${
+                className={`bg-[var(--brac-surface-12)] border border-[var(--brac-border)] hover:border-[oklch(0.60_0.18_42)] p-6 group transition-all duration-300 ${
                   isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
                 }`}
                 style={{ transitionDelay: `${index * 0.15}s` }}
@@ -96,7 +96,7 @@ export default function AwardsSection() {
                   </div>
                 </div>
 
-                <h3 className="font-['Barlow_Condensed'] font-bold text-[var(--vaden-on-surface)] text-lg leading-tight mb-3 uppercase">
+                <h3 className="font-['Barlow_Condensed'] font-bold text-[var(--brac-on-surface)] text-lg leading-tight mb-3 uppercase">
                   {asString(award.title)}
                 </h3>
                 <p className="text-[oklch(0.50_0.01_250)] text-sm font-['Inter'] leading-relaxed mb-4">
@@ -124,8 +124,8 @@ export default function AwardsSection() {
               key={`${tab}-${index}`}
               className={`font-['Barlow_Condensed'] font-bold text-sm px-6 py-2.5 tracking-wide uppercase transition-all ${
                 index === 0
-                  ? "bg-[oklch(0.60_0.18_42)] text-[var(--vaden-on-accent)]"
-                  : "border border-[oklch(0.30_0.01_250)] text-[var(--vaden-text-muted)] hover:border-[oklch(0.60_0.18_42)] hover:text-[oklch(0.60_0.18_42)]"
+                  ? "bg-[oklch(0.60_0.18_42)] text-[var(--brac-on-accent)]"
+                  : "border border-[oklch(0.30_0.01_250)] text-[var(--brac-text-muted)] hover:border-[oklch(0.60_0.18_42)] hover:text-[oklch(0.60_0.18_42)]"
               }`}
             >
               {tab}
